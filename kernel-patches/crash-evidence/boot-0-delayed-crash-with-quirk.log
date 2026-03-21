@@ -1,0 +1,121 @@
+Mar 21 13:08:13 katana kernel: RAS: Correctable Errors collector initialized.
+Mar 21 13:08:13 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 13:08:13 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 13:08:13 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 13:08:13 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 13:08:13 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 13:08:13 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 13:08:13 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 13:08:13 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:08:13 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 13:08:13 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:08:13 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 13:08:13 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 3
+Mar 21 13:08:13 katana kernel: xhci_hcd 0000:01:00.2: hcc params 0x0180ff05 hci version 0x110 quirks 0x0000000000000010
+Mar 21 13:08:13 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 13:08:13 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 4
+Mar 21 13:08:13 katana kernel: xhci_hcd 0000:01:00.2: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 13:08:13 katana kernel: usb usb3: Product: xHCI Host Controller
+Mar 21 13:08:13 katana kernel: usb usb3: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:08:13 katana kernel: usb usb4: Product: xHCI Host Controller
+Mar 21 13:08:13 katana kernel: usb usb4: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:08:13 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 13:08:13 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 2 using xhci_hcd
+Mar 21 13:08:13 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 13:08:13 katana kernel: usb 2-4: new SuperSpeed USB device number 3 using xhci_hcd
+Mar 21 13:08:13 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 13:08:13 katana kernel: usb 1-4.1: new full-speed USB device number 5 using xhci_hcd
+Mar 21 13:08:13 katana kernel: usb 1-8: new high-speed USB device number 6 using xhci_hcd
+Mar 21 13:08:13 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 13:08:13 katana kernel: usb 1-4.2: new full-speed USB device number 8 using xhci_hcd
+Mar 21 13:08:13 katana kernel: usb 1-10: new full-speed USB device number 9 using xhci_hcd
+Mar 21 13:08:13 katana kernel: usb 1-8.1: new low-speed USB device number 10 using xhci_hcd
+Mar 21 13:08:13 katana kernel: usb 1-4.3: new full-speed USB device number 11 using xhci_hcd
+Mar 21 13:08:13 katana kernel: usb 1-14: new full-speed USB device number 12 using xhci_hcd
+Mar 21 13:08:13 katana kernel: usb 1-8.5: new full-speed USB device number 13 using xhci_hcd
+Mar 21 13:08:13 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 13:08:15 katana kernel: nvidia-gpu 0000:01:00.3: i2c timeout error e0000000
+Mar 21 13:08:15 katana kernel: ucsi_ccg: probe of 1-0008 failed with error -110
+Mar 21 13:13:33 katana kernel: usb 2-1: new SuperSpeed USB device number 4 using xhci_hcd
+Mar 21 13:13:33 katana kernel: usb 2-1: Found UVC 1.00 device Razer Kiyo Pro (1532:0e05)
+Mar 21 13:13:33 katana kernel: uvcvideo 2-1:1.1: Failed to set UVC probe control : -32 (exp. 26).
+Mar 21 13:13:33 katana kernel: usbcore: registered new interface driver uvcvideo
+Mar 21 13:17:05 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 13:17:05 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 13:17:06 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 13:17:06 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 13:17:06 katana kernel: usb 1-4.3: reset full-speed USB device number 11 using xhci_hcd
+Mar 21 13:17:07 katana kernel: usb 1-4.2: reset full-speed USB device number 8 using xhci_hcd
+Mar 21 13:17:07 katana kernel: usb 1-8.5: reset full-speed USB device number 13 using xhci_hcd
+Mar 21 13:17:07 katana kernel: usb 1-4.3: reset full-speed USB device number 11 using xhci_hcd
+Mar 21 13:17:07 katana kernel: usb 1-8.5: reset full-speed USB device number 13 using xhci_hcd
+Mar 21 13:17:08 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 13:17:09 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 13:17:09 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 13:17:09 katana kernel: usb 1-4.3: reset full-speed USB device number 11 using xhci_hcd
+Mar 21 13:17:10 katana kernel: usb 1-8.5: reset full-speed USB device number 13 using xhci_hcd
+Mar 21 13:17:10 katana kernel: usb 1-4.2: reset full-speed USB device number 8 using xhci_hcd
+Mar 21 13:17:10 katana kernel: usb 1-4.3: reset full-speed USB device number 11 using xhci_hcd
+Mar 21 13:17:10 katana kernel: usb 1-8.5: reset full-speed USB device number 13 using xhci_hcd
+Mar 21 13:17:12 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 13:17:13 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 13:17:14 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 13:17:15 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 13:17:15 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 13:17:15 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 13:17:16 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 13:17:18 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 13:30:57 katana kernel: xhci_hcd 0000:00:14.0: xHCI host not responding to stop endpoint command
+Mar 21 13:30:57 katana kernel: xhci_hcd 0000:00:14.0: xHCI host controller not responding, assume dead
+Mar 21 13:30:57 katana kernel: xhci_hcd 0000:00:14.0: HC died; cleaning up
+Mar 21 13:30:57 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 13:30:57 katana kernel: usb 2-1: USB disconnect, device number 4
+Mar 21 13:30:57 katana kernel: uvcvideo 2-1:1.1: Failed to set UVC commit control : -110 (exp. 26).
+Mar 21 13:30:57 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 13:30:57 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 13:30:57 katana kernel: usb 2-3: USB disconnect, device number 2
+Mar 21 13:30:57 katana kernel: usb 2-4: USB disconnect, device number 3
+Mar 21 13:30:57 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 13:30:57 katana kernel: usb 1-4.3: USB disconnect, device number 11
+Mar 21 13:30:57 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 13:30:57 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 13:30:57 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 13:30:57 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 13:30:57 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 21 13:30:57 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 21 13:30:57 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 21 13:30:57 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 21 13:34:41 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 13:34:41 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 13:34:41 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 13:34:41 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 13:34:41 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 13:34:41 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 13:34:53 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 13:34:53 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 13:34:53 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 13:34:53 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 13:34:53 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 13:34:53 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 13:34:53 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 13:34:53 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:34:53 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 13:34:53 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:34:53 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 13:34:54 katana kernel: usb 2-1: new SuperSpeed USB device number 2 using xhci_hcd
+Mar 21 13:34:54 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 13:34:56 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 13:34:56 katana kernel: usb 2-1: Found UVC 1.00 device Razer Kiyo Pro (1532:0e05)
+Mar 21 13:34:56 katana kernel: usb 1-8: new high-speed USB device number 5 using xhci_hcd
+Mar 21 13:34:56 katana kernel: usb 1-4.1: new full-speed USB device number 6 using xhci_hcd
+Mar 21 13:34:57 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 13:34:57 katana kernel: usb 1-10: new full-speed USB device number 8 using xhci_hcd
+Mar 21 13:34:57 katana kernel: usb 1-8.1: new low-speed USB device number 9 using xhci_hcd
+Mar 21 13:34:57 katana kernel: usb 1-4.2: new full-speed USB device number 10 using xhci_hcd
+Mar 21 13:34:57 katana kernel: usb 1-14: new full-speed USB device number 11 using xhci_hcd
+Mar 21 13:34:58 katana kernel: usb 1-8.5: new full-speed USB device number 12 using xhci_hcd
+Mar 21 13:34:58 katana kernel: usb 1-4.3: new full-speed USB device number 13 using xhci_hcd
+Mar 21 13:34:58 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 13:35:01 katana kernel: uvcvideo 2-1:1.1: Failed to set UVC probe control : -32 (exp. 26).
+Mar 21 13:35:14 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 3 using xhci_hcd
+Mar 21 13:35:15 katana kernel: usb 2-4: new SuperSpeed USB device number 4 using xhci_hcd
