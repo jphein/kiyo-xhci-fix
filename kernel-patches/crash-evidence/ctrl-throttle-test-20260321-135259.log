@@ -1,0 +1,57 @@
+=== CTRL_THROTTLE Isolation Test ===
+Rounds: 50
+Patched module: /home/jp/Projects/kiyo-xhci-fix/kernel-patches/uvcvideo-patched.ko
+
+[1/3] Swapping to patched uvcvideo module...
+  Patched module loaded
+[2/3] Removing NO_LPM quirk...
+  NO_LPM removed — CTRL_THROTTLE is the only protection
+[3/3] Running stress test (50 rounds)...
+  Kiyo present
+
+Mar 21 13:50:21 katana kernel: usbcore: registered new interface driver uvcvideo
+Mar 21 13:51:05 katana kernel: usbcore: deregistering interface driver uvcvideo
+Mar 21 13:51:07 katana kernel: usb 2-1: Found UVC 1.00 device Razer Kiyo Pro (1532:0e05)
+Mar 21 13:51:12 katana kernel: usbcore: registered new interface driver uvcvideo
+Mar 21 13:51:48 katana kernel: usbcore: deregistering interface driver uvcvideo
+Mar 21 13:51:50 katana kernel: usb 2-1: Found UVC 1.00 device Razer Kiyo Pro (1532:0e05)
+Mar 21 13:51:55 katana kernel: usbcore: registered new interface driver uvcvideo
+Mar 21 13:52:59 katana kernel: usbcore: deregistering interface driver uvcvideo
+Mar 21 13:53:02 katana kernel: usb 2-1: Found UVC 1.00 device Razer Kiyo Pro (1532:0e05)
+Mar 21 13:53:07 katana kernel: usbcore: registered new interface driver uvcvideo
+=== Razer Kiyo Pro Stress Test ===
+Device: /dev/video0
+Rounds: 50
+Delay: 0ms between controls
+Watch logs in another terminal: journalctl -k -f | grep -i 'xhci\|uvc\|error'
+
+Round   1/50: OK
+Round   2/50: OK
+Round   3/50: OK
+Round   4/50: OK
+Round   5/50: OK
+Round   6/50: OK
+Round   7/50: OK
+Round   8/50: OK
+Round   9/50: OK
+Round  10/50: OK
+Round  11/50: OK
+Round  12/50: OK
+Round  13/50: OK
+Round  14/50: OK
+Round  15/50: OK
+Round  16/50: OK
+Round  17/50: OK
+Round  18/50: OK
+Round  19/50: OK
+Round  20/50: OK
+Round  21/50: OK
+Round  22/50: OK
+Round  23/50: OK
+Round  24/50: Mar 21 14:03:11 katana kernel: input: ydotoold virtual device as /devices/virtual/input/input59
+OK
+Round  25/50: OK
+Round  26/50: OK
+Round  27/50: OK
+Round  28/50: OK
+Round  29/50: 

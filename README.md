@@ -4,21 +4,27 @@ Linux kernel patches and userspace watchdog for the **Razer Kiyo Pro (1532:0e05)
 
 ## The Problem
 
-The Razer Kiyo Pro's firmware (v8.21) crashes when it receives rapid UVC `SET_CUR` control transfers while USB Link Power Management (LPM) is active. This triggers a cascade failure on the Intel xHCI controller (Cannon Lake PCH, 8086:a36d) that disconnects **all** USB devices on the bus — keyboard, mouse, everything.
+The Razer Kiyo Pro's firmware (v8.21) has two failure modes that cascade into complete xHCI host controller death, disconnecting **all** USB devices on the bus — keyboard, mouse, everything — requiring a hard reboot.
 
-The kernel's built-in xHCI error recovery makes it worse: it detects the fault, resets the controller, the reset triggers another fault, and the system enters a death spiral requiring a hard reboot.
+1. **LPM/autosuspend resume:** The device fails to reinitialize after USB Link Power Management transitions, producing EPIPE (-32) on UVC SET_CUR. The stalled endpoint triggers an xHCI stop-endpoint timeout, and the kernel declares the controller dead.
+
+2. **Rapid control transfers:** ~25 rapid consecutive UVC SET_CUR operations overwhelm the firmware. The standard UVC error-code query (GET_CUR after EPIPE) amplifies the failure by sending a second transfer to the already-stalling device.
+
+The kernel's built-in xHCI error recovery makes it worse: it detects the fault, resets the controller, the reset triggers another fault, and the system enters a death spiral.
+
+**Important:** Testing shows NO_LPM alone is insufficient — a stress test with NO_LPM active caused delayed controller death 13 minutes later via TRB warning escalation. Both LPM prevention and control throttling are needed.
 
 **Affected:** Linux 6.8+ (tested on Ubuntu 24.04), Intel xHCI controllers, Razer Kiyo Pro firmware 8.21.
 
 ## The Fix
 
-Three layers, any of which prevents the crash independently:
+Three kernel patches, all necessary:
 
 ### 1. Kernel Patches (upstream submissions)
 
-- **`0001`** — `USB_QUIRK_NO_LPM` for 1532:0e05 — disables Link Power Management, preventing the firmware bug from triggering
-- **`0002`** — UVC quirks (`UVC_QUIRK_PROBE_MINMAX`, `UVC_QUIRK_FIX_BANDWIDTH`) — safer format negotiation
-- **`0003`** — UVC control throttle quirk — rate-limits `SET_CUR` transfers to prevent firmware overload
+- **`0001`** — `USB_QUIRK_NO_LPM` for 1532:0e05 — disables Link Power Management to prevent firmware destabilization during power state transitions
+- **`0002`** — `UVC_QUIRK_CTRL_THROTTLE` — new UVC quirk that rate-limits SET_CUR transfers (50ms interval) and skips error-code queries after EPIPE to prevent crash amplification
+- **`0003`** — Razer Kiyo Pro device entry with `UVC_QUIRK_CTRL_THROTTLE | UVC_QUIRK_DISABLE_AUTOSUSPEND | UVC_QUIRK_NO_RESET_RESUME`
 
 See [`kernel-patches/upstream-report.md`](kernel-patches/upstream-report.md) for the full bug analysis submitted to `linux-usb@vger.kernel.org`.
 
@@ -43,14 +49,26 @@ echo 'options usbcore quirks=1532:0e05:n' | sudo tee /etc/modprobe.d/razer-kiyo-
 sudo update-initramfs -u
 ```
 
+Note: This only addresses crash trigger #1 (LPM). For full protection against rapid control transfer crashes, the CTRL_THROTTLE patch is also needed.
+
+## Testing
+
+```bash
+# Reproduce the crash (WARNING: will kill all USB devices)
+bash kernel-patches/stress-test-kiyo.sh 50
+
+# Build and test the CTRL_THROTTLE patch in isolation
+sudo bash kernel-patches/build-uvc-module.sh
+sudo bash kernel-patches/test-ctrl-throttle.sh 50
+```
+
+Crash evidence from real-world failures is in [`kernel-patches/crash-evidence/`](kernel-patches/crash-evidence/).
+
 ## Install
 
 ```bash
 # Install the watchdog service
 bash kernel-patches/install-watchdog.sh
-
-# Test with the stress test (reproduces the crash without the quirk)
-bash kernel-patches/stress-test-kiyo.sh 50
 ```
 
 ## Files
@@ -63,9 +81,12 @@ bash kernel-patches/stress-test-kiyo.sh 50
 | `reset-camera.sh` | One-shot manual recovery script |
 | `fix-kiyo-pro.sh` | All-in-one fix installer (quirk + udev + WirePlumber) |
 | `kernel-patches/*.patch` | Kernel patches for upstream submission |
+| `kernel-patches/build-uvc-module.sh` | Builds patched uvcvideo module from kernel source |
+| `kernel-patches/test-ctrl-throttle.sh` | CTRL_THROTTLE isolation test (swaps module, removes LPM quirk) |
 | `kernel-patches/stress-test-kiyo.sh` | Crash reproducer / validation tool |
 | `kernel-patches/upstream-report.md` | Full bug report for linux-usb mailing list |
 | `kernel-patches/research-*.md` | Root cause analysis notes |
+| `kernel-patches/crash-evidence/` | Kernel logs from real crash events |
 
 ## Hardware
 

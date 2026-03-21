@@ -1,3 +1,4 @@
 *.log
 !kernel-patches/crash-evidence/*.log
+*.ko
 /tmp/
