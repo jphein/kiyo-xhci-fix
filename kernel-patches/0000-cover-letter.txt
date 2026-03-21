@@ -1,3 +1,4 @@
+From: JP Hein <jp@jphein.com>
 Subject: [PATCH 0/3] USB/UVC: Add quirks to prevent Razer Kiyo Pro xHCI cascade failure
 
 The Razer Kiyo Pro (1532:0e05) is a USB 3.0 webcam whose firmware has a
@@ -51,8 +52,8 @@ JP Hein (3):
   media: uvcvideo: add UVC_QUIRK_CTRL_THROTTLE for fragile firmware
   media: uvcvideo: add quirks for Razer Kiyo Pro webcam
 
- drivers/media/usb/uvc/uvc_driver.c | 13 +++++++++++++
- drivers/media/usb/uvc/uvc_video.c  | 22 ++++++++++++++++++++++
+ drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++++++
+ drivers/media/usb/uvc/uvc_video.c  | 33 +++++++++++++++++++++++++++++++++
  drivers/media/usb/uvc/uvcvideo.h   |  3 +++
- drivers/usb/core/quirks.c           |  3 +++
- 4 files changed, 41 insertions(+)
+ drivers/usb/core/quirks.c          |  2 ++
+ 4 files changed, 54 insertions(+)
