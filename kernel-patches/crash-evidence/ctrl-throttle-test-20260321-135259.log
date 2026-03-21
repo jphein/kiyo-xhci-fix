@@ -68,4 +68,24 @@ Round  39/50: OK
 Round  40/50: OK
 Round  41/50: OK
 Round  42/50: OK
-Round  43/50: 
+Round  43/50: OK
+Round  44/50: OK
+Round  45/50: OK
+Round  46/50: OK
+Round  47/50: Mar 21 14:13:12 katana kernel: input: ydotoold virtual device as /devices/virtual/input/input60
+OK
+Round  48/50: OK
+Round  49/50: OK
+Round  50/50: OK
+
+=== Complete ===
+Results: 50 passed, 0 failed out of 50 rounds
+No crashes detected — quirks are holding.
+
+=== Post-test health check ===
+  Kiyo still alive — CTRL_THROTTLE held
+  Fatal xHCI errors: 0
+
+
+=== Restoring stock module and quirk ===
+  Restored: stock uvcvideo + NO_LPM quirk
