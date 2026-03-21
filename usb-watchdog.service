@@ -1,0 +1,12 @@
+[Unit]
+Description=USB Watchdog — auto-recovers xHCI controller lockups
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/home/jp/Projects/scripts/usb-watchdog.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

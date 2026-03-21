@@ -1,0 +1,11 @@
+# USB Watchdog — minimal sudoers rules for user-service operation
+# Install: sudo cp usb-watchdog-sudoers /etc/sudoers.d/usb-watchdog
+#          sudo chmod 0440 /etc/sudoers.d/usb-watchdog
+#          sudo visudo -cf /etc/sudoers.d/usb-watchdog
+
+jp ALL=(root) NOPASSWD: /usr/bin/tee /sys/bus/pci/drivers/xhci_hcd/unbind
+jp ALL=(root) NOPASSWD: /usr/bin/tee /sys/bus/pci/drivers/xhci_hcd/bind
+jp ALL=(root) NOPASSWD: /usr/bin/tee /sys/bus/usb/drivers/usb/unbind
+jp ALL=(root) NOPASSWD: /usr/bin/tee /sys/bus/usb/drivers/usb/bind
+jp ALL=(root) NOPASSWD: /sbin/modprobe -r xhci_pci xhci_pci_renesas
+jp ALL=(root) NOPASSWD: /sbin/modprobe xhci_pci xhci_pci_renesas

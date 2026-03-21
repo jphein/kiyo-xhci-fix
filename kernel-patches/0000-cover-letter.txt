@@ -1,0 +1,47 @@
+Subject: [PATCH 0/2] USB/UVC: Add quirks to prevent Razer Kiyo Pro xHCI cascade failure
+
+The Razer Kiyo Pro (1532:0e05) is a USB 3.0 webcam whose firmware has a
+well-documented failure mode that cascades into complete xHCI host
+controller death, disconnecting every USB device on the bus — including
+keyboards and mice, requiring a hard reboot.
+
+The failure sequence is:
+  1. Device enters LPM or autosuspend
+  2. On resume, UVC probe control SET_CUR returns -32 (EPIPE)
+  3. xHCI driver sends stop-endpoint command
+  4. Device firmware is unresponsive, command times out after 5s
+  5. xHCI driver declares host controller dead
+  6. All USB devices on the controller are disconnected
+
+This has been reported as Ubuntu Launchpad Bug #2061177 and affects
+multiple kernel versions (tested on 6.5.x through 6.8.x). There are
+currently no device-specific quirks for this webcam in either the USB
+core quirks table or the UVC driver device table.
+
+This series adds two quirks to prevent the conditions that trigger the
+cascade:
+
+Patch 1: USB core — USB_QUIRK_NO_LPM to prevent Link Power Management
+  transitions that destabilize the device firmware.
+
+Patch 2: UVC driver — UVC_QUIRK_DISABLE_AUTOSUSPEND to prevent USB
+  autosuspend, and UVC_QUIRK_NO_RESET_RESUME to avoid the fragile
+  reset-during-resume path. These follow the same patterns used for
+  Logitech Rally Bar (NO_RESET_RESUME) and Insta360 Link
+  (DISABLE_AUTOSUSPEND).
+
+Together, these keep the device in a stable active state and avoid the
+power management transitions that trigger the firmware bug.
+
+Tested on:
+  - Kernel: 6.8.0-106-generic (Ubuntu 24.04)
+  - Hardware: Intel Cannon Lake PCH xHCI (8086:a36d)
+  - Device: Razer Kiyo Pro (1532:0e05), firmware 8.21
+
+JP Hein (2):
+  USB: core: add NO_LPM quirk for Razer Kiyo Pro webcam
+  media: uvcvideo: add quirks for Razer Kiyo Pro webcam
+
+ drivers/media/usb/uvc/uvc_driver.c | 11 +++++++++++
+ drivers/usb/core/quirks.c           |  3 +++
+ 2 files changed, 14 insertions(+)

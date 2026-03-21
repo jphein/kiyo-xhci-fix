@@ -1,0 +1,59 @@
+From: JP Hein <jp@jphein.com>
+Date: Fri, 21 Mar 2026 12:00:00 -0700
+Subject: [PATCH 2/2] media: uvcvideo: add quirks for Razer Kiyo Pro webcam
+
+The Razer Kiyo Pro (1532:0e05) is a USB 3.0 webcam with firmware that
+has two issues that can cascade into full xHCI host controller failure:
+
+1. When the device enters USB autosuspend and then resumes, it can fail
+   to reinitialize its UVC endpoints correctly, producing SET_CUR probe
+   control errors (-32, EPIPE). The stalled endpoint then triggers an
+   xHCI stop-endpoint command timeout, which causes the kernel to
+   declare the entire host controller dead.
+
+2. The device's reset-resume path is similarly fragile — a USB reset
+   during resume can leave the device in an inconsistent state where
+   subsequent control transfers hang, again leading to xHCI controller
+   death.
+
+Apply UVC_QUIRK_DISABLE_AUTOSUSPEND to prevent the device from entering
+USB autosuspend states that trigger the firmware bug, and
+UVC_QUIRK_NO_RESET_RESUME to avoid the problematic reset-during-resume
+path. Together, these prevent the conditions that lead to the xHCI
+cascade failure.
+
+This is the same approach used for Logitech Rally Bar devices
+(NO_RESET_RESUME) and Actions Microelectronics / Insta360 cameras
+(DISABLE_AUTOSUSPEND).
+
+Cc: stable@vger.kernel.org
+Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/2061177
+Signed-off-by: JP Hein <jp@jphein.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index XXXXXXX..XXXXXXX 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -3125,6 +3125,17 @@ static const struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
+
++	/* Razer Kiyo Pro */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x1532,
++	  .idProduct		= 0x0e05,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0,
++	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_DISABLE_AUTOSUSPEND
++					| UVC_QUIRK_NO_RESET_RESUME) },
++
+ 	/* Oculus VR Positional Tracker DK2 */
+ 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+ 				| USB_DEVICE_ID_MATCH_INT_INFO,
+--
+2.43.0
