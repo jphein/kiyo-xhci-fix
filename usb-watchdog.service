@@ -4,7 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/home/jp/Projects/scripts/usb-watchdog.sh
+ExecStart=/home/jp/Projects/kiyo-xhci-fix/usb-watchdog.sh
 Restart=always
 RestartSec=5
 

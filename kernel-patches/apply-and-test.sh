@@ -2,8 +2,8 @@
 # Apply Razer Kiyo Pro quirks for upstream kernel patch testing
 # Cleans up stale fixes, applies new LPM/autosuspend quirks alongside existing ones
 #
-# Run: sudo bash ~/Projects/scripts/kernel-patches/apply-and-test.sh
-# Undo: sudo bash ~/Projects/scripts/kernel-patches/apply-and-test.sh --undo
+# Run: sudo bash ~/Projects/kiyo-xhci-fix/kernel-patches/apply-and-test.sh
+# Undo: sudo bash ~/Projects/kiyo-xhci-fix/kernel-patches/apply-and-test.sh --undo
 
 set -e
 

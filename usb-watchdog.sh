@@ -8,7 +8,7 @@
 #   2 — Full xHCI controller rebind (PCI unbind/bind)
 #   3 — Full xHCI driver reload (modprobe -r / modprobe)
 #
-# Install: ~/Projects/scripts/kernel-patches/install-watchdog.sh
+# Install: ~/Projects/kiyo-xhci-fix/kernel-patches/install-watchdog.sh
 
 XHCI_PCI="0000:00:14.0"
 KIYO_VID="1532"

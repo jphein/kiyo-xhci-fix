@@ -100,8 +100,8 @@ rapid UVC control transfers**, not solely in power management transitions.
 ### Stress Test Execution
 
 ```bash
-sudo bash ~/Projects/scripts/kernel-patches/apply-and-test.sh   # apply quirks
-bash ~/Projects/scripts/kernel-patches/stress-test-kiyo.sh 50   # run test
+sudo bash ~/Projects/kiyo-xhci-fix/kernel-patches/apply-and-test.sh   # apply quirks
+bash ~/Projects/kiyo-xhci-fix/kernel-patches/stress-test-kiyo.sh 50   # run test
 ```
 
 Record: round number at crash, full dmesg output, quirks in effect.
@@ -109,7 +109,7 @@ Record: round number at crash, full dmesg output, quirks in effect.
 ### Watchdog Recovery Test
 
 ```bash
-bash ~/Projects/scripts/kernel-patches/test-watchdog.sh
+bash ~/Projects/kiyo-xhci-fix/kernel-patches/test-watchdog.sh
 ```
 
 This simulates a crash by unbinding the xHCI controller and verifies:
