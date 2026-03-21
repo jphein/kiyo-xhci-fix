@@ -1,0 +1,1698 @@
+Mar 21 12:03:44 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:03:44 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:03:44 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:03:44 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:03:44 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:03:44 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:03:44 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:03:44 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:03:44 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:03:44 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:03:44 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:03:44 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 3
+Mar 21 12:03:44 katana kernel: xhci_hcd 0000:01:00.2: hcc params 0x0180ff05 hci version 0x110 quirks 0x0000000000000010
+Mar 21 12:03:44 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:03:44 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 4
+Mar 21 12:03:44 katana kernel: xhci_hcd 0000:01:00.2: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:03:44 katana kernel: usb usb3: Product: xHCI Host Controller
+Mar 21 12:03:44 katana kernel: usb usb3: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:03:44 katana kernel: usb usb4: Product: xHCI Host Controller
+Mar 21 12:03:44 katana kernel: usb usb4: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:03:44 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:03:44 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 2 using xhci_hcd
+Mar 21 12:03:44 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:03:44 katana kernel: usb 2-4: new SuperSpeed USB device number 3 using xhci_hcd
+Mar 21 12:03:44 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:03:44 katana kernel: usb 1-4.1: new full-speed USB device number 5 using xhci_hcd
+Mar 21 12:03:44 katana kernel: usb 1-8: new high-speed USB device number 6 using xhci_hcd
+Mar 21 12:03:44 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:03:44 katana kernel: usb 1-4.2: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:03:44 katana kernel: usb 1-10: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:03:44 katana kernel: usb 1-8.1: new low-speed USB device number 10 using xhci_hcd
+Mar 21 12:03:44 katana kernel: usb 1-4.3: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:03:44 katana kernel: usb 1-14: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:03:44 katana kernel: usb 1-8.5: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:03:44 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 12:03:44 katana kernel: loop2: detected capacity change from 0 to 215328
+Mar 21 12:03:45 katana kernel: ucsi_ccg: probe of 0-0008 failed with error -110
+Mar 21 12:07:57 katana kernel: usb 2-1: new SuperSpeed USB device number 4 using xhci_hcd
+Mar 21 12:07:57 katana kernel: usb 2-1: New USB device found, idVendor=1532, idProduct=0e05, bcdDevice= 8.21
+Mar 21 12:07:57 katana kernel: usb 2-1: Found UVC 1.00 device Razer Kiyo Pro (1532:0e05)
+Mar 21 12:07:57 katana kernel: uvcvideo 2-1:1.1: Failed to set UVC probe control : -32 (exp. 26).
+Mar 21 12:07:57 katana kernel: usbcore: registered new interface driver uvcvideo
+Mar 21 12:31:15 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 12:31:17 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 12:31:17 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 12:31:17 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 12:31:17 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 12:31:17 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 12:31:18 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 12:31:18 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 12:31:19 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 12:31:20 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 12:31:20 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 12:31:20 katana kernel: usb 1-4.3: reset full-speed USB device number 11 using xhci_hcd
+Mar 21 12:31:21 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 12:31:21 katana kernel: usb 1-8.5: reset full-speed USB device number 13 using xhci_hcd
+Mar 21 12:31:21 katana kernel: usb 1-4.2: reset full-speed USB device number 8 using xhci_hcd
+Mar 21 12:31:21 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 12:31:21 katana kernel: usb 1-4.3: reset full-speed USB device number 11 using xhci_hcd
+Mar 21 12:31:21 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 12:31:21 katana kernel: usb 1-8.5: reset full-speed USB device number 13 using xhci_hcd
+Mar 21 12:31:22 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 16 ep 2 with no TDs queued?
+Mar 21 12:31:28 katana kernel: usb 2-1: Failed to query (SET_CUR) UVC control 10 on unit 3: -110 (exp. 2).
+Mar 21 12:31:38 katana kernel: xhci_hcd 0000:00:14.0: xHCI host not responding to stop endpoint command
+Mar 21 12:31:38 katana kernel: xhci_hcd 0000:00:14.0: xHCI host controller not responding, assume dead
+Mar 21 12:31:38 katana kernel: xhci_hcd 0000:00:14.0: HC died; cleaning up
+Mar 21 12:31:38 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 10 on unit 3: -110 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 10 on unit 3: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 10 on unit 3: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 10 on unit 3: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 10 on unit 3: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 10 on unit 3: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 6 on unit 1: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 6 on unit 1: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 6 on unit 1: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 6 on unit 1: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 6 on unit 1: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 6 on unit 1: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 4 on unit 1: -19 (exp. 4).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 4 on unit 1: -19 (exp. 4).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 4 on unit 1: -19 (exp. 4).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 4 on unit 1: -19 (exp. 4).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 4 on unit 1: -19 (exp. 4).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 4 on unit 1: -19 (exp. 4).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 10 on unit 3: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 10 on unit 3: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 10 on unit 3: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 10 on unit 3: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 10 on unit 3: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 10 on unit 3: -19 (exp. 2).
+Mar 21 12:31:38 katana kernel: usb 2-1: Failed to query (SET_CUR) UVC control 11 on unit 3: -19 (exp. 1).
+Mar 21 12:31:38 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:31:38 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 12:31:38 katana kernel: usb 2-1: USB disconnect, device number 4
+Mar 21 12:31:38 katana kernel: usb 2-3: USB disconnect, device number 2
+Mar 21 12:31:38 katana kernel: usb 2-4: USB disconnect, device number 3
+Mar 21 12:31:38 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 12:31:38 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:31:38 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:31:38 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:31:38 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:31:38 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:31:38 katana kernel: usb 1-4.3: USB disconnect, device number 11
+Mar 21 12:31:39 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 12:31:39 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:31:39 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 12:31:39 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 12:31:39 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 21 12:31:39 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 21 12:31:39 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 21 12:31:39 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 21 12:31:39 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:31:42 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:31:42 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:31:42 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:31:42 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:31:42 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:31:42 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:31:42 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:31:42 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:31:42 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:31:42 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:31:42 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:31:42 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:31:43 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:31:43 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:31:43 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:31:44 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:31:52 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:31:52 katana kernel: usb 1-4.1: new full-speed USB device number 5 using xhci_hcd
+Mar 21 12:31:53 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 6 using xhci_hcd
+Mar 21 12:31:53 katana kernel: usb 1-8: new high-speed USB device number 6 using xhci_hcd
+Mar 21 12:31:53 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:31:53 katana kernel: usb 1-4.2: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:31:54 katana kernel: usb 2-4: new SuperSpeed USB device number 7 using xhci_hcd
+Mar 21 12:31:54 katana kernel: usb 1-10: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:31:54 katana kernel: usb 1-8.1: new low-speed USB device number 10 using xhci_hcd
+Mar 21 12:31:54 katana kernel: usb 1-4.3: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:31:54 katana kernel: usb 1-14: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:31:55 katana kernel: usb 1-8.5: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:31:55 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 12:31:56 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:31:56 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:31:56 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:31:57 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:31:58 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:31:58 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:31:59 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:31:59 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:37:40 katana kernel: usb 2-1: new SuperSpeed USB device number 12 using xhci_hcd
+Mar 21 12:37:40 katana kernel: usb 2-1: New USB device found, idVendor=1532, idProduct=0e05, bcdDevice= 8.21
+Mar 21 12:37:40 katana kernel: usb 2-1: Found UVC 1.00 device Razer Kiyo Pro (1532:0e05)
+Mar 21 12:37:40 katana kernel: uvcvideo 2-1:1.1: Failed to set UVC probe control : -32 (exp. 26).
+Mar 21 12:38:26 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 38 ep 2 with no TDs queued?
+Mar 21 12:38:27 katana kernel: xhci_hcd 0000:00:14.0: WARN Event TRB for slot 38 ep 2 with no TDs queued?
+Mar 21 12:38:33 katana kernel: usb 2-1: Failed to query (SET_CUR) UVC control 7 on unit 3: -110 (exp. 2).
+Mar 21 12:38:43 katana kernel: xhci_hcd 0000:00:14.0: xHCI host not responding to stop endpoint command
+Mar 21 12:38:43 katana kernel: xhci_hcd 0000:00:14.0: xHCI host controller not responding, assume dead
+Mar 21 12:38:43 katana kernel: xhci_hcd 0000:00:14.0: HC died; cleaning up
+Mar 21 12:38:43 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:38:43 katana kernel: usb 2-1: USB disconnect, device number 12
+Mar 21 12:38:43 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 6 on unit 1: -110 (exp. 2).
+Mar 21 12:38:43 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 6 on unit 1: -19 (exp. 2).
+Mar 21 12:38:43 katana kernel: usb 2-1: Failed to query (GET_CUR) UVC control 6 on unit 1: -19 (exp. 2).
+Mar 21 12:38:43 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:38:43 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 12:38:43 katana kernel: usb 2-3: USB disconnect, device number 6
+Mar 21 12:38:43 katana kernel: usb 2-4: USB disconnect, device number 7
+Mar 21 12:38:44 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 12:38:44 katana kernel: usb 1-4.3: USB disconnect, device number 11
+Mar 21 12:38:44 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 12:38:44 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:38:44 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 12:38:44 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 12:38:44 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 21 12:38:44 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:38:44 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:38:44 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:38:44 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:38:44 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:38:44 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 21 12:38:44 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 21 12:38:44 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 21 12:38:44 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:38:49 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:38:49 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:38:49 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:38:49 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:38:49 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:38:49 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:38:49 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:38:49 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:38:49 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:38:49 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:38:50 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:38:50 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:38:50 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:38:50 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:38:51 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:38:51 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:39:00 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:39:00 katana kernel: usb 1-4.1: new full-speed USB device number 5 using xhci_hcd
+Mar 21 12:39:00 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 6 using xhci_hcd
+Mar 21 12:39:00 katana kernel: usb 1-8: new high-speed USB device number 6 using xhci_hcd
+Mar 21 12:39:01 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:39:01 katana kernel: usb 1-4.2: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:39:01 katana kernel: usb 2-4: new SuperSpeed USB device number 7 using xhci_hcd
+Mar 21 12:39:01 katana kernel: usb 1-10: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:39:02 katana kernel: usb 1-8.1: new low-speed USB device number 10 using xhci_hcd
+Mar 21 12:39:02 katana kernel: usb 1-4.3: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:39:02 katana kernel: usb 1-14: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:39:02 katana kernel: usb 1-8.5: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:39:02 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:39:02 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:39:02 katana kernel: usb 2-3: USB disconnect, device number 6
+Mar 21 12:39:02 katana kernel: usb 2-4: USB disconnect, device number 7
+Mar 21 12:39:02 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:39:02 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:39:02 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:39:02 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:39:02 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:39:03 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 12:39:04 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 12:39:04 katana kernel: usb 1-4.3: USB disconnect, device number 11
+Mar 21 12:39:04 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:39:04 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 12:39:04 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 12:39:04 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 21 12:39:04 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 21 12:39:04 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 21 12:39:04 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 21 12:39:04 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:39:09 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:39:09 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:39:09 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:39:09 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:39:09 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:39:09 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:39:09 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:39:09 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:39:09 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:39:09 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:39:10 katana kernel: usb 2-4: new SuperSpeed USB device number 2 using xhci_hcd
+Mar 21 12:39:10 katana kernel: usb 1-3: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:39:11 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:39:11 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:39:11 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:39:11 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:39:12 katana kernel: usb 1-4: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:39:20 katana kernel: usb 1-7: new high-speed USB device number 5 using xhci_hcd
+Mar 21 12:39:21 katana kernel: usb 1-4.1: new full-speed USB device number 6 using xhci_hcd
+Mar 21 12:39:21 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 7 using xhci_hcd
+Mar 21 12:39:21 katana kernel: usb 1-8: new high-speed USB device number 7 using xhci_hcd
+Mar 21 12:39:21 katana kernel: usb 1-7.3: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:39:21 katana kernel: usb 1-4.2: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:39:22 katana kernel: usb 1-10: new full-speed USB device number 10 using xhci_hcd
+Mar 21 12:39:22 katana kernel: usb 1-8.1: new low-speed USB device number 11 using xhci_hcd
+Mar 21 12:39:22 katana kernel: usb 1-4.3: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:39:22 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:39:22 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:39:22 katana kernel: usb 2-3: USB disconnect, device number 7
+Mar 21 12:39:22 katana kernel: usb 2-4: USB disconnect, device number 2
+Mar 21 12:39:22 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:39:22 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:39:22 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:39:23 katana kernel: usb 1-3: USB disconnect, device number 3
+Mar 21 12:39:23 katana kernel: usb 1-4: USB disconnect, device number 4
+Mar 21 12:39:24 katana kernel: usb 1-4.1: USB disconnect, device number 6
+Mar 21 12:39:24 katana kernel: usb 1-4.2: USB disconnect, device number 9
+Mar 21 12:39:24 katana kernel: usb 1-7: USB disconnect, device number 5
+Mar 21 12:39:24 katana kernel: usb 1-7.3: USB disconnect, device number 8
+Mar 21 12:39:24 katana kernel: usb 1-8: USB disconnect, device number 7
+Mar 21 12:39:24 katana kernel: usb 1-8.1: USB disconnect, device number 11
+Mar 21 12:39:24 katana kernel: usb 1-10: USB disconnect, device number 10
+Mar 21 12:39:24 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:39:29 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:39:29 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:39:29 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:39:29 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:39:29 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:39:29 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:39:29 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:39:29 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:39:29 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:39:29 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:39:30 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 2 using xhci_hcd
+Mar 21 12:39:30 katana kernel: usb 1-3: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:39:31 katana kernel: usb 2-4: new SuperSpeed USB device number 3 using xhci_hcd
+Mar 21 12:39:31 katana kernel: usb 1-4: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:39:31 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:39:31 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:39:32 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:39:32 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:39:32 katana kernel: usb 1-7: new high-speed USB device number 5 using xhci_hcd
+Mar 21 12:39:33 katana kernel: usb 1-4.1: new full-speed USB device number 6 using xhci_hcd
+Mar 21 12:39:33 katana kernel: usb 1-8: new high-speed USB device number 7 using xhci_hcd
+Mar 21 12:39:41 katana kernel: usb 1-7.3: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:39:41 katana kernel: usb 1-4.2: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:39:42 katana kernel: usb 1-10: new full-speed USB device number 10 using xhci_hcd
+Mar 21 12:39:42 katana kernel: usb 1-8.1: new low-speed USB device number 11 using xhci_hcd
+Mar 21 12:39:42 katana kernel: usb 1-4.3: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:39:42 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:39:42 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:39:42 katana kernel: usb 2-3: USB disconnect, device number 2
+Mar 21 12:39:42 katana kernel: usb 2-4: USB disconnect, device number 3
+Mar 21 12:39:42 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:39:42 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:39:42 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:39:42 katana kernel: usb 1-3: USB disconnect, device number 3
+Mar 21 12:39:42 katana kernel: usb 1-4: USB disconnect, device number 4
+Mar 21 12:39:42 katana kernel: usb 1-4.1: USB disconnect, device number 6
+Mar 21 12:39:43 katana kernel: usb 1-4.2: USB disconnect, device number 9
+Mar 21 12:39:43 katana kernel: usb 1-4.3: USB disconnect, device number 12
+Mar 21 12:39:43 katana kernel: usb 1-7: USB disconnect, device number 5
+Mar 21 12:39:43 katana kernel: usb 1-7.3: USB disconnect, device number 8
+Mar 21 12:39:43 katana kernel: usb 1-8: USB disconnect, device number 7
+Mar 21 12:39:43 katana kernel: usb 1-8.1: USB disconnect, device number 11
+Mar 21 12:39:43 katana kernel: usb 1-10: USB disconnect, device number 10
+Mar 21 12:39:43 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:39:43 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:39:43 katana kernel: usb usb4: USB disconnect, device number 1
+Mar 21 12:39:43 katana kernel: xhci_hcd 0000:01:00.2: USB bus 4 deregistered
+Mar 21 12:39:43 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:39:43 katana kernel: usb usb3: USB disconnect, device number 1
+Mar 21 12:39:43 katana kernel: xhci_hcd 0000:01:00.2: USB bus 3 deregistered
+Mar 21 12:39:46 katana kernel: xhci_pci: unknown parameter 'xhci_pci_renesas' ignored
+Mar 21 12:39:46 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:39:46 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:39:46 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:39:46 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:39:46 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:39:46 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:39:46 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:39:46 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:39:46 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:39:46 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:39:46 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:39:46 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 3
+Mar 21 12:39:46 katana kernel: xhci_hcd 0000:01:00.2: hcc params 0x0180ff05 hci version 0x110 quirks 0x0000000000000010
+Mar 21 12:39:46 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:39:46 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 4
+Mar 21 12:39:46 katana kernel: xhci_hcd 0000:01:00.2: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:39:46 katana kernel: usb usb3: Product: xHCI Host Controller
+Mar 21 12:39:46 katana kernel: usb usb3: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:39:46 katana kernel: usb usb4: Product: xHCI Host Controller
+Mar 21 12:39:46 katana kernel: usb usb4: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:39:47 katana kernel: usb 2-4: new SuperSpeed USB device number 2 using xhci_hcd
+Mar 21 12:39:47 katana kernel: usb 1-3: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:39:48 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:39:48 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:39:48 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:39:48 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:39:49 katana kernel: usb 1-4: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:39:57 katana kernel: usb 1-7: new high-speed USB device number 5 using xhci_hcd
+Mar 21 12:39:58 katana kernel: usb 1-4.1: new full-speed USB device number 6 using xhci_hcd
+Mar 21 12:39:58 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 7 using xhci_hcd
+Mar 21 12:39:58 katana kernel: usb 1-8: new high-speed USB device number 7 using xhci_hcd
+Mar 21 12:39:58 katana kernel: usb 1-7.3: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:39:58 katana kernel: usb 1-4.2: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:39:59 katana kernel: usb 1-10: new full-speed USB device number 10 using xhci_hcd
+Mar 21 12:39:59 katana kernel: usb 1-8.1: new low-speed USB device number 11 using xhci_hcd
+Mar 21 12:39:59 katana kernel: usb 1-4.3: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:39:59 katana kernel: usb 1-14: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:40:00 katana kernel: usb 1-8.5: new full-speed USB device number 14 using xhci_hcd
+Mar 21 12:40:00 katana kernel: usb 1-4.4: new high-speed USB device number 15 using xhci_hcd
+Mar 21 12:40:01 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:01 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:01 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:02 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:03 katana kernel: usb 1-1: new full-speed USB device number 17 using xhci_hcd
+Mar 21 12:40:03 katana kernel: usb 1-1: new full-speed USB device number 18 using xhci_hcd
+Mar 21 12:40:03 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:40:03 katana kernel: usb usb4: USB disconnect, device number 1
+Mar 21 12:40:03 katana kernel: xhci_hcd 0000:01:00.2: USB bus 4 deregistered
+Mar 21 12:40:03 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:40:03 katana kernel: usb usb3: USB disconnect, device number 1
+Mar 21 12:40:03 katana kernel: xhci_hcd 0000:01:00.2: USB bus 3 deregistered
+Mar 21 12:40:03 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:40:03 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:40:03 katana kernel: usb 2-3: USB disconnect, device number 7
+Mar 21 12:40:03 katana kernel: usb 2-4: USB disconnect, device number 2
+Mar 21 12:40:03 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:40:03 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:40:03 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:40:03 katana kernel: usb 1-3: USB disconnect, device number 3
+Mar 21 12:40:03 katana kernel: usb 1-4: USB disconnect, device number 4
+Mar 21 12:40:03 katana kernel: usb 1-4.1: USB disconnect, device number 6
+Mar 21 12:40:04 katana kernel: usb 1-4.2: USB disconnect, device number 9
+Mar 21 12:40:04 katana kernel: usb 1-4.3: USB disconnect, device number 12
+Mar 21 12:40:04 katana kernel: usb 1-4.4: USB disconnect, device number 15
+Mar 21 12:40:04 katana kernel: usb 1-7: USB disconnect, device number 5
+Mar 21 12:40:04 katana kernel: usb 1-7.3: USB disconnect, device number 8
+Mar 21 12:40:04 katana kernel: usb 1-8: USB disconnect, device number 7
+Mar 21 12:40:04 katana kernel: usb 1-8.1: USB disconnect, device number 11
+Mar 21 12:40:04 katana kernel: usb 1-8.5: USB disconnect, device number 14
+Mar 21 12:40:04 katana kernel: usb 1-10: USB disconnect, device number 10
+Mar 21 12:40:04 katana kernel: usb 1-14: USB disconnect, device number 13
+Mar 21 12:40:04 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:40:07 katana kernel: xhci_pci: unknown parameter 'xhci_pci_renesas' ignored
+Mar 21 12:40:07 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:40:07 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:40:07 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:40:07 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:40:07 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:40:07 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:40:07 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:40:07 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:40:07 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:40:07 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:40:07 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:40:07 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 3
+Mar 21 12:40:07 katana kernel: xhci_hcd 0000:01:00.2: hcc params 0x0180ff05 hci version 0x110 quirks 0x0000000000000010
+Mar 21 12:40:07 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:40:07 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 4
+Mar 21 12:40:07 katana kernel: xhci_hcd 0000:01:00.2: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:40:07 katana kernel: usb usb3: Product: xHCI Host Controller
+Mar 21 12:40:07 katana kernel: usb usb3: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:40:07 katana kernel: usb usb4: Product: xHCI Host Controller
+Mar 21 12:40:07 katana kernel: usb usb4: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:40:08 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:08 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:08 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:40:09 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:09 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:09 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:40:18 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:40:18 katana kernel: usb 1-4.1: new full-speed USB device number 5 using xhci_hcd
+Mar 21 12:40:18 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 6 using xhci_hcd
+Mar 21 12:40:18 katana kernel: usb 1-8: new high-speed USB device number 6 using xhci_hcd
+Mar 21 12:40:19 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:40:19 katana kernel: usb 1-4.2: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:40:19 katana kernel: usb 2-4: new SuperSpeed USB device number 7 using xhci_hcd
+Mar 21 12:40:19 katana kernel: usb 1-10: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:40:19 katana kernel: usb 1-8.1: new low-speed USB device number 10 using xhci_hcd
+Mar 21 12:40:20 katana kernel: usb 1-4.3: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:40:20 katana kernel: usb 1-14: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:40:20 katana kernel: usb 1-8.5: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:40:20 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 12:40:21 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:22 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:22 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:22 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:24 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:24 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:24 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:25 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:40:25 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:40:25 katana kernel: usb 2-3: USB disconnect, device number 6
+Mar 21 12:40:25 katana kernel: usb 2-4: USB disconnect, device number 7
+Mar 21 12:40:25 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:40:25 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:40:25 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:40:25 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:40:25 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:40:25 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 12:40:25 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 12:40:25 katana kernel: usb 1-4.3: USB disconnect, device number 11
+Mar 21 12:40:25 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 12:40:25 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:40:25 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 12:40:25 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 12:40:25 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 21 12:40:26 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 21 12:40:26 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 21 12:40:26 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 21 12:40:26 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:40:31 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:40:31 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:40:31 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:40:31 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:40:31 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:40:31 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:40:31 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:40:31 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:40:31 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:40:31 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:40:31 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:31 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:32 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:32 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:32 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:40:41 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:40:41 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 6 using xhci_hcd
+Mar 21 12:40:42 katana kernel: usb 2-4: new SuperSpeed USB device number 7 using xhci_hcd
+Mar 21 12:40:42 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:40:43 katana kernel: usb 1-4.1: new full-speed USB device number 5 using xhci_hcd
+Mar 21 12:40:43 katana kernel: usb 1-8: new high-speed USB device number 6 using xhci_hcd
+Mar 21 12:40:43 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:40:43 katana kernel: usb 1-4.2: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:40:44 katana kernel: usb 1-10: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:40:44 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:40:44 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:40:44 katana kernel: usb 2-3: USB disconnect, device number 6
+Mar 21 12:40:44 katana kernel: usb 2-4: USB disconnect, device number 7
+Mar 21 12:40:44 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:40:44 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:40:44 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:40:44 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:40:44 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:40:45 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 12:40:45 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 12:40:45 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:40:45 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 12:40:45 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 12:40:45 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:40:50 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:40:50 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:40:50 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:40:50 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:40:50 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:40:50 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:40:50 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:40:50 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:40:50 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:40:50 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:40:51 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 2 using xhci_hcd
+Mar 21 12:40:51 katana kernel: usb 1-3: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:40:52 katana kernel: usb 2-4: new SuperSpeed USB device number 3 using xhci_hcd
+Mar 21 12:40:52 katana kernel: usb 1-4: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:40:52 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:52 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:53 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:53 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:40:53 katana kernel: usb 1-7: new high-speed USB device number 5 using xhci_hcd
+Mar 21 12:40:54 katana kernel: usb 1-4.1: new full-speed USB device number 6 using xhci_hcd
+Mar 21 12:40:54 katana kernel: usb 1-8: new high-speed USB device number 7 using xhci_hcd
+Mar 21 12:41:02 katana kernel: usb 1-7.3: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:41:02 katana kernel: usb 1-4.2: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:41:03 katana kernel: usb 1-10: new full-speed USB device number 10 using xhci_hcd
+Mar 21 12:41:03 katana kernel: usb 1-8.1: new low-speed USB device number 11 using xhci_hcd
+Mar 21 12:41:03 katana kernel: usb 1-4.3: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:41:03 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:41:03 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:41:03 katana kernel: usb 2-3: USB disconnect, device number 2
+Mar 21 12:41:03 katana kernel: usb 2-4: USB disconnect, device number 3
+Mar 21 12:41:03 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:41:03 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:41:03 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:41:03 katana kernel: usb 1-4.1: USB disconnect, device number 6
+Mar 21 12:41:03 katana kernel: usb 1-3: USB disconnect, device number 3
+Mar 21 12:41:03 katana kernel: usb 1-4: USB disconnect, device number 4
+Mar 21 12:41:03 katana kernel: usb 1-4.2: USB disconnect, device number 9
+Mar 21 12:41:04 katana kernel: usb 1-4.3: USB disconnect, device number 12
+Mar 21 12:41:04 katana kernel: usb 1-7: USB disconnect, device number 5
+Mar 21 12:41:04 katana kernel: usb 1-7.3: USB disconnect, device number 8
+Mar 21 12:41:04 katana kernel: usb 1-8: USB disconnect, device number 7
+Mar 21 12:41:04 katana kernel: usb 1-8.1: USB disconnect, device number 11
+Mar 21 12:41:04 katana kernel: usb 1-10: USB disconnect, device number 10
+Mar 21 12:41:04 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:41:09 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:41:09 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:41:09 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:41:09 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:41:09 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:41:09 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:41:09 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:41:09 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:41:09 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:41:09 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:41:10 katana kernel: usb 1-3: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:41:10 katana kernel: usb 2-4: new SuperSpeed USB device number 2 using xhci_hcd
+Mar 21 12:41:10 katana kernel: usb 1-4: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:41:10 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:41:11 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:41:11 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:41:11 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:41:12 katana kernel: usb 1-7: new high-speed USB device number 5 using xhci_hcd
+Mar 21 12:41:12 katana kernel: usb 1-4.1: new full-speed USB device number 6 using xhci_hcd
+Mar 21 12:41:12 katana kernel: usb 1-8: new high-speed USB device number 7 using xhci_hcd
+Mar 21 12:41:21 katana kernel: usb 1-7.3: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:41:21 katana kernel: usb 1-4.2: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:41:21 katana kernel: usb 1-10: new full-speed USB device number 10 using xhci_hcd
+Mar 21 12:41:21 katana kernel: usb 1-8.1: new low-speed USB device number 11 using xhci_hcd
+Mar 21 12:41:21 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 7 using xhci_hcd
+Mar 21 12:41:22 katana kernel: usb 1-4.3: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:41:22 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:41:22 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:41:22 katana kernel: usb 2-3: USB disconnect, device number 7
+Mar 21 12:41:22 katana kernel: usb 2-4: USB disconnect, device number 2
+Mar 21 12:41:22 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:41:22 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:41:22 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:41:22 katana kernel: usb 1-3: USB disconnect, device number 3
+Mar 21 12:41:22 katana kernel: usb 1-4: USB disconnect, device number 4
+Mar 21 12:41:23 katana kernel: usb 1-4.1: USB disconnect, device number 6
+Mar 21 12:41:23 katana kernel: usb 1-4.2: USB disconnect, device number 9
+Mar 21 12:41:23 katana kernel: usb 1-7: USB disconnect, device number 5
+Mar 21 12:41:23 katana kernel: usb 1-7.3: USB disconnect, device number 8
+Mar 21 12:41:23 katana kernel: usb 1-8: USB disconnect, device number 7
+Mar 21 12:41:23 katana kernel: usb 1-8.1: USB disconnect, device number 11
+Mar 21 12:41:23 katana kernel: usb 1-10: USB disconnect, device number 10
+Mar 21 12:41:23 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:41:23 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:41:23 katana kernel: usb usb4: USB disconnect, device number 1
+Mar 21 12:41:23 katana kernel: xhci_hcd 0000:01:00.2: USB bus 4 deregistered
+Mar 21 12:41:23 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:41:23 katana kernel: usb usb3: USB disconnect, device number 1
+Mar 21 12:41:23 katana kernel: xhci_hcd 0000:01:00.2: USB bus 3 deregistered
+Mar 21 12:41:26 katana kernel: xhci_pci: unknown parameter 'xhci_pci_renesas' ignored
+Mar 21 12:41:26 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:41:26 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:41:26 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:41:26 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:41:26 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:41:26 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:41:26 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:41:26 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:41:26 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:41:26 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:41:26 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:41:26 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 3
+Mar 21 12:41:26 katana kernel: xhci_hcd 0000:01:00.2: hcc params 0x0180ff05 hci version 0x110 quirks 0x0000000000000010
+Mar 21 12:41:26 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:41:26 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 4
+Mar 21 12:41:26 katana kernel: xhci_hcd 0000:01:00.2: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:41:26 katana kernel: usb usb3: Product: xHCI Host Controller
+Mar 21 12:41:26 katana kernel: usb usb3: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:41:26 katana kernel: usb usb4: Product: xHCI Host Controller
+Mar 21 12:41:26 katana kernel: usb usb4: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:41:27 katana kernel: usb 1-3: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:41:28 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 2 using xhci_hcd
+Mar 21 12:41:28 katana kernel: usb 1-4: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:41:28 katana kernel: usb 2-4: new SuperSpeed USB device number 3 using xhci_hcd
+Mar 21 12:41:29 katana kernel: usb 1-7: new high-speed USB device number 5 using xhci_hcd
+Mar 21 12:41:30 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:41:30 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:41:30 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:41:31 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:41:31 katana kernel: usb 1-4.1: new full-speed USB device number 6 using xhci_hcd
+Mar 21 12:41:31 katana kernel: usb 1-8: new high-speed USB device number 7 using xhci_hcd
+Mar 21 12:41:32 katana kernel: usb 1-7.3: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:41:40 katana kernel: usb 1-4.2: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:41:40 katana kernel: usb 1-10: new full-speed USB device number 10 using xhci_hcd
+Mar 21 12:41:40 katana kernel: usb 1-8.1: new low-speed USB device number 11 using xhci_hcd
+Mar 21 12:41:41 katana kernel: usb 1-4.3: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:41:41 katana kernel: usb 1-14: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:41:41 katana kernel: usb 1-8.5: new full-speed USB device number 14 using xhci_hcd
+Mar 21 12:41:41 katana kernel: usb 1-4.4: new high-speed USB device number 15 using xhci_hcd
+Mar 21 12:41:42 katana kernel: usb 1-1: new full-speed USB device number 16 using xhci_hcd
+Mar 21 12:41:42 katana kernel: usb 1-1: new full-speed USB device number 17 using xhci_hcd
+Mar 21 12:41:43 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:41:43 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:41:44 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:41:44 katana kernel: usb usb4: USB disconnect, device number 1
+Mar 21 12:41:44 katana kernel: xhci_hcd 0000:01:00.2: USB bus 4 deregistered
+Mar 21 12:41:44 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:41:44 katana kernel: usb usb3: USB disconnect, device number 1
+Mar 21 12:41:44 katana kernel: xhci_hcd 0000:01:00.2: USB bus 3 deregistered
+Mar 21 12:41:44 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:41:44 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:41:44 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:41:44 katana kernel: usb 1-1: new full-speed USB device number 18 using xhci_hcd
+Mar 21 12:41:45 katana kernel: usb 1-1: new full-speed USB device number 19 using xhci_hcd
+Mar 21 12:41:45 katana kernel: usb 2-3: USB disconnect, device number 2
+Mar 21 12:41:45 katana kernel: usb 2-4: USB disconnect, device number 3
+Mar 21 12:41:45 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:41:45 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:41:45 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:41:45 katana kernel: usb 1-3: USB disconnect, device number 3
+Mar 21 12:41:45 katana kernel: xhci_hcd 0000:00:14.0: ERROR Unknown event condition 12 for slot 2 ep 2 , HC probably busted
+Mar 21 12:41:45 katana kernel: usb 1-4: USB disconnect, device number 4
+Mar 21 12:41:45 katana kernel: usb 1-4.1: USB disconnect, device number 6
+Mar 21 12:41:45 katana kernel: usb 1-4.2: USB disconnect, device number 9
+Mar 21 12:41:46 katana kernel: usb 1-4.3: USB disconnect, device number 12
+Mar 21 12:41:46 katana kernel: usb 1-4.4: USB disconnect, device number 15
+Mar 21 12:41:46 katana kernel: usb 1-7: USB disconnect, device number 5
+Mar 21 12:41:46 katana kernel: usb 1-7.3: USB disconnect, device number 8
+Mar 21 12:41:46 katana kernel: usb 1-8: USB disconnect, device number 7
+Mar 21 12:41:46 katana kernel: usb 1-8.1: USB disconnect, device number 11
+Mar 21 12:41:46 katana kernel: usb 1-8.5: USB disconnect, device number 14
+Mar 21 12:41:46 katana kernel: usb 1-10: USB disconnect, device number 10
+Mar 21 12:41:46 katana kernel: usb 1-14: USB disconnect, device number 13
+Mar 21 12:41:46 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:41:49 katana kernel: xhci_pci: unknown parameter 'xhci_pci_renesas' ignored
+Mar 21 12:41:49 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:41:49 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:41:49 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:41:49 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:41:49 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:41:49 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:41:49 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:41:49 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:41:49 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:41:49 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:41:49 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:41:49 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 3
+Mar 21 12:41:49 katana kernel: xhci_hcd 0000:01:00.2: hcc params 0x0180ff05 hci version 0x110 quirks 0x0000000000000010
+Mar 21 12:41:49 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:41:49 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 4
+Mar 21 12:41:49 katana kernel: xhci_hcd 0000:01:00.2: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:41:49 katana kernel: usb usb3: Product: xHCI Host Controller
+Mar 21 12:41:49 katana kernel: usb usb3: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:41:49 katana kernel: usb usb4: Product: xHCI Host Controller
+Mar 21 12:41:49 katana kernel: usb usb4: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:41:50 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:41:50 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:41:50 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:41:50 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:41:51 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:41:59 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:42:00 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 6 using xhci_hcd
+Mar 21 12:42:00 katana kernel: usb 2-4: new SuperSpeed USB device number 7 using xhci_hcd
+Mar 21 12:42:01 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:42:01 katana kernel: usb 1-4.1: new full-speed USB device number 5 using xhci_hcd
+Mar 21 12:42:02 katana kernel: usb 1-8: new high-speed USB device number 6 using xhci_hcd
+Mar 21 12:42:02 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:42:02 katana kernel: usb 1-4.2: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:42:02 katana kernel: usb 1-10: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:42:02 katana kernel: usb 1-8.1: new low-speed USB device number 10 using xhci_hcd
+Mar 21 12:42:03 katana kernel: usb 1-4.3: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:42:03 katana kernel: usb 1-14: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:42:03 katana kernel: usb 1-8.5: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:42:03 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 12:42:04 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:05 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:05 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:05 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:07 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:07 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:07 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:08 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:08 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:42:08 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:42:08 katana kernel: usb 2-3: USB disconnect, device number 6
+Mar 21 12:42:08 katana kernel: usb 2-4: USB disconnect, device number 7
+Mar 21 12:42:08 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:42:08 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:42:08 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:42:08 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:42:08 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:42:08 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 12:42:09 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 12:42:09 katana kernel: usb 1-4.3: USB disconnect, device number 11
+Mar 21 12:42:09 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 12:42:09 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:42:09 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 12:42:09 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 12:42:09 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 21 12:42:09 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 21 12:42:09 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 21 12:42:09 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 21 12:42:09 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:42:14 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:42:14 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:42:14 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:42:14 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:42:14 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:42:14 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:42:14 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:42:14 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:42:14 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:42:14 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:42:15 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:15 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:15 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:16 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:16 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:42:20 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:42:25 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:42:25 katana kernel: usb 1-4.1: new full-speed USB device number 5 using xhci_hcd
+Mar 21 12:42:25 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 6 using xhci_hcd
+Mar 21 12:42:25 katana kernel: usb 1-8: new high-speed USB device number 6 using xhci_hcd
+Mar 21 12:42:26 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:42:26 katana kernel: usb 1-4.2: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:42:26 katana kernel: usb 2-4: new SuperSpeed USB device number 7 using xhci_hcd
+Mar 21 12:42:26 katana kernel: usb 1-10: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:42:26 katana kernel: usb 1-8.1: new low-speed USB device number 10 using xhci_hcd
+Mar 21 12:42:27 katana kernel: usb 1-4.3: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:42:27 katana kernel: usb 1-14: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:42:27 katana kernel: usb 1-8.5: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:42:27 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 12:42:27 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:42:27 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:42:27 katana kernel: usb 2-3: USB disconnect, device number 6
+Mar 21 12:42:27 katana kernel: usb 2-4: USB disconnect, device number 7
+Mar 21 12:42:27 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:42:27 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:42:27 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:42:27 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:42:27 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:42:28 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 12:42:29 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 12:42:29 katana kernel: usb 1-4.3: USB disconnect, device number 11
+Mar 21 12:42:29 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:42:29 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 12:42:29 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 12:42:29 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 21 12:42:29 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 21 12:42:29 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 21 12:42:29 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 21 12:42:29 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:42:34 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:42:34 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:42:34 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:42:34 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:42:34 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:42:34 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:42:34 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:42:34 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:42:34 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:42:34 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:42:35 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 2 using xhci_hcd
+Mar 21 12:42:35 katana kernel: usb 1-3: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:42:36 katana kernel: usb 2-4: new SuperSpeed USB device number 3 using xhci_hcd
+Mar 21 12:42:36 katana kernel: usb 1-4: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:42:36 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:36 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:37 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:37 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:37 katana kernel: usb 1-7: new high-speed USB device number 5 using xhci_hcd
+Mar 21 12:42:38 katana kernel: usb 1-4.1: new full-speed USB device number 6 using xhci_hcd
+Mar 21 12:42:38 katana kernel: usb 1-8: new high-speed USB device number 7 using xhci_hcd
+Mar 21 12:42:46 katana kernel: usb 1-7.3: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:42:46 katana kernel: usb 1-4.2: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:42:47 katana kernel: usb 1-10: new full-speed USB device number 10 using xhci_hcd
+Mar 21 12:42:47 katana kernel: usb 1-8.1: new low-speed USB device number 11 using xhci_hcd
+Mar 21 12:42:47 katana kernel: usb 1-4.3: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:42:47 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:42:47 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:42:47 katana kernel: usb 2-3: USB disconnect, device number 2
+Mar 21 12:42:47 katana kernel: usb 2-4: USB disconnect, device number 3
+Mar 21 12:42:47 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:42:47 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:42:47 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:42:47 katana kernel: usb 1-3: USB disconnect, device number 3
+Mar 21 12:42:47 katana kernel: usb 1-4: USB disconnect, device number 4
+Mar 21 12:42:47 katana kernel: usb 1-4.1: USB disconnect, device number 6
+Mar 21 12:42:48 katana kernel: usb 1-4.2: USB disconnect, device number 9
+Mar 21 12:42:48 katana kernel: usb 1-4.3: USB disconnect, device number 12
+Mar 21 12:42:48 katana kernel: usb 1-7: USB disconnect, device number 5
+Mar 21 12:42:48 katana kernel: usb 1-7.3: USB disconnect, device number 8
+Mar 21 12:42:48 katana kernel: usb 1-8: USB disconnect, device number 7
+Mar 21 12:42:48 katana kernel: usb 1-8.1: USB disconnect, device number 11
+Mar 21 12:42:48 katana kernel: usb 1-10: USB disconnect, device number 10
+Mar 21 12:42:48 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:42:53 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:42:53 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:42:53 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:42:53 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:42:53 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:42:53 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:42:53 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:42:53 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:42:53 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:42:53 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:42:54 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 2 using xhci_hcd
+Mar 21 12:42:54 katana kernel: usb 1-3: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:42:54 katana kernel: usb 2-4: new SuperSpeed USB device number 3 using xhci_hcd
+Mar 21 12:42:55 katana kernel: usb 1-4: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:42:55 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:55 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:55 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:56 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 12:42:56 katana kernel: usb 1-7: new high-speed USB device number 5 using xhci_hcd
+Mar 21 12:42:56 katana kernel: usb 1-4.1: new full-speed USB device number 6 using xhci_hcd
+Mar 21 12:42:57 katana kernel: usb 1-8: new high-speed USB device number 7 using xhci_hcd
+Mar 21 12:43:05 katana kernel: usb 1-7.3: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:43:05 katana kernel: usb 1-4.2: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:43:05 katana kernel: usb 1-10: new full-speed USB device number 10 using xhci_hcd
+Mar 21 12:43:06 katana kernel: usb 1-8.1: new low-speed USB device number 11 using xhci_hcd
+Mar 21 12:43:06 katana kernel: usb 1-4.3: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:43:06 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:43:06 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:43:06 katana kernel: usb 2-3: USB disconnect, device number 2
+Mar 21 12:43:06 katana kernel: usb 2-4: USB disconnect, device number 3
+Mar 21 12:43:06 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:43:06 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:43:06 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:43:06 katana kernel: usb 1-3: USB disconnect, device number 3
+Mar 21 12:43:06 katana kernel: usb 1-4: USB disconnect, device number 4
+Mar 21 12:43:06 katana kernel: usb 1-4.1: USB disconnect, device number 6
+Mar 21 12:43:06 katana kernel: usb 1-4.2: USB disconnect, device number 9
+Mar 21 12:43:06 katana kernel: usb 1-4.3: USB disconnect, device number 12
+Mar 21 12:43:07 katana kernel: usb 1-7: USB disconnect, device number 5
+Mar 21 12:43:07 katana kernel: usb 1-7.3: USB disconnect, device number 8
+Mar 21 12:43:07 katana kernel: usb 1-8: USB disconnect, device number 7
+Mar 21 12:43:07 katana kernel: usb 1-8.1: USB disconnect, device number 11
+Mar 21 12:43:07 katana kernel: usb 1-10: USB disconnect, device number 10
+Mar 21 12:43:07 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:43:07 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:43:07 katana kernel: usb usb4: USB disconnect, device number 1
+Mar 21 12:43:07 katana kernel: xhci_hcd 0000:01:00.2: USB bus 4 deregistered
+Mar 21 12:43:07 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:43:07 katana kernel: usb usb3: USB disconnect, device number 1
+Mar 21 12:43:07 katana kernel: xhci_hcd 0000:01:00.2: USB bus 3 deregistered
+Mar 21 12:43:10 katana kernel: xhci_pci: unknown parameter 'xhci_pci_renesas' ignored
+Mar 21 12:43:10 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:43:10 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:43:10 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:43:10 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:43:10 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:43:10 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:43:10 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:43:10 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:43:10 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:43:10 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:43:10 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:43:10 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 3
+Mar 21 12:43:10 katana kernel: xhci_hcd 0000:01:00.2: hcc params 0x0180ff05 hci version 0x110 quirks 0x0000000000000010
+Mar 21 12:43:10 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:43:10 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 4
+Mar 21 12:43:10 katana kernel: xhci_hcd 0000:01:00.2: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:43:10 katana kernel: usb usb3: Product: xHCI Host Controller
+Mar 21 12:43:10 katana kernel: usb usb3: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:43:10 katana kernel: usb usb4: Product: xHCI Host Controller
+Mar 21 12:43:10 katana kernel: usb usb4: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:43:10 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:43:10 katana kernel: usb 2-4: new SuperSpeed USB device number 2 using xhci_hcd
+Mar 21 12:43:11 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:43:11 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 3 using xhci_hcd
+Mar 21 12:43:12 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:43:12 katana kernel: usb 1-8: new high-speed USB device number 5 using xhci_hcd
+Mar 21 12:43:12 katana kernel: usb 1-7.3: new full-speed USB device number 6 using xhci_hcd
+Mar 21 12:43:13 katana kernel: usb 1-4.1: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:43:13 katana kernel: usb 1-10: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:43:13 katana kernel: usb 1-8.1: new low-speed USB device number 9 using xhci_hcd
+Mar 21 12:43:13 katana kernel: usb 1-4.2: new full-speed USB device number 10 using xhci_hcd
+Mar 21 12:43:14 katana kernel: usb 1-14: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:43:14 katana kernel: usb 1-8.5: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:43:14 katana kernel: usb 1-4.3: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:43:14 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 12:43:27 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:43:27 katana kernel: usb usb4: USB disconnect, device number 1
+Mar 21 12:43:27 katana kernel: xhci_hcd 0000:01:00.2: USB bus 4 deregistered
+Mar 21 12:43:27 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:43:27 katana kernel: usb usb3: USB disconnect, device number 1
+Mar 21 12:43:27 katana kernel: xhci_hcd 0000:01:00.2: USB bus 3 deregistered
+Mar 21 12:43:27 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:43:27 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:43:27 katana kernel: usb 2-3: USB disconnect, device number 3
+Mar 21 12:43:27 katana kernel: usb 2-4: USB disconnect, device number 2
+Mar 21 12:43:27 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:43:27 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:43:27 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:43:27 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:43:27 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:43:27 katana kernel: usb 1-4.1: USB disconnect, device number 7
+Mar 21 12:43:27 katana kernel: usb 1-4.2: USB disconnect, device number 10
+Mar 21 12:43:27 katana kernel: usb 1-4.3: USB disconnect, device number 13
+Mar 21 12:43:28 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 12:43:28 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:43:28 katana kernel: usb 1-7.3: USB disconnect, device number 6
+Mar 21 12:43:28 katana kernel: usb 1-8: USB disconnect, device number 5
+Mar 21 12:43:28 katana kernel: usb 1-8.1: USB disconnect, device number 9
+Mar 21 12:43:28 katana kernel: usb 1-8.5: USB disconnect, device number 12
+Mar 21 12:43:28 katana kernel: usb 1-10: USB disconnect, device number 8
+Mar 21 12:43:28 katana kernel: usb 1-14: USB disconnect, device number 11
+Mar 21 12:43:28 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:43:31 katana kernel: xhci_pci: unknown parameter 'xhci_pci_renesas' ignored
+Mar 21 12:43:31 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:43:31 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:43:31 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:43:31 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:43:31 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:43:31 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:43:31 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:43:31 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:43:31 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:43:31 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:43:31 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:43:31 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 3
+Mar 21 12:43:31 katana kernel: xhci_hcd 0000:01:00.2: hcc params 0x0180ff05 hci version 0x110 quirks 0x0000000000000010
+Mar 21 12:43:31 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:43:31 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 4
+Mar 21 12:43:31 katana kernel: xhci_hcd 0000:01:00.2: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:43:31 katana kernel: usb usb3: Product: xHCI Host Controller
+Mar 21 12:43:31 katana kernel: usb usb3: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:43:31 katana kernel: usb usb4: Product: xHCI Host Controller
+Mar 21 12:43:31 katana kernel: usb usb4: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:43:31 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:43:31 katana kernel: usb 2-4: new SuperSpeed USB device number 2 using xhci_hcd
+Mar 21 12:43:32 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:43:32 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 3 using xhci_hcd
+Mar 21 12:43:33 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:43:33 katana kernel: usb 1-8: new high-speed USB device number 5 using xhci_hcd
+Mar 21 12:43:33 katana kernel: usb 1-7.3: new full-speed USB device number 6 using xhci_hcd
+Mar 21 12:43:34 katana kernel: usb 1-4.1: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:43:34 katana kernel: usb 1-10: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:43:34 katana kernel: usb 1-8.1: new low-speed USB device number 9 using xhci_hcd
+Mar 21 12:43:34 katana kernel: usb 1-4.2: new full-speed USB device number 10 using xhci_hcd
+Mar 21 12:43:35 katana kernel: usb 1-14: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:43:35 katana kernel: usb 1-8.5: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:43:35 katana kernel: usb 1-4.3: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:43:35 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 12:43:50 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:43:50 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:43:50 katana kernel: usb 2-3: USB disconnect, device number 3
+Mar 21 12:43:50 katana kernel: usb 2-4: USB disconnect, device number 2
+Mar 21 12:43:50 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:43:50 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:43:50 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:43:50 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:43:50 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:43:50 katana kernel: usb 1-4.1: USB disconnect, device number 7
+Mar 21 12:43:50 katana kernel: usb 1-4.2: USB disconnect, device number 10
+Mar 21 12:43:51 katana kernel: usb 1-4.3: USB disconnect, device number 13
+Mar 21 12:43:51 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 12:43:51 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:43:51 katana kernel: usb 1-7.3: USB disconnect, device number 6
+Mar 21 12:43:51 katana kernel: usb 1-8: USB disconnect, device number 5
+Mar 21 12:43:51 katana kernel: usb 1-8.1: USB disconnect, device number 9
+Mar 21 12:43:51 katana kernel: usb 1-8.5: USB disconnect, device number 12
+Mar 21 12:43:51 katana kernel: usb 1-10: USB disconnect, device number 8
+Mar 21 12:43:51 katana kernel: usb 1-14: USB disconnect, device number 11
+Mar 21 12:43:51 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:43:56 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:43:56 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:43:56 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:43:56 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:43:56 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:43:56 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:43:56 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:43:56 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:43:56 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:43:56 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:43:56 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:43:57 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 2 using xhci_hcd
+Mar 21 12:43:57 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:43:57 katana kernel: usb 2-4: new SuperSpeed USB device number 3 using xhci_hcd
+Mar 21 12:43:58 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:43:59 katana kernel: usb 1-4.1: new full-speed USB device number 5 using xhci_hcd
+Mar 21 12:43:59 katana kernel: usb 1-8: new high-speed USB device number 6 using xhci_hcd
+Mar 21 12:43:59 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:43:59 katana kernel: usb 1-4.2: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:44:00 katana kernel: usb 1-10: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:44:00 katana kernel: usb 1-8.1: new low-speed USB device number 10 using xhci_hcd
+Mar 21 12:44:00 katana kernel: usb 1-4.3: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:44:00 katana kernel: usb 1-14: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:44:00 katana kernel: usb 1-8.5: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:44:01 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 12:44:09 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:44:09 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:44:09 katana kernel: usb 2-3: USB disconnect, device number 2
+Mar 21 12:44:09 katana kernel: usb 2-4: USB disconnect, device number 3
+Mar 21 12:44:09 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:44:09 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:44:09 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:44:09 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:44:09 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:44:09 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 12:44:09 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 12:44:09 katana kernel: usb 1-4.3: USB disconnect, device number 11
+Mar 21 12:44:10 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 12:44:10 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:44:10 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 12:44:10 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 12:44:10 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 21 12:44:10 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 21 12:44:10 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 21 12:44:10 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 21 12:44:10 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:44:15 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:44:15 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:44:15 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:44:15 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:44:15 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:44:15 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:44:15 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:44:15 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:44:15 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:44:15 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:44:15 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:44:15 katana kernel: usb 2-4: new SuperSpeed USB device number 2 using xhci_hcd
+Mar 21 12:44:16 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:44:16 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 3 using xhci_hcd
+Mar 21 12:44:17 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:44:17 katana kernel: usb 1-8: new high-speed USB device number 5 using xhci_hcd
+Mar 21 12:44:17 katana kernel: usb 1-4.1: new full-speed USB device number 6 using xhci_hcd
+Mar 21 12:44:18 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:44:18 katana kernel: usb 1-10: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:44:18 katana kernel: usb 1-8.1: new low-speed USB device number 9 using xhci_hcd
+Mar 21 12:44:18 katana kernel: usb 1-4.2: new full-speed USB device number 10 using xhci_hcd
+Mar 21 12:44:19 katana kernel: usb 1-14: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:44:19 katana kernel: usb 1-8.5: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:44:19 katana kernel: usb 1-4.3: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:44:19 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 12:44:28 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:44:28 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:44:28 katana kernel: usb 2-3: USB disconnect, device number 3
+Mar 21 12:44:28 katana kernel: usb 2-4: USB disconnect, device number 2
+Mar 21 12:44:28 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:44:28 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:44:28 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:44:28 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:44:28 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:44:28 katana kernel: usb 1-4.1: USB disconnect, device number 6
+Mar 21 12:44:28 katana kernel: usb 1-4.2: USB disconnect, device number 10
+Mar 21 12:44:28 katana kernel: usb 1-4.3: USB disconnect, device number 13
+Mar 21 12:44:29 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 12:44:29 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:44:29 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 12:44:29 katana kernel: usb 1-8: USB disconnect, device number 5
+Mar 21 12:44:29 katana kernel: usb 1-8.1: USB disconnect, device number 9
+Mar 21 12:44:29 katana kernel: usb 1-8.5: USB disconnect, device number 12
+Mar 21 12:44:29 katana kernel: usb 1-10: USB disconnect, device number 8
+Mar 21 12:44:29 katana kernel: usb 1-14: USB disconnect, device number 11
+Mar 21 12:44:29 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:44:34 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:44:34 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:44:34 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:44:34 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:44:34 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:44:34 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:44:34 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:44:34 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:44:34 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:44:34 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:44:34 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:44:34 katana kernel: usb 2-4: new SuperSpeed USB device number 2 using xhci_hcd
+Mar 21 12:44:35 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:44:35 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 3 using xhci_hcd
+Mar 21 12:44:36 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:44:36 katana kernel: usb 1-8: new high-speed USB device number 5 using xhci_hcd
+Mar 21 12:44:36 katana kernel: usb 1-7.3: new full-speed USB device number 6 using xhci_hcd
+Mar 21 12:44:37 katana kernel: usb 1-4.1: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:44:37 katana kernel: usb 1-10: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:44:37 katana kernel: usb 1-8.1: new low-speed USB device number 9 using xhci_hcd
+Mar 21 12:44:37 katana kernel: usb 1-4.2: new full-speed USB device number 10 using xhci_hcd
+Mar 21 12:44:38 katana kernel: usb 1-14: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:44:38 katana kernel: usb 1-8.5: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:44:38 katana kernel: usb 1-4.3: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:44:38 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 12:44:47 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:44:47 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:44:47 katana kernel: usb 2-3: USB disconnect, device number 3
+Mar 21 12:44:47 katana kernel: usb 2-4: USB disconnect, device number 2
+Mar 21 12:44:47 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:44:47 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:44:47 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:44:47 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:44:47 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:44:47 katana kernel: usb 1-4.1: USB disconnect, device number 7
+Mar 21 12:44:47 katana kernel: usb 1-4.2: USB disconnect, device number 10
+Mar 21 12:44:47 katana kernel: usb 1-4.3: USB disconnect, device number 13
+Mar 21 12:44:47 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 12:44:47 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:44:47 katana kernel: usb 1-7.3: USB disconnect, device number 6
+Mar 21 12:44:48 katana kernel: usb 1-8: USB disconnect, device number 5
+Mar 21 12:44:48 katana kernel: usb 1-8.1: USB disconnect, device number 9
+Mar 21 12:44:48 katana kernel: usb 1-8.5: USB disconnect, device number 12
+Mar 21 12:44:48 katana kernel: usb 1-10: USB disconnect, device number 8
+Mar 21 12:44:48 katana kernel: usb 1-14: USB disconnect, device number 11
+Mar 21 12:44:48 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:44:48 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:44:48 katana kernel: usb usb4: USB disconnect, device number 1
+Mar 21 12:44:48 katana kernel: xhci_hcd 0000:01:00.2: USB bus 4 deregistered
+Mar 21 12:44:48 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:44:48 katana kernel: usb usb3: USB disconnect, device number 1
+Mar 21 12:44:48 katana kernel: xhci_hcd 0000:01:00.2: USB bus 3 deregistered
+Mar 21 12:44:51 katana kernel: xhci_pci: unknown parameter 'xhci_pci_renesas' ignored
+Mar 21 12:44:51 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:44:51 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:44:51 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:44:51 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:44:51 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:44:51 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:44:51 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:44:51 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:44:51 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:44:51 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:44:51 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:44:51 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 3
+Mar 21 12:44:51 katana kernel: xhci_hcd 0000:01:00.2: hcc params 0x0180ff05 hci version 0x110 quirks 0x0000000000000010
+Mar 21 12:44:51 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:44:51 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 4
+Mar 21 12:44:51 katana kernel: xhci_hcd 0000:01:00.2: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:44:51 katana kernel: usb usb3: Product: xHCI Host Controller
+Mar 21 12:44:51 katana kernel: usb usb3: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:44:51 katana kernel: usb usb4: Product: xHCI Host Controller
+Mar 21 12:44:51 katana kernel: usb usb4: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:44:51 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:44:51 katana kernel: usb 2-4: new SuperSpeed USB device number 2 using xhci_hcd
+Mar 21 12:44:52 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:44:52 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 3 using xhci_hcd
+Mar 21 12:44:53 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:44:53 katana kernel: usb 1-8: new high-speed USB device number 5 using xhci_hcd
+Mar 21 12:44:53 katana kernel: usb 1-7.3: new full-speed USB device number 6 using xhci_hcd
+Mar 21 12:44:54 katana kernel: usb 1-4.1: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:44:54 katana kernel: usb 1-10: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:44:54 katana kernel: usb 1-8.1: new low-speed USB device number 9 using xhci_hcd
+Mar 21 12:44:54 katana kernel: usb 1-4.2: new full-speed USB device number 10 using xhci_hcd
+Mar 21 12:44:55 katana kernel: usb 1-14: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:44:55 katana kernel: usb 1-8.5: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:44:55 katana kernel: usb 1-4.3: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:44:55 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 12:45:08 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:45:08 katana kernel: usb usb4: USB disconnect, device number 1
+Mar 21 12:45:08 katana kernel: xhci_hcd 0000:01:00.2: USB bus 4 deregistered
+Mar 21 12:45:08 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 12:45:08 katana kernel: usb usb3: USB disconnect, device number 1
+Mar 21 12:45:08 katana kernel: xhci_hcd 0000:01:00.2: USB bus 3 deregistered
+Mar 21 12:45:08 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:45:08 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:45:08 katana kernel: usb 2-3: USB disconnect, device number 3
+Mar 21 12:45:08 katana kernel: usb 2-4: USB disconnect, device number 2
+Mar 21 12:45:08 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:45:08 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:45:08 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:45:08 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:45:08 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:45:08 katana kernel: usb 1-4.1: USB disconnect, device number 7
+Mar 21 12:45:08 katana kernel: usb 1-4.2: USB disconnect, device number 10
+Mar 21 12:45:08 katana kernel: usb 1-4.3: USB disconnect, device number 13
+Mar 21 12:45:09 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 12:45:09 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:45:09 katana kernel: usb 1-7.3: USB disconnect, device number 6
+Mar 21 12:45:09 katana kernel: usb 1-8: USB disconnect, device number 5
+Mar 21 12:45:09 katana kernel: usb 1-8.1: USB disconnect, device number 9
+Mar 21 12:45:09 katana kernel: usb 1-8.5: USB disconnect, device number 12
+Mar 21 12:45:09 katana kernel: usb 1-10: USB disconnect, device number 8
+Mar 21 12:45:09 katana kernel: usb 1-14: USB disconnect, device number 11
+Mar 21 12:45:09 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:45:12 katana kernel: xhci_pci: unknown parameter 'xhci_pci_renesas' ignored
+Mar 21 12:45:12 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:45:12 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:45:12 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:45:12 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:45:12 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:45:12 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:45:12 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:45:12 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:45:12 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:45:12 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:45:12 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:45:12 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 3
+Mar 21 12:45:12 katana kernel: xhci_hcd 0000:01:00.2: hcc params 0x0180ff05 hci version 0x110 quirks 0x0000000000000010
+Mar 21 12:45:12 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 12:45:12 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 4
+Mar 21 12:45:12 katana kernel: xhci_hcd 0000:01:00.2: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:45:12 katana kernel: usb usb3: Product: xHCI Host Controller
+Mar 21 12:45:12 katana kernel: usb usb3: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:45:12 katana kernel: usb usb4: Product: xHCI Host Controller
+Mar 21 12:45:12 katana kernel: usb usb4: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:45:12 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:45:13 katana kernel: usb 2-4: new SuperSpeed USB device number 2 using xhci_hcd
+Mar 21 12:45:13 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:45:13 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 3 using xhci_hcd
+Mar 21 12:45:14 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:45:14 katana kernel: usb 1-8: new high-speed USB device number 5 using xhci_hcd
+Mar 21 12:45:14 katana kernel: usb 1-7.3: new full-speed USB device number 6 using xhci_hcd
+Mar 21 12:45:15 katana kernel: usb 1-4.1: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:45:15 katana kernel: usb 1-10: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:45:15 katana kernel: usb 1-8.1: new low-speed USB device number 9 using xhci_hcd
+Mar 21 12:45:15 katana kernel: usb 1-4.2: new full-speed USB device number 10 using xhci_hcd
+Mar 21 12:45:16 katana kernel: usb 1-14: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:45:16 katana kernel: usb 1-8.5: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:45:16 katana kernel: usb 1-4.3: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:45:16 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 12:45:31 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:45:31 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:45:31 katana kernel: usb 2-3: USB disconnect, device number 3
+Mar 21 12:45:31 katana kernel: usb 2-4: USB disconnect, device number 2
+Mar 21 12:45:31 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:45:31 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:45:31 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:45:31 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:45:31 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:45:31 katana kernel: usb 1-4.1: USB disconnect, device number 7
+Mar 21 12:45:31 katana kernel: usb 1-4.2: USB disconnect, device number 10
+Mar 21 12:45:31 katana kernel: usb 1-4.3: USB disconnect, device number 13
+Mar 21 12:45:32 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 12:45:32 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:45:32 katana kernel: usb 1-7.3: USB disconnect, device number 6
+Mar 21 12:45:32 katana kernel: usb 1-8: USB disconnect, device number 5
+Mar 21 12:45:32 katana kernel: usb 1-8.1: USB disconnect, device number 9
+Mar 21 12:45:32 katana kernel: usb 1-8.5: USB disconnect, device number 12
+Mar 21 12:45:32 katana kernel: usb 1-10: USB disconnect, device number 8
+Mar 21 12:45:32 katana kernel: usb 1-14: USB disconnect, device number 11
+Mar 21 12:45:32 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:45:37 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:45:37 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:45:37 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:45:37 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:45:37 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:45:37 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:45:37 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:45:37 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:45:37 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:45:37 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:45:37 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:45:38 katana kernel: usb 2-4: new SuperSpeed USB device number 2 using xhci_hcd
+Mar 21 12:45:38 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:45:38 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 3 using xhci_hcd
+Mar 21 12:45:39 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:45:39 katana kernel: usb 1-8: new high-speed USB device number 5 using xhci_hcd
+Mar 21 12:45:39 katana kernel: usb 1-4.1: new full-speed USB device number 6 using xhci_hcd
+Mar 21 12:45:40 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:45:40 katana kernel: usb 1-10: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:45:40 katana kernel: usb 1-8.1: new low-speed USB device number 9 using xhci_hcd
+Mar 21 12:45:40 katana kernel: usb 1-4.2: new full-speed USB device number 10 using xhci_hcd
+Mar 21 12:45:41 katana kernel: usb 1-14: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:45:41 katana kernel: usb 1-8.5: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:45:41 katana kernel: usb 1-4.3: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:45:41 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 12:45:50 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:45:50 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:45:50 katana kernel: usb 2-3: USB disconnect, device number 3
+Mar 21 12:45:50 katana kernel: usb 2-4: USB disconnect, device number 2
+Mar 21 12:45:50 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:45:50 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:45:50 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:45:50 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:45:50 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:45:50 katana kernel: usb 1-4.1: USB disconnect, device number 6
+Mar 21 12:45:50 katana kernel: usb 1-4.2: USB disconnect, device number 10
+Mar 21 12:45:50 katana kernel: usb 1-4.3: USB disconnect, device number 13
+Mar 21 12:45:51 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 12:45:51 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:45:51 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 12:45:51 katana kernel: usb 1-8: USB disconnect, device number 5
+Mar 21 12:45:51 katana kernel: usb 1-8.1: USB disconnect, device number 9
+Mar 21 12:45:51 katana kernel: usb 1-8.5: USB disconnect, device number 12
+Mar 21 12:45:51 katana kernel: usb 1-10: USB disconnect, device number 8
+Mar 21 12:45:51 katana kernel: usb 1-14: USB disconnect, device number 11
+Mar 21 12:45:51 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:45:56 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:45:56 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:45:56 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:45:56 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:45:56 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:45:56 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:45:56 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:45:56 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:45:56 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:45:56 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:45:56 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:45:56 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 2 using xhci_hcd
+Mar 21 12:45:57 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:45:57 katana kernel: usb 2-4: new SuperSpeed USB device number 3 using xhci_hcd
+Mar 21 12:45:58 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:45:59 katana kernel: usb 1-4.1: new full-speed USB device number 5 using xhci_hcd
+Mar 21 12:45:59 katana kernel: usb 1-8: new high-speed USB device number 6 using xhci_hcd
+Mar 21 12:45:59 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:45:59 katana kernel: usb 1-4.2: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:45:59 katana kernel: usb 1-10: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:46:00 katana kernel: usb 1-8.1: new low-speed USB device number 10 using xhci_hcd
+Mar 21 12:46:00 katana kernel: usb 1-4.3: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:46:00 katana kernel: usb 1-14: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:46:00 katana kernel: usb 1-8.5: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:46:01 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 12:46:09 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 12:46:09 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 12:46:09 katana kernel: usb 2-3: USB disconnect, device number 2
+Mar 21 12:46:09 katana kernel: usb 2-4: USB disconnect, device number 3
+Mar 21 12:46:09 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 12:46:09 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 12:46:09 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 12:46:09 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 12:46:09 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 12:46:09 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 12:46:09 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 12:46:09 katana kernel: usb 1-4.3: USB disconnect, device number 11
+Mar 21 12:46:09 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 12:46:10 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 12:46:10 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 12:46:10 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 12:46:10 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 21 12:46:10 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 21 12:46:10 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 21 12:46:10 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 21 12:46:10 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 12:46:15 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:46:15 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 12:46:15 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 12:46:15 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 12:46:15 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 12:46:15 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 12:46:15 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 12:46:15 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:46:15 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 12:46:15 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 12:46:15 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 12:46:15 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 2 using xhci_hcd
+Mar 21 12:46:16 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 12:46:16 katana kernel: usb 2-4: new SuperSpeed USB device number 3 using xhci_hcd
+Mar 21 12:46:17 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 12:46:17 katana kernel: usb 1-4.1: new full-speed USB device number 5 using xhci_hcd
+Mar 21 12:46:18 katana kernel: usb 1-8: new high-speed USB device number 6 using xhci_hcd
+Mar 21 12:46:18 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 12:46:18 katana kernel: usb 1-4.2: new full-speed USB device number 8 using xhci_hcd
+Mar 21 12:46:18 katana kernel: usb 1-10: new full-speed USB device number 9 using xhci_hcd
+Mar 21 12:46:19 katana kernel: usb 1-8.1: new low-speed USB device number 10 using xhci_hcd
+Mar 21 12:46:19 katana kernel: usb 1-4.3: new full-speed USB device number 11 using xhci_hcd
+Mar 21 12:46:19 katana kernel: usb 1-14: new full-speed USB device number 12 using xhci_hcd
+Mar 21 12:46:19 katana kernel: usb 1-8.5: new full-speed USB device number 13 using xhci_hcd
+Mar 21 12:46:19 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 12:50:30 katana kernel: usb 2-1: new SuperSpeed USB device number 4 using xhci_hcd
+Mar 21 12:50:32 katana kernel: usb 2-1: New USB device found, idVendor=1532, idProduct=0e05, bcdDevice= 8.21
+Mar 21 12:50:32 katana kernel: usb 2-1: Found UVC 1.00 device Razer Kiyo Pro (1532:0e05)
+Mar 21 12:50:37 katana kernel: uvcvideo 2-1:1.1: Failed to set UVC probe control : -32 (exp. 26).
+Mar 21 13:00:46 katana kernel: xhci_hcd 0000:00:14.0: xHCI host not responding to stop endpoint command
+Mar 21 13:00:46 katana kernel: xhci_hcd 0000:00:14.0: xHCI host controller not responding, assume dead
+Mar 21 13:00:46 katana kernel: xhci_hcd 0000:00:14.0: HC died; cleaning up
+Mar 21 13:00:46 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 13:00:46 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 13:00:46 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 13:00:46 katana kernel: usb 2-1: USB disconnect, device number 4
+Mar 21 13:00:47 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 13:00:47 katana kernel: uvcvideo 2-1:1.1: Failed to set UVC commit control : -110 (exp. 26).
+Mar 21 13:00:47 katana kernel: usb 2-3: USB disconnect, device number 2
+Mar 21 13:00:47 katana kernel: usb 2-4: USB disconnect, device number 3
+Mar 21 13:00:47 katana kernel: usb 1-4.3: USB disconnect, device number 11
+Mar 21 13:00:47 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 13:00:47 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 13:00:47 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 13:00:47 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 13:00:47 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 21 13:00:47 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 13:00:47 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 13:00:47 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 13:00:47 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 13:00:47 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 13:00:47 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 21 13:00:47 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 21 13:00:47 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 21 13:00:47 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 13:00:52 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 13:00:52 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 13:00:52 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 13:00:52 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 13:00:52 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 13:00:52 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 13:00:52 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 13:00:52 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:00:52 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 13:00:52 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:00:53 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 13:00:53 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 13:00:53 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 13:00:53 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 13:00:54 katana kernel: usb 2-1: Device not responding to setup address.
+Mar 21 13:00:54 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 13:01:03 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 13:01:03 katana kernel: usb 1-4.1: new full-speed USB device number 5 using xhci_hcd
+Mar 21 13:01:03 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 6 using xhci_hcd
+Mar 21 13:01:03 katana kernel: usb 1-8: new high-speed USB device number 6 using xhci_hcd
+Mar 21 13:01:03 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 13:01:04 katana kernel: usb 1-4.2: new full-speed USB device number 8 using xhci_hcd
+Mar 21 13:01:04 katana kernel: usb 2-4: new SuperSpeed USB device number 7 using xhci_hcd
+Mar 21 13:01:04 katana kernel: usb 1-10: new full-speed USB device number 9 using xhci_hcd
+Mar 21 13:01:04 katana kernel: usb 1-8.1: new low-speed USB device number 10 using xhci_hcd
+Mar 21 13:01:05 katana kernel: usb 1-4.3: new full-speed USB device number 11 using xhci_hcd
+Mar 21 13:01:05 katana kernel: usb 1-14: new full-speed USB device number 12 using xhci_hcd
+Mar 21 13:01:05 katana kernel: usb 1-8.5: new full-speed USB device number 13 using xhci_hcd
+Mar 21 13:01:05 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 13:01:05 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 13:01:05 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 13:01:05 katana kernel: usb 2-3: USB disconnect, device number 6
+Mar 21 13:01:05 katana kernel: usb 2-4: USB disconnect, device number 7
+Mar 21 13:01:05 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 13:01:05 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 13:01:05 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 13:01:05 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 13:01:05 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 13:01:05 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 13:01:06 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 13:01:06 katana kernel: usb 1-4.3: USB disconnect, device number 11
+Mar 21 13:01:06 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 13:01:06 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 13:01:06 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 13:01:06 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 13:01:06 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 21 13:01:06 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 21 13:01:06 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 21 13:01:06 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 21 13:01:06 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 13:01:11 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 13:01:11 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 13:01:11 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 13:01:11 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 13:01:11 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 13:01:11 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 13:01:11 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 13:01:11 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:01:11 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 13:01:11 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:01:12 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 13:01:12 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 2 using xhci_hcd
+Mar 21 13:01:12 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 13:01:12 katana kernel: usb 2-4: new SuperSpeed USB device number 3 using xhci_hcd
+Mar 21 13:01:14 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 13:01:14 katana kernel: usb 1-4.1: new full-speed USB device number 5 using xhci_hcd
+Mar 21 13:01:14 katana kernel: usb 1-8: new high-speed USB device number 6 using xhci_hcd
+Mar 21 13:01:14 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 13:01:15 katana kernel: usb 1-4.2: new full-speed USB device number 8 using xhci_hcd
+Mar 21 13:01:15 katana kernel: usb 1-10: new full-speed USB device number 9 using xhci_hcd
+Mar 21 13:01:15 katana kernel: usb 1-8.1: new low-speed USB device number 10 using xhci_hcd
+Mar 21 13:01:15 katana kernel: usb 1-4.3: new full-speed USB device number 11 using xhci_hcd
+Mar 21 13:01:15 katana kernel: usb 1-14: new full-speed USB device number 12 using xhci_hcd
+Mar 21 13:01:16 katana kernel: usb 1-8.5: new full-speed USB device number 13 using xhci_hcd
+Mar 21 13:01:16 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 13:01:24 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 13:01:24 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 13:01:24 katana kernel: usb 2-3: USB disconnect, device number 2
+Mar 21 13:01:24 katana kernel: usb 2-4: USB disconnect, device number 3
+Mar 21 13:01:24 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 13:01:24 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 13:01:24 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 13:01:24 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 13:01:24 katana kernel: usb 1-7.3: cannot submit urb 0, error -19: no device
+Mar 21 13:01:24 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 13:01:24 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 13:01:25 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 13:01:25 katana kernel: usb 1-4.3: USB disconnect, device number 11
+Mar 21 13:01:25 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 13:01:25 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 13:01:25 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 13:01:25 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 13:01:25 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 21 13:01:25 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 21 13:01:25 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 21 13:01:25 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 21 13:01:25 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 13:01:30 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 13:01:30 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 13:01:30 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 13:01:30 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 13:01:30 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 13:01:30 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 13:01:30 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 13:01:30 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:01:30 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 13:01:30 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:01:31 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 13:01:31 katana kernel: usb 2-4: new SuperSpeed USB device number 2 using xhci_hcd
+Mar 21 13:01:31 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 13:01:31 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 3 using xhci_hcd
+Mar 21 13:01:32 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 13:01:33 katana kernel: usb 1-8: new high-speed USB device number 5 using xhci_hcd
+Mar 21 13:01:33 katana kernel: usb 1-7.3: new full-speed USB device number 6 using xhci_hcd
+Mar 21 13:01:33 katana kernel: usb 1-4.1: new full-speed USB device number 7 using xhci_hcd
+Mar 21 13:01:33 katana kernel: usb 1-10: new full-speed USB device number 8 using xhci_hcd
+Mar 21 13:01:33 katana kernel: usb 1-8.1: new low-speed USB device number 9 using xhci_hcd
+Mar 21 13:01:34 katana kernel: usb 1-4.2: new full-speed USB device number 10 using xhci_hcd
+Mar 21 13:01:34 katana kernel: usb 1-14: new full-speed USB device number 11 using xhci_hcd
+Mar 21 13:01:34 katana kernel: usb 1-8.5: new full-speed USB device number 12 using xhci_hcd
+Mar 21 13:01:34 katana kernel: usb 1-4.3: new full-speed USB device number 13 using xhci_hcd
+Mar 21 13:01:35 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 13:01:43 katana kernel: xhci_hcd 0000:00:14.0: remove, state 4
+Mar 21 13:01:43 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 13:01:43 katana kernel: usb 2-3: USB disconnect, device number 3
+Mar 21 13:01:43 katana kernel: usb 2-4: USB disconnect, device number 2
+Mar 21 13:01:43 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 13:01:43 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 13:01:43 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 13:01:43 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 13:01:43 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 13:01:43 katana kernel: usb 1-4.1: USB disconnect, device number 7
+Mar 21 13:01:44 katana kernel: usb 1-4.2: USB disconnect, device number 10
+Mar 21 13:01:44 katana kernel: usb 1-4.3: USB disconnect, device number 13
+Mar 21 13:01:44 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 13:01:44 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 13:01:44 katana kernel: usb 1-7.3: USB disconnect, device number 6
+Mar 21 13:01:44 katana kernel: usb 1-8: USB disconnect, device number 5
+Mar 21 13:01:44 katana kernel: usb 1-8.1: USB disconnect, device number 9
+Mar 21 13:01:44 katana kernel: usb 1-8.5: USB disconnect, device number 12
+Mar 21 13:01:44 katana kernel: usb 1-10: USB disconnect, device number 8
+Mar 21 13:01:44 katana kernel: usb 1-14: USB disconnect, device number 11
+Mar 21 13:01:44 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 13:01:44 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 13:01:44 katana kernel: usb usb4: USB disconnect, device number 1
+Mar 21 13:01:44 katana kernel: xhci_hcd 0000:01:00.2: USB bus 4 deregistered
+Mar 21 13:01:44 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 13:01:44 katana kernel: usb usb3: USB disconnect, device number 1
+Mar 21 13:01:44 katana kernel: xhci_hcd 0000:01:00.2: USB bus 3 deregistered
+Mar 21 13:01:47 katana kernel: xhci_pci: unknown parameter 'xhci_pci_renesas' ignored
+Mar 21 13:01:47 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 13:01:47 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 13:01:47 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 13:01:47 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 13:01:47 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 13:01:47 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 13:01:47 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 13:01:47 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:01:47 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 13:01:47 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:01:47 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 13:01:47 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 3
+Mar 21 13:01:47 katana kernel: xhci_hcd 0000:01:00.2: hcc params 0x0180ff05 hci version 0x110 quirks 0x0000000000000010
+Mar 21 13:01:47 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 13:01:47 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 4
+Mar 21 13:01:47 katana kernel: xhci_hcd 0000:01:00.2: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 13:01:47 katana kernel: usb usb3: Product: xHCI Host Controller
+Mar 21 13:01:47 katana kernel: usb usb3: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:01:47 katana kernel: usb usb4: Product: xHCI Host Controller
+Mar 21 13:01:47 katana kernel: usb usb4: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:01:48 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 13:01:48 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 2 using xhci_hcd
+Mar 21 13:01:48 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 13:01:48 katana kernel: usb 2-4: new SuperSpeed USB device number 3 using xhci_hcd
+Mar 21 13:01:50 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 13:01:50 katana kernel: usb 1-4.1: new full-speed USB device number 5 using xhci_hcd
+Mar 21 13:01:50 katana kernel: usb 1-8: new high-speed USB device number 6 using xhci_hcd
+Mar 21 13:01:50 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 13:01:51 katana kernel: usb 1-4.2: new full-speed USB device number 8 using xhci_hcd
+Mar 21 13:01:51 katana kernel: usb 1-10: new full-speed USB device number 9 using xhci_hcd
+Mar 21 13:01:51 katana kernel: usb 1-8.1: new low-speed USB device number 10 using xhci_hcd
+Mar 21 13:01:51 katana kernel: usb 1-4.3: new full-speed USB device number 11 using xhci_hcd
+Mar 21 13:01:52 katana kernel: usb 1-14: new full-speed USB device number 12 using xhci_hcd
+Mar 21 13:01:52 katana kernel: usb 1-8.5: new full-speed USB device number 13 using xhci_hcd
+Mar 21 13:01:52 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 13:02:02 katana kernel: usb 2-1: new SuperSpeed USB device number 4 using xhci_hcd
+Mar 21 13:02:02 katana kernel: usb 2-1: New USB device found, idVendor=1532, idProduct=0e05, bcdDevice= 8.21
+Mar 21 13:02:02 katana kernel: usb 2-1: Found UVC 1.00 device Razer Kiyo Pro (1532:0e05)
+Mar 21 13:02:02 katana kernel: uvcvideo 2-1:1.1: Failed to set UVC probe control : -32 (exp. 26).
+Mar 21 13:02:04 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 13:02:04 katana kernel: usb usb4: USB disconnect, device number 1
+Mar 21 13:02:04 katana kernel: xhci_hcd 0000:01:00.2: USB bus 4 deregistered
+Mar 21 13:02:04 katana kernel: xhci_hcd 0000:01:00.2: remove, state 4
+Mar 21 13:02:04 katana kernel: usb usb3: USB disconnect, device number 1
+Mar 21 13:02:04 katana kernel: xhci_hcd 0000:01:00.2: USB bus 3 deregistered
+Mar 21 13:02:04 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 13:02:04 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 13:02:04 katana kernel: usb 2-1: USB disconnect, device number 4
+Mar 21 13:02:04 katana kernel: usb 2-3: USB disconnect, device number 2
+Mar 21 13:02:04 katana kernel: usb 2-4: USB disconnect, device number 3
+Mar 21 13:02:04 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 13:02:04 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 13:02:04 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 13:02:04 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 13:02:04 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 13:02:04 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 13:02:05 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 13:02:05 katana kernel: usb 1-4.3: USB disconnect, device number 11
+Mar 21 13:02:05 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 13:02:05 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 13:02:05 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 13:02:05 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 13:02:05 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 21 13:02:05 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 21 13:02:05 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 21 13:02:05 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 21 13:02:05 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 13:02:08 katana kernel: xhci_pci: unknown parameter 'xhci_pci_renesas' ignored
+Mar 21 13:02:08 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 13:02:08 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Mar 21 13:02:08 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Mar 21 13:02:08 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Mar 21 13:02:08 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Mar 21 13:02:08 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 13:02:08 katana kernel: usb usb1: Product: xHCI Host Controller
+Mar 21 13:02:08 katana kernel: usb usb1: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:02:08 katana kernel: usb usb2: Product: xHCI Host Controller
+Mar 21 13:02:08 katana kernel: usb usb2: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:02:08 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 13:02:08 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 3
+Mar 21 13:02:08 katana kernel: xhci_hcd 0000:01:00.2: hcc params 0x0180ff05 hci version 0x110 quirks 0x0000000000000010
+Mar 21 13:02:08 katana kernel: xhci_hcd 0000:01:00.2: xHCI Host Controller
+Mar 21 13:02:08 katana kernel: xhci_hcd 0000:01:00.2: new USB bus registered, assigned bus number 4
+Mar 21 13:02:08 katana kernel: xhci_hcd 0000:01:00.2: Host supports USB 3.1 Enhanced SuperSpeed
+Mar 21 13:02:08 katana kernel: usb usb3: Product: xHCI Host Controller
+Mar 21 13:02:08 katana kernel: usb usb3: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:02:08 katana kernel: usb usb4: Product: xHCI Host Controller
+Mar 21 13:02:08 katana kernel: usb usb4: Manufacturer: Linux 6.8.0-106-generic xhci-hcd
+Mar 21 13:02:09 katana kernel: usb 1-3: new high-speed USB device number 2 using xhci_hcd
+Mar 21 13:02:09 katana kernel: usb 2-1: new SuperSpeed USB device number 2 using xhci_hcd
+Mar 21 13:02:09 katana kernel: usb 2-1: New USB device found, idVendor=1532, idProduct=0e05, bcdDevice= 8.21
+Mar 21 13:02:09 katana kernel: usb 2-1: Found UVC 1.00 device Razer Kiyo Pro (1532:0e05)
+Mar 21 13:02:09 katana kernel: usb 1-4: new high-speed USB device number 3 using xhci_hcd
+Mar 21 13:02:10 katana kernel: usb 2-3: new SuperSpeed Plus Gen 2x1 USB device number 3 using xhci_hcd
+Mar 21 13:02:10 katana kernel: usb 2-4: new SuperSpeed USB device number 4 using xhci_hcd
+Mar 21 13:02:11 katana kernel: usb 1-7: new high-speed USB device number 4 using xhci_hcd
+Mar 21 13:02:11 katana kernel: usb 1-4.1: new full-speed USB device number 5 using xhci_hcd
+Mar 21 13:02:11 katana kernel: usb 1-8: new high-speed USB device number 6 using xhci_hcd
+Mar 21 13:02:11 katana kernel: usb 1-7.3: new full-speed USB device number 7 using xhci_hcd
+Mar 21 13:02:12 katana kernel: usb 1-4.2: new full-speed USB device number 8 using xhci_hcd
+Mar 21 13:02:12 katana kernel: usb 1-10: new full-speed USB device number 9 using xhci_hcd
+Mar 21 13:02:12 katana kernel: usb 1-8.1: new low-speed USB device number 10 using xhci_hcd
+Mar 21 13:02:12 katana kernel: usb 1-4.3: new full-speed USB device number 11 using xhci_hcd
+Mar 21 13:02:17 katana kernel: usb 1-14: new full-speed USB device number 12 using xhci_hcd
+Mar 21 13:02:17 katana kernel: usb 1-8.5: new full-speed USB device number 13 using xhci_hcd
+Mar 21 13:02:18 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 13:02:27 katana kernel: usb 2-1: Found UVC 1.00 device Razer Kiyo Pro (1532:0e05)
+Mar 21 13:02:35 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 13:02:35 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 13:02:35 katana kernel: usb 2-1: USB disconnect, device number 2
+Mar 21 13:02:35 katana kernel: usb 2-1: cannot submit urb 0, error -19: no device
+Mar 21 13:02:37 katana kernel: usb 2-3: USB disconnect, device number 3
+Mar 21 13:02:37 katana kernel: usb 2-4: USB disconnect, device number 4
+Mar 21 13:02:37 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 13:02:37 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 13:02:37 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 13:02:37 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 13:02:37 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 13:02:37 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 13:02:37 katana kernel: usb 1-7.3: cannot submit urb 0, error -19: no device
+Mar 21 13:02:37 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 13:02:37 katana kernel: usb 1-4.3: USB disconnect, device number 11
+Mar 21 13:02:37 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 13:02:37 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 13:02:37 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 13:02:37 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 13:02:37 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 21 13:02:38 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 21 13:02:38 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 21 13:02:38 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 21 13:02:38 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered

@@ -1,0 +1,80 @@
+Mar 21 13:02:17 katana kernel: usb 1-14: new full-speed USB device number 12 using xhci_hcd
+Mar 21 13:02:17 katana kernel: hid-generic 0003:046D:C548.015F: input,hidraw7: USB HID v1.11 Keyboard [Logitech USB Receiver] on usb-0000:00:14.0-4.3/input0
+Mar 21 13:02:17 katana kernel: input: Logitech USB Receiver Mouse as /devices/pci0000:00/0000:00:14.0/usb1/1-4/1-4.3/1-4.3:1.1/0003:046D:C548.0161/input/input592
+Mar 21 13:02:17 katana kernel: input: Micro-Star INT'L CO., LTD. MSI GK20 Gaming Keyboard System Control as /devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8.1/1-8.1:1.1/0003:0B20:0DB0.0160/input/input589
+Mar 21 13:02:17 katana kernel: input: Micro-Star INT'L CO., LTD. MSI GK20 Gaming Keyboard as /devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8.1/1-8.1:1.1/0003:0B20:0DB0.0160/input/input591
+Mar 21 13:02:17 katana kernel: input: Logitech USB Receiver Consumer Control as /devices/pci0000:00/0000:00:14.0/usb1/1-4/1-4.3/1-4.3:1.1/0003:046D:C548.0161/input/input593
+Mar 21 13:02:17 katana kernel: hid-generic 0003:0B20:0DB0.0160: input,hiddev2,hidraw8: USB HID v1.10 Keyboard [Micro-Star INT'L CO., LTD. MSI GK20 Gaming Keyboard] on usb-0000:00:14.0-8.1/input1
+Mar 21 13:02:17 katana kernel: usb 1-14: New USB device found, idVendor=8087, idProduct=0029, bcdDevice= 0.01
+Mar 21 13:02:17 katana kernel: usb 1-14: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+Mar 21 13:02:17 katana kernel: input: Logitech USB Receiver System Control as /devices/pci0000:00/0000:00:14.0/usb1/1-4/1-4.3/1-4.3:1.1/0003:046D:C548.0161/input/input594
+Mar 21 13:02:17 katana kernel: hid-generic 0003:046D:C548.0161: input,hidraw9: USB HID v1.11 Mouse [Logitech USB Receiver] on usb-0000:00:14.0-4.3/input1
+Mar 21 13:02:17 katana kernel: hid-generic 0003:046D:C548.0162: hiddev3,hidraw24: USB HID v1.11 Device [Logitech USB Receiver] on usb-0000:00:14.0-4.3/input2
+Mar 21 13:02:17 katana kernel: usb 1-8.5: new full-speed USB device number 13 using xhci_hcd
+Mar 21 13:02:17 katana kernel: Bluetooth: hci0: Found device firmware: intel/ibt-20-1-3.sfi
+Mar 21 13:02:17 katana kernel: Bluetooth: hci0: Boot Address: 0x24800
+Mar 21 13:02:17 katana kernel: Bluetooth: hci0: Firmware Version: 132-3.24
+Mar 21 13:02:17 katana kernel: Bluetooth: hci0: Firmware already loaded
+Mar 21 13:02:17 katana kernel: Bluetooth: hci0: HCI LE Coded PHY feature bit is set, but its usage is not supported.
+Mar 21 13:02:18 katana kernel: Bluetooth: MGMT ver 1.22
+Mar 21 13:02:18 katana kernel: usb 1-8.5: New USB device found, idVendor=0db0, idProduct=0d08, bcdDevice= 1.00
+Mar 21 13:02:18 katana kernel: usb 1-8.5: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+Mar 21 13:02:18 katana kernel: usb 1-8.5: Product: MSI GM08 OpticalMouse
+Mar 21 13:02:18 katana kernel: usb 1-8.5: Manufacturer: PixArt
+Mar 21 13:02:18 katana kernel: input: PixArt MSI GM08 OpticalMouse as /devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8.5/1-8.5:1.0/0003:0DB0:0D08.0163/input/input595
+Mar 21 13:02:18 katana kernel: hid-generic 0003:0DB0:0D08.0163: input,hidraw26: USB HID v1.11 Mouse [PixArt MSI GM08 OpticalMouse] on usb-0000:00:14.0-8.5/input0
+Mar 21 13:02:18 katana kernel: input: PixArt MSI GM08 OpticalMouse Keyboard as /devices/pci0000:00/0000:00:14.0/usb1/1-8/1-8.5/1-8.5:1.1/0003:0DB0:0D08.0164/input/input597
+Mar 21 13:02:18 katana kernel: hid-generic 0003:0DB0:0D08.0164: input,hiddev4,hidraw27: USB HID v1.11 Keyboard [PixArt MSI GM08 OpticalMouse] on usb-0000:00:14.0-8.5/input1
+Mar 21 13:02:18 katana kernel: usb 1-4.4: new high-speed USB device number 14 using xhci_hcd
+Mar 21 13:02:18 katana kernel: Bluetooth: hci0: Bad flag given (0x1) vs supported (0x0)
+Mar 21 13:02:18 katana kernel: usb 1-4.4: New USB device found, idVendor=05e3, idProduct=0751, bcdDevice=14.04
+Mar 21 13:02:18 katana kernel: usb 1-4.4: New USB device strings: Mfr=3, Product=4, SerialNumber=0
+Mar 21 13:02:18 katana kernel: usb 1-4.4: Product: USB Storage
+Mar 21 13:02:18 katana kernel: usb 1-4.4: Manufacturer: USB Storage
+Mar 21 13:02:18 katana kernel: usb-storage 1-4.4:1.0: USB Mass Storage device detected
+Mar 21 13:02:18 katana kernel: scsi host6: usb-storage 1-4.4:1.0
+Mar 21 13:02:19 katana kernel: scsi 6:0:0:0: Direct-Access     Generic  STORAGE DEVICE   1404 PQ: 0 ANSI: 6
+Mar 21 13:02:19 katana kernel: sd 6:0:0:0: Attached scsi generic sg2 type 0
+Mar 21 13:02:19 katana kernel: sd 6:0:0:0: [sdc] 61952000 512-byte logical blocks: (31.7 GB/29.5 GiB)
+Mar 21 13:02:19 katana kernel: sd 6:0:0:0: [sdc] Write Protect is off
+Mar 21 13:02:19 katana kernel: sd 6:0:0:0: [sdc] Mode Sense: 21 00 00 00
+Mar 21 13:02:19 katana kernel: sd 6:0:0:0: [sdc] Write cache: disabled, read cache: enabled, doesn't support DPO or FUA
+Mar 21 13:02:19 katana kernel:  sdc: sdc1
+Mar 21 13:02:19 katana kernel: sd 6:0:0:0: [sdc] Attached SCSI removable disk
+Mar 21 13:02:19 katana kernel: FAT-fs (sdc1): Volume was not properly unmounted. Some data may be corrupt. Please run fsck.
+Mar 21 13:02:27 katana kernel: usb 2-1: Found UVC 1.00 device Razer Kiyo Pro (1532:0e05)
+Mar 21 13:02:31 katana kernel: usb 2-1: 3:4: cannot set freq 32000 to ep 0x82
+Mar 21 13:02:35 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 13:02:35 katana kernel: usb usb2: USB disconnect, device number 1
+Mar 21 13:02:35 katana kernel: usb 2-1: USB disconnect, device number 2
+Mar 21 13:02:35 katana kernel: usb 2-1: cannot submit urb (err = -19)
+Mar 21 13:02:35 katana kernel: usb 2-1: cannot submit urb 0, error -19: no device
+Mar 21 13:02:37 katana kernel: usb 2-3: USB disconnect, device number 3
+Mar 21 13:02:37 katana kernel: usb 2-4: USB disconnect, device number 4
+Mar 21 13:02:37 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Mar 21 13:02:37 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Mar 21 13:02:37 katana kernel: usb usb1: USB disconnect, device number 1
+Mar 21 13:02:37 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 21 13:02:37 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 21 13:02:37 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Mar 21 13:02:37 katana kernel: usb 1-7.3: cannot submit urb (err = -19)
+Mar 21 13:02:37 katana kernel: usb 1-7.3: cannot submit urb 0, error -19: no device
+Mar 21 13:02:37 katana kernel: usb 1-4.2: USB disconnect, device number 8
+Mar 21 13:02:37 katana kernel: usb 1-4.3: USB disconnect, device number 11
+Mar 21 13:02:37 katana kernel: usb 1-4.4: USB disconnect, device number 14
+Mar 21 13:02:37 katana kernel: device offline error, dev sdc, sector 8193 op 0x1:(WRITE) flags 0x0 phys_seg 1 prio class 2
+Mar 21 13:02:37 katana kernel: Buffer I/O error on dev sdc1, logical block 1, lost async page write
+Mar 21 13:02:37 katana kernel: usb 1-7: USB disconnect, device number 4
+Mar 21 13:02:37 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 21 13:02:37 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 21 13:02:37 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 21 13:02:38 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 21 13:02:38 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 21 13:02:38 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 21 13:02:38 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Mar 21 13:07:26 katana kernel: rfkill: input handler enabled
+Mar 21 13:07:27 katana kernel: md127: detected capacity change from 499851904 to 0
+Mar 21 13:07:27 katana kernel: md: md127 stopped.
+Mar 21 13:07:32 katana systemd-shutdown[1]: Syncing filesystems and block devices.
+Mar 21 13:07:32 katana systemd-shutdown[1]: Sending SIGTERM to remaining processes...
+Mar 21 13:07:32 katana systemd-journald[389]: Received SIGTERM from PID 1 (systemd-shutdow).
