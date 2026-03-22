@@ -83,7 +83,6 @@ bash kernel-patches/install-watchdog.sh
 | `kernel-patches/0000-cover-letter.txt` | Patch series cover letter |
 | `kernel-patches/*.patch` | Kernel patches for upstream submission |
 | `kernel-patches/send-patches.sh` | Sends patch series to linux-usb/linux-media via `git send-email` |
-| `kernel-patches/reply-to-stern.txt` | Draft reply to Alan Stern's xhci-hcd review feedback |
 | `kernel-patches/uvcvideo-patched.ko` | Pre-built patched uvcvideo module (6.8.0-106-generic) |
 | `kernel-patches/build-uvc-module.sh` | Builds patched uvcvideo module from kernel source |
 | `kernel-patches/apply-and-test.sh` | Applies patches to kernel tree and runs build |
