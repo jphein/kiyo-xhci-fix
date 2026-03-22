@@ -1,0 +1,11 @@
+# Crash evidence logs (very large, 7K+ lines)
+kernel-patches/crash-evidence/*.log
+
+# Compiled kernel modules
+*.ko
+
+# Temp
+/tmp/
+
+# Tooling
+.claude/
