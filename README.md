@@ -80,11 +80,20 @@ bash kernel-patches/install-watchdog.sh
 | `usb-watchdog-sudoers` | Targeted sudoers rules for watchdog |
 | `reset-camera.sh` | One-shot manual recovery script |
 | `fix-kiyo-pro.sh` | All-in-one fix installer (quirk + udev + WirePlumber) |
+| `kernel-patches/0000-cover-letter.txt` | Patch series cover letter |
 | `kernel-patches/*.patch` | Kernel patches for upstream submission |
+| `kernel-patches/send-patches.sh` | Sends patch series to linux-usb/linux-media via `git send-email` |
+| `kernel-patches/reply-to-stern.txt` | Draft reply to Alan Stern's xhci-hcd review feedback |
+| `kernel-patches/uvcvideo-patched.ko` | Pre-built patched uvcvideo module (6.8.0-106-generic) |
 | `kernel-patches/build-uvc-module.sh` | Builds patched uvcvideo module from kernel source |
+| `kernel-patches/apply-and-test.sh` | Applies patches to kernel tree and runs build |
 | `kernel-patches/test-ctrl-throttle.sh` | CTRL_THROTTLE isolation test (swaps module, removes LPM quirk) |
+| `kernel-patches/test-quirks-locally.sh` | Local quirk validation without rebooting |
+| `kernel-patches/test-watchdog.sh` | Watchdog service test harness |
 | `kernel-patches/stress-test-kiyo.sh` | Crash reproducer / validation tool |
+| `kernel-patches/install-watchdog.sh` | Installs watchdog systemd service |
 | `kernel-patches/upstream-report.md` | Full bug report for linux-usb mailing list |
+| `kernel-patches/test-methodology.md` | Test methodology and procedures |
 | `kernel-patches/research-*.md` | Root cause analysis notes |
 | `kernel-patches/crash-evidence/` | Kernel logs from real crash events |
 
