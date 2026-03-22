@@ -1,6 +1,7 @@
+From 7d11d192acd053ff61c25ddb0e519c6c25483e1d Mon Sep 17 00:00:00 2001
 From: JP Hein <jp@jphein.com>
-Date: Fri, 21 Mar 2026 12:00:00 -0700
-Subject: [PATCH 3/3] media: uvcvideo: add quirks for Razer Kiyo Pro webcam
+Date: Sun, 22 Mar 2026 15:48:44 -0700
+Subject: [PATCH v4 3/3] media: uvcvideo: add quirks for Razer Kiyo Pro webcam
 
 The Razer Kiyo Pro (1532:0e05) is a USB 3.0 webcam whose firmware has
 two failure modes that cascade into full xHCI host controller death,
@@ -32,10 +33,11 @@ Signed-off-by: JP Hein <jp@jphein.com>
  1 file changed, 17 insertions(+)
 
 diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index XXXXXXX..XXXXXXX 100644
+index b0ca81d92..e8b4de942 100644
 --- a/drivers/media/usb/uvc/uvc_driver.c
 +++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -2920,5 +2920,22 @@ static const struct usb_device_id uvc_ids[] = {
+@@ -2920,6 +2920,23 @@ static const struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceSubClass	= 1,
  	  .bInterfaceProtocol	= 0,
  	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
 +
@@ -58,5 +60,6 @@ index XXXXXXX..XXXXXXX 100644
  	/* Kurokesu C1 PRO */
  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
  				| USB_DEVICE_ID_MATCH_INT_INFO,
---
+-- 
 2.43.0
+

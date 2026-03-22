@@ -1,5 +1,5 @@
 From: JP Hein <jp@jphein.com>
-Subject: [PATCH 0/3] USB/UVC: Add quirks to prevent Razer Kiyo Pro xHCI cascade failure
+Subject: [PATCH v4 0/3] USB/UVC: Add quirks to prevent Razer Kiyo Pro xHCI cascade failure
 
 The Razer Kiyo Pro (1532:0e05) is a USB 3.0 webcam whose firmware has a
 well-documented failure mode that cascades into complete xHCI host
@@ -41,19 +41,25 @@ Together, these keep the device in a stable active state, prevent rapid
 control transfer crashes, and avoid the power management transitions
 that trigger the firmware bug.
 
+Changes since v3:
+  - Regenerated patches against media-committers next branch to fix
+    context mismatch (v3 was based on Ubuntu 6.8 source)
+
 Tested on:
   - Kernel: 6.8.0-106-generic (Ubuntu 24.04)
   - Hardware: Intel Cannon Lake PCH xHCI (8086:a36d)
   - Device: Razer Kiyo Pro (1532:0e05), firmware 8.21
   - Stress test: 50 rounds of rapid UVC control changes, 0 failures
 
+Stress test and crash evidence: https://github.com/jphein/kiyo-xhci-fix
+
 JP Hein (3):
   USB: core: add NO_LPM quirk for Razer Kiyo Pro webcam
   media: uvcvideo: add UVC_QUIRK_CTRL_THROTTLE for fragile firmware
   media: uvcvideo: add quirks for Razer Kiyo Pro webcam
 
- drivers/media/usb/uvc/uvc_driver.c | 17 +++++++++++++++++
- drivers/media/usb/uvc/uvc_video.c  | 33 +++++++++++++++++++++++++++++++++
+ drivers/media/usb/uvc/uvc_driver.c | 17 ++++++++++++++++
+ drivers/media/usb/uvc/uvc_video.c  | 32 ++++++++++++++++++++++++++++++
  drivers/media/usb/uvc/uvcvideo.h   |  3 +++
  drivers/usb/core/quirks.c          |  2 ++
- 4 files changed, 55 insertions(+)
+ 4 files changed, 54 insertions(+)
