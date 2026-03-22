@@ -10,8 +10,8 @@ disconnecting every USB device on the bus:
      endpoints on resume, producing EPIPE on SET_CUR. The stalled
      endpoint triggers an xHCI stop-endpoint timeout.
 
-  2. Rapid control transfers: ~25 rapid consecutive SET_CUR operations
-     overwhelm the firmware, causing a full lockup.
+  2. Rapid control transfers: sustained rapid SET_CUR operations
+     (hundreds over several seconds) overwhelm the firmware.
 
 Add the device to the UVC driver table with:
 
@@ -28,17 +28,17 @@ Cc: stable@vger.kernel.org
 Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/2061177
 Signed-off-by: JP Hein <jp@jphein.com>
 ---
- drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/media/usb/uvc/uvc_driver.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
 diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
 index XXXXXXX..XXXXXXX 100644
 --- a/drivers/media/usb/uvc/uvc_driver.c
 +++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -2566,6 +2566,22 @@ static const struct usb_device_id uvc_ids[] = {
+@@ -2920,5 +2920,22 @@ static const struct usb_device_id uvc_ids[] = {
  	  .bInterfaceProtocol	= 0,
  	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
- 
++
 +	/*
 +	 * Razer Kiyo Pro — firmware crashes under rapid control transfers
 +	 * and on LPM/autosuspend resume, cascading into xHCI controller
@@ -55,7 +55,7 @@ index XXXXXXX..XXXXXXX 100644
 +					| UVC_QUIRK_DISABLE_AUTOSUSPEND
 +					| UVC_QUIRK_NO_RESET_RESUME) },
 +
- 	/* Oculus VR Positional Tracker DK2 */
+ 	/* Kurokesu C1 PRO */
  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
  				| USB_DEVICE_ID_MATCH_INT_INFO,
 --

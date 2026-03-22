@@ -41,11 +41,11 @@ If all levels fail, the watchdog **stops** — no retry loops, no death spirals.
 ### 3. Quick Fix (no reboot, no patches)
 
 ```bash
-# Disable LPM for the Kiyo at runtime
-echo "1532:0e05:n" | sudo tee /sys/module/usbcore/parameters/quirks
+# Disable LPM for the Kiyo at runtime (k = USB_QUIRK_NO_LPM)
+echo "1532:0e05:k" | sudo tee /sys/module/usbcore/parameters/quirks
 
 # Make it permanent
-echo 'options usbcore quirks=1532:0e05:n' | sudo tee /etc/modprobe.d/razer-kiyo-usb.conf
+echo 'options usbcore quirks=1532:0e05:k' | sudo tee /etc/modprobe.d/razer-kiyo-usb.conf
 sudo update-initramfs -u
 ```
 

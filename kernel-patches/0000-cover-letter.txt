@@ -13,8 +13,8 @@ The device has two crash triggers:
      stalled endpoint triggers an xHCI stop-endpoint timeout, and the
      kernel declares the host controller dead.
 
-  2. Rapid control transfers: ~25 rapid consecutive UVC SET_CUR
-     operations overwhelm the firmware. The standard error-code query
+  2. Rapid control transfers: sustained rapid UVC SET_CUR operations
+     (hundreds over several seconds) overwhelm the firmware. The error-code query
      (GET_CUR on UVC_VC_REQUEST_ERROR_CODE_CONTROL) amplifies the
      failure by sending a second transfer to the already-stalling device,
      pushing it into a full lockup and xHCI controller death.
@@ -52,8 +52,8 @@ JP Hein (3):
   media: uvcvideo: add UVC_QUIRK_CTRL_THROTTLE for fragile firmware
   media: uvcvideo: add quirks for Razer Kiyo Pro webcam
 
- drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++++++
+ drivers/media/usb/uvc/uvc_driver.c | 17 +++++++++++++++++
  drivers/media/usb/uvc/uvc_video.c  | 33 +++++++++++++++++++++++++++++++++
  drivers/media/usb/uvc/uvcvideo.h   |  3 +++
  drivers/usb/core/quirks.c          |  2 ++
- 4 files changed, 54 insertions(+)
+ 4 files changed, 55 insertions(+)

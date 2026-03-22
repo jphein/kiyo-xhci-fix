@@ -15,7 +15,7 @@ restore() {
     rmmod uvcvideo 2>/dev/null || true
     sleep 1
     modprobe uvcvideo 2>/dev/null || true
-    echo "1532:0e05:n" > /sys/module/usbcore/parameters/quirks
+    echo "1532:0e05:k" > /sys/module/usbcore/parameters/quirks
     echo "  Restored: stock uvcvideo + NO_LPM quirk" | tee -a "$LOG"
 }
 trap restore EXIT

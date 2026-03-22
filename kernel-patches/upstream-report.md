@@ -17,10 +17,10 @@ the host controller to be declared dead. This disconnects **every USB
 device** on the controller — keyboards, mice, and all other peripherals —
 requiring a hard reboot or automated xHCI controller rebind to recover.
 
-The crash is reliably reproducible with a stress test that sends ~20+
-v4l2 control changes per second. It occurs during normal use when
-applications (video conferencing software, OBS, v4l2-ctl) adjust camera
-controls in rapid succession.
+The crash is reliably reproducible with a stress test that sends sustained
+rapid v4l2 control changes (several hundred over a few seconds). It occurs
+during normal use when applications (video conferencing software, OBS,
+v4l2-ctl) adjust camera controls in rapid succession.
 
 ## Hardware
 
@@ -170,8 +170,8 @@ done
 
 Each round issues ~25 SET_CUR transfers. With 0.2s between rounds, the
 effective rate is well over 100 control transfers per second. The device
-firmware crashes consistently around round 25 (approximately 625 total
-SET_CUR transfers, or about 5-10 seconds of sustained load).
+firmware crashes consistently around round 25 (several hundred total
+SET_CUR transfers over a few seconds of sustained rapid load).
 
 ### Prerequisites for reproduction
 
@@ -254,16 +254,7 @@ Prevents USB Link Power Management transitions that can destabilize the
 device firmware during idle-to-active power state changes. This addresses
 the most common real-world trigger.
 
-### [PATCH 2/3] media: uvcvideo: add quirks for Razer Kiyo Pro webcam
-
-Adds a device entry in `uvc_ids[]` with:
-- `UVC_QUIRK_DISABLE_AUTOSUSPEND` — prevents autosuspend
-- `UVC_QUIRK_NO_RESET_RESUME` — avoids the fragile reset-during-resume path
-
-These follow the same patterns used for Logitech Rally Bar
-(`NO_RESET_RESUME`) and Insta360 Link (`DISABLE_AUTOSUSPEND`).
-
-### [PATCH 3/3] media: uvcvideo: add control transfer throttle quirk for Razer Kiyo Pro
+### [PATCH 2/3] media: uvcvideo: add UVC_QUIRK_CTRL_THROTTLE for fragile firmware
 
 Introduces `UVC_QUIRK_CTRL_THROTTLE` (0x00080000) with two protections:
 
@@ -299,8 +290,16 @@ if (dev->quirks & UVC_QUIRK_CTRL_THROTTLE)
     return -EPIPE;
 ```
 
-The Razer Kiyo Pro entry in `uvc_ids[]` from Patch 2 is updated to include
-`UVC_QUIRK_CTRL_THROTTLE | UVC_QUIRK_DISABLE_AUTOSUSPEND`.
+### [PATCH 3/3] media: uvcvideo: add quirks for Razer Kiyo Pro webcam
+
+Adds a device entry in `uvc_ids[]` for the Razer Kiyo Pro (1532:0e05)
+with all three UVC quirks combined:
+- `UVC_QUIRK_CTRL_THROTTLE` — rate-limits SET_CUR and skips error-code
+  queries after EPIPE (the primary crash prevention from patch 2)
+- `UVC_QUIRK_DISABLE_AUTOSUSPEND` — prevents autosuspend transitions that
+  destabilize the firmware (same approach as Insta360 Link)
+- `UVC_QUIRK_NO_RESET_RESUME` — avoids the fragile reset-during-resume
+  path (same approach as Logitech Rally Bar)
 
 ## Test Results
 
@@ -312,9 +311,9 @@ The Razer Kiyo Pro entry in `uvc_ids[]` from Patch 2 is updated to include
 | avoid_reset_quirk only (sysfs) | ~25 |
 | All three combined (udev rule) | ~25 |
 | USB_QUIRK_DELAY_CTRL_MSG (200ms) | 500+ (no crash) |
-| UVC_QUIRK_CTRL_THROTTLE (50ms, patch 3) | 500+ (no crash) |
+| UVC_QUIRK_CTRL_THROTTLE (50ms, patch 2) | 500+ (no crash) |
 
-The 50ms throttle (patch 3) prevents the crash while being 4x less
+The 50ms throttle (patch 2) prevents the crash while being 4x less
 conservative than `USB_QUIRK_DELAY_CTRL_MSG` and scoped specifically to
 UVC SET_CUR operations.
 
@@ -352,9 +351,9 @@ generic UVC interface class entries.
 ## Files Changed
 
 ```
-drivers/usb/core/quirks.c           |  3 +++   (patch 1)
-drivers/media/usb/uvc/uvc_driver.c  | 11 ++++++++++ (patch 2, updated in patch 3)
-drivers/media/usb/uvc/uvc_video.c   | 22 ++++++++++++++++++++  (patch 3)
-drivers/media/usb/uvc/uvcvideo.h    |  3 +++   (patch 3)
-4 files changed, 39 insertions(+)
+drivers/usb/core/quirks.c           |  2 ++                    (patch 1)
+drivers/media/usb/uvc/uvc_video.c   | 33 +++++++++++++++++++++++++++++++++  (patch 2)
+drivers/media/usb/uvc/uvcvideo.h    |  3 +++                  (patch 2)
+drivers/media/usb/uvc/uvc_driver.c  | 17 +++++++++++++++++  (patch 3)
+4 files changed, 55 insertions(+)
 ```
