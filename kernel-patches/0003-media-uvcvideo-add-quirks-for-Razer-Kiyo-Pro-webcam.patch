@@ -40,7 +40,7 @@ index XXXXXXX..XXXXXXX 100644
  	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
 +
 +	/*
-+	 * Razer Kiyo Pro — firmware crashes under rapid control transfers
++	 * Razer Kiyo Pro -- firmware crashes under rapid control transfers
 +	 * and on LPM/autosuspend resume, cascading into xHCI controller
 +	 * death that disconnects all USB devices on the bus.
 +	 */

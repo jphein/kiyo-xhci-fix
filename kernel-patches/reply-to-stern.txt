@@ -2,7 +2,7 @@ On Sat, Mar 21, 2026 at 07:15:00PM -0400, Alan Stern wrote:
 > On Sat, Mar 21, 2026 at 03:37:02PM -0700, JP Hein wrote:
 > > The Razer Kiyo Pro (1532:0e05) is a USB 3.0 webcam whose firmware has a
 > > well-documented failure mode that cascades into complete xHCI host
-> > controller death, disconnecting every USB device on the bus — including
+> > controller death, disconnecting every USB device on the bus -- including
 > > keyboards and mice, requiring a hard reboot.
 > >
 > > The device has two crash triggers:
@@ -32,7 +32,7 @@ entirely and goes straight to xhci_hc_died():
 		xhci_hc_died(xhci);
 
 There is also a TODO comment near the top of the command timeout handler
-acknowledging the gap — it notes the need to distinguish between
+acknowledging the gap -- it notes the need to distinguish between
 -ETIMEDOUT (command timed out, HC may still be alive) and -ENODEV (HC
 genuinely gone), but that distinction is not yet implemented.
 
@@ -48,7 +48,7 @@ about stop-endpoint timeouts cascading into HC death) and noted the fix
 was non-trivial due to deadlock risks in the command completion path.  It
 has remained an open problem since.
 
-The quirks in this series are intended as defense-in-depth — they prevent
+The quirks in this series are intended as defense-in-depth -- they prevent
 the device from reaching the state that triggers the stop-endpoint
 timeout in the first place.  But they don't fix the underlying xhci-hcd
 fragility, and I agree that a device-scoped recovery path in the

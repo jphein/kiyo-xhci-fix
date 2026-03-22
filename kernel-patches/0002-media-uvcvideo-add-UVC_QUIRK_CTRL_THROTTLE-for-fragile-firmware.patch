@@ -5,7 +5,7 @@ Subject: [PATCH 2/3] media: uvcvideo: add UVC_QUIRK_CTRL_THROTTLE for fragile
 
 Some USB webcams have firmware that crashes when it receives rapid
 consecutive UVC control transfers (SET_CUR). The Razer Kiyo Pro
-(1532:0e05) is one such device — after several hundred rapid control
+(1532:0e05) is one such device -- after several hundred rapid control
 changes over a few seconds, the device stops responding entirely,
 triggering an xHCI stop-endpoint command timeout that causes the host
 controller to be declared dead, disconnecting every USB device on the
@@ -42,14 +42,14 @@ diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
 index XXXXXXX..XXXXXXX 100644
 --- a/drivers/media/usb/uvc/uvcvideo.h
 +++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -90,6 +90,7 @@
+@@ -90,5 +90,6 @@
  #define UVC_QUIRK_MJPEG_NO_EOF		0x00020000
  #define UVC_QUIRK_MSXU_META		0x00040000
 +#define UVC_QUIRK_CTRL_THROTTLE		0x00080000
  
  /* Format flags */
  #define UVC_FMT_FLAG_COMPRESSED		0x00000001
-@@ -737,4 +738,6 @@ struct uvc_device {
+@@ -737,5 +738,7 @@ struct uvc_device {
  	unsigned long warnings;
  	u32 quirks;
 +	/* Control transfer throttling (UVC_QUIRK_CTRL_THROTTLE) */
@@ -61,7 +61,7 @@ diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video
 index XXXXXXX..XXXXXXX 100644
 --- a/drivers/media/usb/uvc/uvc_video.c
 +++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -71,10 +71,33 @@ int uvc_query_ctrl(struct uvc_device *dev, u8 query, u8 unit,
+@@ -71,11 +71,34 @@ int uvc_query_ctrl(struct uvc_device *dev, u8 query, u8 unit,
  		u8 intfnum, u8 cs, void *data, u16 size)
  {
  	int ret;
@@ -96,7 +96,7 @@ index XXXXXXX..XXXXXXX 100644
  	if (likely(ret == size))
  		return 0;
  
-@@ -107,6 +130,16 @@ int uvc_query_ctrl(struct uvc_device *dev, u8 query, u8 unit,
+@@ -107,8 +130,18 @@ int uvc_query_ctrl(struct uvc_device *dev, u8 query, u8 unit,
  		return ret < 0 ? ret : -EPIPE;
  	}
  

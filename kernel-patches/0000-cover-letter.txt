@@ -3,7 +3,7 @@ Subject: [PATCH 0/3] USB/UVC: Add quirks to prevent Razer Kiyo Pro xHCI cascade 
 
 The Razer Kiyo Pro (1532:0e05) is a USB 3.0 webcam whose firmware has a
 well-documented failure mode that cascades into complete xHCI host
-controller death, disconnecting every USB device on the bus — including
+controller death, disconnecting every USB device on the bus -- including
 keyboards and mice, requiring a hard reboot.
 
 The device has two crash triggers:
@@ -19,21 +19,21 @@ The device has two crash triggers:
      failure by sending a second transfer to the already-stalling device,
      pushing it into a full lockup and xHCI controller death.
 
-This has been reported as Ubuntu Launchpad Bug #2061177 and affects
-multiple kernel versions (tested on 6.5.x through 6.8.x). There are
+This has been reported as Ubuntu Launchpad Bug #2061177, with reports
+across kernel versions 6.5 through 6.8. There are
 currently no device-specific quirks for this webcam in either the USB
 core quirks table or the UVC driver device table.
 
 This series adds three patches:
 
-Patch 1: USB core — USB_QUIRK_NO_LPM to prevent Link Power Management
+Patch 1: USB core -- USB_QUIRK_NO_LPM to prevent Link Power Management
   transitions that destabilize the device firmware.
 
-Patch 2: UVC driver — introduce UVC_QUIRK_CTRL_THROTTLE to rate-limit
+Patch 2: UVC driver -- introduce UVC_QUIRK_CTRL_THROTTLE to rate-limit
   SET_CUR control transfers (50ms minimum interval) and skip the
   error-code query after EPIPE errors on affected devices.
 
-Patch 3: UVC driver — add Razer Kiyo Pro device table entry with
+Patch 3: UVC driver -- add Razer Kiyo Pro device table entry with
   UVC_QUIRK_CTRL_THROTTLE, UVC_QUIRK_DISABLE_AUTOSUSPEND, and
   UVC_QUIRK_NO_RESET_RESUME to address both crash triggers.
 
