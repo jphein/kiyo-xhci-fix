@@ -1,0 +1,1337 @@
+Mar 30 09:59:00 katana systemd-resolved[1227]: Using degraded feature set TCP instead of UDP for DNS server 10.5.34.1.
+Mar 30 09:59:00 katana systemd-resolved[1227]: Using degraded feature set UDP instead of TCP for DNS server 10.5.34.1.
+Mar 30 09:59:04 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:05 katana systemd-resolved[1227]: Using degraded feature set TCP instead of UDP for DNS server 10.5.34.1.
+Mar 30 09:59:05 katana systemd-resolved[1227]: Using degraded feature set UDP instead of TCP for DNS server 10.5.34.1.
+Mar 30 09:59:14 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:15 katana systemd-resolved[1227]: Using degraded feature set TCP instead of UDP for DNS server 10.5.34.1.
+Mar 30 09:59:15 katana systemd-resolved[1227]: Using degraded feature set UDP instead of TCP for DNS server 10.5.34.1.
+Mar 30 09:59:19 katana kernel: [UFW BLOCK] IN=enp5s0 OUT= MAC= SRC=fe80:0000:0000:0000:9b52:085e:4b41:00a3 DST=ff12:0000:0000:0000:0000:0000:0000:8384 LEN=417 TC=0 HOPLIMIT=1 FLOWLBL=781965 PROTO=UDP SPT=57332 DPT=21027 LEN=377 
+Mar 30 09:59:19 katana kernel: [UFW BLOCK] IN=enp5s0.9 OUT= MAC= SRC=fe80:0000:0000:0000:11a8:091c:2dc2:b17d DST=ff12:0000:0000:0000:0000:0000:0000:8384 LEN=417 TC=0 HOPLIMIT=1 FLOWLBL=175215 PROTO=UDP SPT=57332 DPT=21027 LEN=377 
+Mar 30 09:59:24 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:25 katana systemd-resolved[1227]: Using degraded feature set TCP instead of UDP for DNS server 10.5.34.1.
+Mar 30 09:59:25 katana systemd-resolved[1227]: Using degraded feature set UDP instead of TCP for DNS server 10.5.34.1.
+Mar 30 09:59:32 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:36 katana systemd-resolved[1227]: Using degraded feature set TCP instead of UDP for DNS server 10.5.34.1.
+Mar 30 09:59:36 katana systemd-resolved[1227]: Using degraded feature set UDP instead of TCP for DNS server 10.5.34.1.
+Mar 30 09:59:44 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:45 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:45 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:45 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:45 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:45 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:45 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:45 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:45 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:45 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:45 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:45 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:45 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:46 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:46 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:46 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:46 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:46 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:46 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:46 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:46 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:46 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:46 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:46 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:46 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:46 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:46 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:46 katana systemd-resolved[1227]: Using degraded feature set TCP instead of UDP for DNS server 10.5.34.1.
+Mar 30 09:59:46 katana systemd-resolved[1227]: Using degraded feature set UDP instead of TCP for DNS server 10.5.34.1.
+Mar 30 09:59:46 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:49 katana kernel: [UFW BLOCK] IN=enp5s0 OUT= MAC= SRC=fe80:0000:0000:0000:9b52:085e:4b41:00a3 DST=ff12:0000:0000:0000:0000:0000:0000:8384 LEN=417 TC=0 HOPLIMIT=1 FLOWLBL=781965 PROTO=UDP SPT=57332 DPT=21027 LEN=377 
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:54 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:56 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:56 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:56 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:56 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:56 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:56 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:56 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:56 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:56 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:56 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:56 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:56 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 09:59:56 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:00:04 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:00:08 katana systemd[34796]: Starting realm-optimizer.service - RealmWatch Optimizer — periodic system audit...
+Mar 30 10:00:08 katana systemd[34796]: Finished realm-optimizer.service - RealmWatch Optimizer — periodic system audit.
+Mar 30 10:00:14 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:00:19 katana kernel: [UFW BLOCK] IN=enp5s0 OUT= MAC= SRC=fe80:0000:0000:0000:9b52:085e:4b41:00a3 DST=ff12:0000:0000:0000:0000:0000:0000:8384 LEN=417 TC=0 HOPLIMIT=1 FLOWLBL=781965 PROTO=UDP SPT=57332 DPT=21027 LEN=377 
+Mar 30 10:00:19 katana kernel: [UFW BLOCK] IN=enp5s0.9 OUT= MAC= SRC=fe80:0000:0000:0000:11a8:091c:2dc2:b17d DST=ff12:0000:0000:0000:0000:0000:0000:8384 LEN=417 TC=0 HOPLIMIT=1 FLOWLBL=175215 PROTO=UDP SPT=57332 DPT=21027 LEN=377 
+Mar 30 10:00:20 katana systemd-resolved[1227]: Using degraded feature set TCP instead of UDP for DNS server 10.5.34.1.
+Mar 30 10:00:21 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:00:22 katana systemd-resolved[1227]: Using degraded feature set UDP instead of TCP for DNS server 10.5.34.1.
+Mar 30 10:00:23 katana gnome-shell[35194]: meta_surface_actor_is_obscured_on_stage_view: assertion 'bounds_size > 0' failed
+Mar 30 10:00:23 katana gnome-shell[35194]: meta_surface_actor_is_obscured_on_stage_view: assertion 'bounds_size > 0' failed
+Mar 30 10:00:29 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:00:39 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:00:48 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:00:49 katana kernel: [UFW BLOCK] IN=enp5s0 OUT= MAC= SRC=fe80:0000:0000:0000:9b52:085e:4b41:00a3 DST=ff12:0000:0000:0000:0000:0000:0000:8384 LEN=417 TC=0 HOPLIMIT=1 FLOWLBL=781965 PROTO=UDP SPT=57332 DPT=21027 LEN=377 
+Mar 30 10:00:52 katana kernel: usb 2-3.4: disable of device-initiated U1 failed.
+Mar 30 10:00:53 katana kernel: usb 2-3.4: Failed to set U2 timeout to 0x0,error code -110
+Mar 30 10:00:53 katana kernel: uvcvideo 2-3.4:1.1: usb_set_interface Failed to disable LPM
+Mar 30 10:00:54 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -71 (exp. 1).
+Mar 30 10:00:54 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -71 (exp. 1).
+Mar 30 10:00:54 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -71 (exp. 1).
+Mar 30 10:00:54 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -71 (exp. 1).
+Mar 30 10:00:54 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -71 (exp. 1).
+Mar 30 10:00:54 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -71 (exp. 1).
+Mar 30 10:00:54 katana kernel: uvcvideo 2-3.4:1.1: Failed to set UVC probe control : -71 (exp. 26).
+Mar 30 10:00:56 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -71 (exp. 1).
+Mar 30 10:00:56 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -71 (exp. 1).
+Mar 30 10:00:56 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -71 (exp. 1).
+Mar 30 10:00:56 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -71 (exp. 1).
+Mar 30 10:00:56 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -71 (exp. 1).
+Mar 30 10:00:56 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -71 (exp. 1).
+Mar 30 10:00:56 katana kernel: uvcvideo 2-3.4:1.1: Failed to set UVC probe control : -71 (exp. 26).
+Mar 30 10:00:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:00 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:09 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:14 katana kernel: usb 2-3.4: Failed to set U1 timeout to 0xff,error code -71
+Mar 30 10:01:14 katana kernel: usb 2-3.4: Failed to set U1 timeout to 0xff,error code -71
+Mar 30 10:01:14 katana kernel: usb 2-3.4: Failed to set U1 timeout to 0xff,error code -71
+Mar 30 10:01:14 katana kernel: usb 2-3.4: Failed to set U1 timeout to 0xff,error code -71
+Mar 30 10:01:14 katana kernel: usb 2-3.4: Failed to set U1 timeout to 0xff,error code -71
+Mar 30 10:01:14 katana kernel: usb 2-3.4: Failed to set U1 timeout to 0xff,error code -71
+Mar 30 10:01:14 katana kernel: usb 2-3.4: 3:0: usb_set_interface failed (-71)
+Mar 30 10:01:17 katana kernel: usb 2-3.4: Failed to suspend device, error -71
+Mar 30 10:01:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:19 katana kernel: [UFW BLOCK] IN=enp5s0 OUT= MAC= SRC=fe80:0000:0000:0000:9b52:085e:4b41:00a3 DST=ff12:0000:0000:0000:0000:0000:0000:8384 LEN=417 TC=0 HOPLIMIT=1 FLOWLBL=781965 PROTO=UDP SPT=57332 DPT=21027 LEN=377 
+Mar 30 10:01:19 katana kernel: [UFW BLOCK] IN=enp5s0.9 OUT= MAC= SRC=fe80:0000:0000:0000:11a8:091c:2dc2:b17d DST=ff12:0000:0000:0000:0000:0000:0000:8384 LEN=417 TC=0 HOPLIMIT=1 FLOWLBL=175215 PROTO=UDP SPT=57332 DPT=21027 LEN=377 
+Mar 30 10:01:26 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:26 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:27 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:27 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:27 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:27 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:27 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:27 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:27 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:27 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:27 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:27 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:27 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:27 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:27 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:27 katana systemd[34796]: app-org.chromium.Chromium-473306.scope: Consumed 40.982s CPU time.
+Mar 30 10:01:29 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Activating service name='org.gnome.Nautilus' requested by ':1.34' (uid=1000 pid=35194 comm="/usr/bin/gnome-shell" label="unconfined")
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Activating service name='org.gnome.Calculator.SearchProvider' requested by ':1.34' (uid=1000 pid=35194 comm="/usr/bin/gnome-shell" label="unconfined")
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Activating service name='org.gnome.Calendar' requested by ':1.34' (uid=1000 pid=35194 comm="/usr/bin/gnome-shell" label="unconfined")
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Activating service name='org.gnome.Characters' requested by ':1.34' (uid=1000 pid=35194 comm="/usr/bin/gnome-shell" label="unconfined")
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Activating service name='org.gnome.seahorse.Application' requested by ':1.34' (uid=1000 pid=35194 comm="/usr/bin/gnome-shell" label="unconfined")
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Activating service name='org.gnome.Settings.SearchProvider' requested by ':1.34' (uid=1000 pid=35194 comm="/usr/bin/gnome-shell" label="unconfined")
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Successfully activated service 'org.gnome.Settings.SearchProvider'
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Successfully activated service 'org.gnome.Calculator.SearchProvider'
+Mar 30 10:01:30 katana nautilus[714620]: Connecting to org.freedesktop.Tracker3.Miner.Files
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Successfully activated service 'org.gnome.Nautilus'
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Successfully activated service 'org.gnome.seahorse.Application'
+Mar 30 10:01:30 katana gnome-shell[35194]: Received error from D-Bus search provider org.gnome.Terminal.desktop: Gio.IOErrorEnum: Cannot invoke method; proxy is for the well-known name org.gnome.Terminal without an owner, and proxy was constructed with the G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START flag
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Successfully activated service 'org.gnome.Characters'
+Mar 30 10:01:30 katana dbus-daemon[1520]: [system] Activating via systemd: service name='org.freedesktop.timedate1' unit='dbus-org.freedesktop.timedate1.service' requested by ':1.447' (uid=1000 pid=714628 comm="/usr/bin/gnome-calendar --gapplication-service" label="unconfined")
+Mar 30 10:01:30 katana systemd[1]: Starting systemd-timedated.service - Time & Date Service...
+Mar 30 10:01:30 katana dbus-daemon[1520]: [system] Successfully activated service 'org.freedesktop.timedate1'
+Mar 30 10:01:30 katana systemd[1]: Started systemd-timedated.service - Time & Date Service.
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Successfully activated service 'org.gnome.Calendar'
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Activating via systemd: service name='org.freedesktop.Tracker3.Miner.Files' unit='tracker-miner-fs-3.service' requested by ':1.557' (uid=1000 pid=714620 comm="/usr/bin/nautilus --gapplication-service" label="nautilus (unconfined)")
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Activation via systemd failed for unit 'tracker-miner-fs-3.service': Unit tracker-miner-fs-3.service is masked.
+Mar 30 10:01:30 katana gnome-character[714625]: JS LOG: Characters Application started
+Mar 30 10:01:30 katana nautilus[714620]: Unable to create connection for session-wide Tracker indexer: Unit tracker-miner-fs-3.service is masked.
+Mar 30 10:01:30 katana gnome-calendar[714628]: Running Calendar as a service
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Activating via systemd: service name='org.gnome.evolution.dataserver.Sources5' unit='evolution-source-registry.service' requested by ':1.559' (uid=1000 pid=714628 comm="/usr/bin/gnome-calendar --gapplication-service" label="unconfined")
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Activation via systemd failed for unit 'evolution-source-registry.service': Unit evolution-source-registry.service is masked.
+Mar 30 10:01:30 katana gnome-calendar[714628]: Failed to access calendar configuration: Error calling StartServiceByName for org.gnome.evolution.dataserver.Sources5: Unit evolution-source-registry.service is masked.
+Mar 30 10:01:30 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:30 katana nautilus[714620]: Could not establish a connection to Tracker: Unit tracker-miner-fs-3.service is masked.
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Activating service name='org.gnome.seahorse.Application' requested by ':1.34' (uid=1000 pid=35194 comm="/usr/bin/gnome-shell" label="unconfined")
+Mar 30 10:01:30 katana gnome-shell[35194]: Received error from D-Bus search provider org.gnome.Terminal.desktop: Gio.IOErrorEnum: Cannot invoke method; proxy is for the well-known name org.gnome.Terminal without an owner, and proxy was constructed with the G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START flag
+Mar 30 10:01:30 katana nautilus[714620]: Source ID 183 was not found when attempting to remove it
+Mar 30 10:01:30 katana dbus-daemon[34841]: [session uid=1000 pid=34841] Successfully activated service 'org.gnome.seahorse.Application'
+Mar 30 10:01:30 katana python[34820]: [ingest] realm_activity — Anthony-s-S24-Ultra received new address: 10.0.11.112
+Mar 30 10:01:30 katana python[34820]: [ingest] realm_activity — Anthony-s-S24-Ultra received new address: 10.0.11.110
+Mar 30 10:01:30 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:31 katana systemd[34796]: Started app-gnome-google\x2dchrome-714835.scope - Application launched by gnome-shell.
+Mar 30 10:01:31 katana google-chrome.desktop[714842]: [714884:714884:0330/100131.555459:ERROR:base/memory/shared_memory_switch.cc:289] Failed global descriptor lookup: 7
+Mar 30 10:01:31 katana gnome-keyring-daemon[34842]: asked to register item /org/freedesktop/secrets/collection/login/1, but it's already registered
+Mar 30 10:01:31 katana gnome-keyring-d[34842]: asked to register item /org/freedesktop/secrets/collection/login/1, but it's already registered
+Mar 30 10:01:31 katana systemd[34796]: Started app-com.google.Chrome-714835.scope.
+Mar 30 10:01:31 katana google-chrome.desktop[714842]: [714882:714882:0330/100131.752279:ERROR:media/gpu/vaapi/vaapi_wrapper.cc:1640] vaInitialize failed: unknown libva error
+Mar 30 10:01:33 katana google-chrome.desktop[714842]: [714835:714835:0330/100133.629448:ERROR:chrome/browser/ui/startup/startup_browser_creator_impl.cc:230] No browser window found for startup.
+Mar 30 10:01:33 katana collectd[1789]: Filter subsystem: Built-in target `write': Dispatching value to all write plugins failed with status -1.
+Mar 30 10:01:33 katana collectd[1789]: Filter subsystem: Built-in target `write': Some write plugin is back to normal operation. `write' succeeded.
+Mar 30 10:01:33 katana google-chrome.desktop[714842]: Created TensorFlow Lite XNNPACK delegate for CPU.
+Mar 30 10:01:34 katana google-chrome.desktop[714842]: [714835:714863:0330/100134.130413:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+Mar 30 10:01:34 katana google-chrome.desktop[714842]: [714835:714835:0330/100134.520857:ERROR:components/policy/core/common/cloud/cloud_policy_service.cc:189] [policy_type=google/chrome/user] Failed to fetch policy: Client error: 6
+Mar 30 10:01:36 katana google-chrome.desktop[714842]: [714835:714835:0330/100136.277951:ERROR:extensions/browser/api/web_request/extension_web_request_event_router.cc:1919] AddEventListener: 0x3344010233c0 extension_id: bgnkhhnnamicmpeenaelnjfhikgbkllg extension_name: AdGuard AdBlocker event_name: webRequest.onBeforeRequest sub_event_name: webRequest.onBeforeRequest/s1 render_process_id: 7 web_view_instance_id: 0 worker_thread_id: 1 service_worker_version_id: 2909
+Mar 30 10:01:36 katana google-chrome.desktop[714842]: [714835:714835:0330/100136.278201:ERROR:extensions/browser/api/web_request/extension_web_request_event_router.cc:1919] AddEventListener: 0x3344010233c0 extension_id: bgnkhhnnamicmpeenaelnjfhikgbkllg extension_name: AdGuard AdBlocker event_name: webRequest.onBeforeSendHeaders sub_event_name: webRequest.onBeforeSendHeaders/s2 render_process_id: 7 web_view_instance_id: 0 worker_thread_id: 1 service_worker_version_id: 2909
+Mar 30 10:01:36 katana google-chrome.desktop[714842]: [714835:714835:0330/100136.278494:ERROR:extensions/browser/api/web_request/extension_web_request_event_router.cc:1919] AddEventListener: 0x3344010233c0 extension_id: bgnkhhnnamicmpeenaelnjfhikgbkllg extension_name: AdGuard AdBlocker event_name: webRequest.onResponseStarted sub_event_name: webRequest.onResponseStarted/s3 render_process_id: 7 web_view_instance_id: 0 worker_thread_id: 1 service_worker_version_id: 2909
+Mar 30 10:01:36 katana google-chrome.desktop[714842]: [714835:714835:0330/100136.278619:ERROR:extensions/browser/api/web_request/extension_web_request_event_router.cc:1919] AddEventListener: 0x3344010233c0 extension_id: bgnkhhnnamicmpeenaelnjfhikgbkllg extension_name: AdGuard AdBlocker event_name: webRequest.onHeadersReceived sub_event_name: webRequest.onHeadersReceived/s4 render_process_id: 7 web_view_instance_id: 0 worker_thread_id: 1 service_worker_version_id: 2909
+Mar 30 10:01:36 katana google-chrome.desktop[714842]: [714835:714835:0330/100136.278945:ERROR:extensions/browser/api/web_request/extension_web_request_event_router.cc:1919] AddEventListener: 0x3344010233c0 extension_id: bgnkhhnnamicmpeenaelnjfhikgbkllg extension_name: AdGuard AdBlocker event_name: webRequest.onCompleted sub_event_name: webRequest.onCompleted/s5 render_process_id: 7 web_view_instance_id: 0 worker_thread_id: 1 service_worker_version_id: 2909
+Mar 30 10:01:36 katana google-chrome.desktop[714842]: [714835:714835:0330/100136.279124:ERROR:extensions/browser/api/web_request/extension_web_request_event_router.cc:1919] AddEventListener: 0x3344010233c0 extension_id: bgnkhhnnamicmpeenaelnjfhikgbkllg extension_name: AdGuard AdBlocker event_name: webRequest.onErrorOccurred sub_event_name: webRequest.onErrorOccurred/s6 render_process_id: 7 web_view_instance_id: 0 worker_thread_id: 1 service_worker_version_id: 2909
+Mar 30 10:01:36 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:39 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:39 katana google-chrome.desktop[714842]: [716592:716592:0330/100139.509838:ERROR:base/memory/shared_memory_switch.cc:289] Failed global descriptor lookup: 7
+Mar 30 10:01:40 katana google-chrome.desktop[714842]: [716604:716604:0330/100140.273315:ERROR:base/memory/shared_memory_switch.cc:289] Failed global descriptor lookup: 7
+Mar 30 10:01:40 katana gnome-character[714625]: JS LOG: Characters Application exiting
+Mar 30 10:01:41 katana google-chrome.desktop[714842]: [714835:714835:0330/100141.986557:ERROR:extensions/browser/api/web_request/extension_web_request_event_router.cc:1919] AddEventListener: 0x3344010233c0 extension_id: nkbihfbeogaeaoehlefnkodbefgpgknn extension_name: MetaMask event_name: webRequest.onErrorOccurred sub_event_name: webRequest.onErrorOccurred/s1 render_process_id: 50 web_view_instance_id: 0 worker_thread_id: 1 service_worker_version_id: 3117
+Mar 30 10:01:41 katana google-chrome.desktop[714842]: [714835:714835:0330/100141.987874:ERROR:extensions/browser/api/web_request/extension_web_request_event_router.cc:1919] AddEventListener: 0x3344010233c0 extension_id: nkbihfbeogaeaoehlefnkodbefgpgknn extension_name: MetaMask event_name: webRequest.onBeforeRequest sub_event_name: webRequest.onBeforeRequest/s2 render_process_id: 50 web_view_instance_id: 0 worker_thread_id: 1 service_worker_version_id: 3117
+Mar 30 10:01:42 katana google-chrome.desktop[714842]: [714835:714835:0330/100142.004771:ERROR:extensions/browser/api/web_request/extension_web_request_event_router.cc:1919] AddEventListener: 0x3344010233c0 extension_id: nkbihfbeogaeaoehlefnkodbefgpgknn extension_name: MetaMask event_name: webRequest.onBeforeRequest sub_event_name: webRequest.onBeforeRequest/s3 render_process_id: 50 web_view_instance_id: 0 worker_thread_id: 1 service_worker_version_id: 3117
+Mar 30 10:01:42 katana gnome-speaks-service.py[606051]: 10:01:42 [gnome-speaks] INFO Inactivity timeout reached, quitting.
+Mar 30 10:01:42 katana gnome-speaks-service.py[606051]: 10:01:42 [gnome-speaks] INFO Shutting down
+Mar 30 10:01:42 katana gnome-speaks-service.py[606051]: 10:01:42 [gnome-speaks] INFO Stop requested (current state: idle)
+Mar 30 10:01:42 katana systemd[34796]: Stopping ydotoold.service - ydotoold - ydotool daemon (user)...
+Mar 30 10:01:42 katana systemd[34796]: Stopped ydotoold.service - ydotoold - ydotool daemon (user).
+Mar 30 10:01:42 katana systemd[34796]: Started ydotoold.service - ydotoold - ydotool daemon (user).
+Mar 30 10:01:42 katana kernel: input: ydotoold virtual device as /devices/virtual/input/input54
+Mar 30 10:01:42 katana systemd-logind[1539]: Watching system buttons on /dev/input/event259 (ydotoold virtual device)
+Mar 30 10:01:42 katana gnome-speaks-service.py[606051]: 10:01:42 [gnome-speaks] INFO Reset ydotoold to clear stuck key state
+Mar 30 10:01:42 katana gnome-speaks-service.py[606051]: 10:01:42 [gnome-speaks] INFO Exited cleanly
+Mar 30 10:01:42 katana systemd[34796]: gnome-speaks.service: Consumed 2.306s CPU time.
+Mar 30 10:01:42 katana kernel: usb 2-3.4: Failed to suspend device, error -71
+Mar 30 10:01:43 katana ydotoold[716673]: WARNING: running xinput against an Xwayland server. See the xinput man page for details.
+Mar 30 10:01:43 katana ydotoold[716673]: unable to find device pointer:ydotoold virtual device
+Mar 30 10:01:49 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:01:49 katana kernel: [UFW BLOCK] IN=enp5s0 OUT= MAC= SRC=fe80:0000:0000:0000:9b52:085e:4b41:00a3 DST=ff12:0000:0000:0000:0000:0000:0000:8384 LEN=417 TC=0 HOPLIMIT=1 FLOWLBL=781965 PROTO=UDP SPT=57332 DPT=21027 LEN=377 
+Mar 30 10:01:50 katana google-chrome.desktop[714842]: [717778:717778:0330/100150.584262:ERROR:base/memory/shared_memory_switch.cc:289] Failed global descriptor lookup: 7
+Mar 30 10:01:51 katana google-chrome.desktop[714842]: [716676:20:0330/100151.417365:ERROR:third_party/webrtc/pc/sdp_offer_answer.cc:514] A BUNDLE group contains a codec collision between [111: audio/opus] and [111: audio/opus]. All codecs must share the same type, encoding name, clock rate and parameters. (INVALID_PARAMETER)
+Mar 30 10:01:52 katana kernel: usb 2-3.4: Failed to set U1 timeout to 0xff,error code -71
+Mar 30 10:01:52 katana google-chrome.desktop[714842]: [716676:20:0330/100152.571705:ERROR:third_party/webrtc/pc/sdp_offer_answer.cc:514] A BUNDLE group contains a codec collision between [111: audio/opus] and [111: audio/opus]. All codecs must share the same type, encoding name, clock rate and parameters. (INVALID_PARAMETER)
+Mar 30 10:01:54 katana google-chrome.desktop[714842]: [716676:20:0330/100154.318597:ERROR:third_party/webrtc/pc/sdp_offer_answer.cc:514] A BUNDLE group contains a codec collision between [111: audio/opus] and [111: audio/opus]. All codecs must share the same type, encoding name, clock rate and parameters. (INVALID_PARAMETER)
+Mar 30 10:01:57 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -110 (exp. 1).
+Mar 30 10:01:58 katana kernel: usb 2-3.4: Failed to set U1 timeout to 0xff,error code -110
+Mar 30 10:01:58 katana kernel: usb 2-3.4: 3:0: usb_set_interface failed (-110)
+Mar 30 10:01:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:00 katana systemd[1]: systemd-timedated.service: Deactivated successfully.
+Mar 30 10:02:02 katana google-chrome.desktop[714842]: [714835:714863:0330/100202.068791:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+Mar 30 10:02:03 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -110 (exp. 1).
+Mar 30 10:02:03 katana pipewire[34818]: spa.alsa: set_hw_params: Connection timed out
+Mar 30 10:02:03 katana pipewire[34818]: pw.node: (alsa_input.usb-Razer_Inc_Razer_Kiyo_Pro-02.analog-stereo-35) suspended -> error (Start error: Connection timed out)
+Mar 30 10:02:03 katana kernel: usb 2-3.4: 3:1: cannot set freq 48000 to ep 0x82
+Mar 30 10:02:03 katana chrome[714835]: [714835:714862:0330/100203.640246:INFO:chrome/browser/extensions/extension_garbage_collector.cc:188] Garbage collection for extensions on file thread is complete.
+Mar 30 10:02:07 katana ghostty_ghostty.desktop[39201]: info(opengl): loaded OpenGL 4.5
+Mar 30 10:02:07 katana ghostty_ghostty.desktop[39201]: info(io_exec): found Ghostty resources dir: /snap/ghostty/current/share/ghostty
+Mar 30 10:02:07 katana ghostty_ghostty.desktop[39201]: info(io_exec): shell integration automatically injected shell=.bash
+Mar 30 10:02:07 katana ghostty_ghostty.desktop[39201]: warning(gtk_ghostty_application): unimplemented action=.cell_size
+Mar 30 10:02:07 katana systemd[34796]: Started app-ghostty-surface-transient-721341.scope.
+Mar 30 10:02:07 katana ghostty_ghostty.desktop[39201]: info(io_exec): started subcommand path=/bin/sh pid=721341
+Mar 30 10:02:08 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -110 (exp. 1).
+Mar 30 10:02:09 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:09 katana kernel: usb 2-3.4: Failed to set U1 timeout to 0xff,error code -110
+Mar 30 10:02:09 katana kernel: usb 2-3.4: 3:0: usb_set_interface failed (-110)
+Mar 30 10:02:13 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -110 (exp. 1).
+Mar 30 10:02:17 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:18 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:18 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:18 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:18 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:18 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:18 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:18 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:18 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:18 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:18 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:18 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:18 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:19 katana kernel: [UFW BLOCK] IN=enp5s0 OUT= MAC= SRC=fe80:0000:0000:0000:9b52:085e:4b41:00a3 DST=ff12:0000:0000:0000:0000:0000:0000:8384 LEN=417 TC=0 HOPLIMIT=1 FLOWLBL=781965 PROTO=UDP SPT=57332 DPT=21027 LEN=377 
+Mar 30 10:02:19 katana kernel: [UFW BLOCK] IN=enp5s0.9 OUT= MAC= SRC=fe80:0000:0000:0000:11a8:091c:2dc2:b17d DST=ff12:0000:0000:0000:0000:0000:0000:8384 LEN=417 TC=0 HOPLIMIT=1 FLOWLBL=175215 PROTO=UDP SPT=57332 DPT=21027 LEN=377 
+Mar 30 10:02:19 katana pipewire[34818]: spa.alsa: set_hw_params: No such device
+Mar 30 10:02:19 katana kernel: xhci_hcd 0000:00:14.0: xHCI host not responding to stop endpoint command
+Mar 30 10:02:19 katana kernel: xhci_hcd 0000:00:14.0: xHCI host controller not responding, assume dead
+Mar 30 10:02:19 katana kernel: xhci_hcd 0000:00:14.0: HC died; cleaning up
+Mar 30 10:02:19 katana kernel: usb 1-3: USB disconnect, device number 2
+Mar 30 10:02:19 katana kernel: usb 1-3.2: USB disconnect, device number 4
+Mar 30 10:02:19 katana kernel: usb 2-3.4: Failed to query (SET_CUR) UVC control 11 on unit 3: -110 (exp. 1).
+Mar 30 10:02:19 katana kernel: usb 2-3: USB disconnect, device number 3
+Mar 30 10:02:19 katana kernel: usb 2-3.4: USB disconnect, device number 4
+Mar 30 10:02:19 katana kernel: usb 2-3.4: 3:0: usb_set_interface failed (-110)
+Mar 30 10:02:19 katana kernel: usb 2-3.4: 3:1: cannot set freq 48000 to ep 0x82
+Mar 30 10:02:19 katana kernel: usb 2-4: USB disconnect, device number 2
+Mar 30 10:02:19 katana pipewire[34818]: spa.alsa: front:1c: close failed: No such device
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib confmisc.c:855:(parse_card) cannot find card '1'
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_card_inum returned error: No such file or directory
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib confmisc.c:422:(snd_func_concat) error evaluating strings
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_concat returned error: No such file or directory
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib confmisc.c:1342:(snd_func_refer) error evaluating name
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib conf.c:5727:(snd_config_expand) Evaluate error: No such file or directory
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM front:1
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib confmisc.c:855:(parse_card) cannot find card '1'
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_card_inum returned error: No such file or directory
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib confmisc.c:422:(snd_func_concat) error evaluating strings
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_concat returned error: No such file or directory
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib confmisc.c:1342:(snd_func_refer) error evaluating name
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib conf.c:5727:(snd_config_expand) Evaluate error: No such file or directory
+Mar 30 10:02:19 katana pipewire[34818]: ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM front:1
+Mar 30 10:02:19 katana pipewire[34818]: spa.alsa: 'front:1': capture open failed: No such file or directory
+Mar 30 10:02:19 katana pipewire[34818]: spa.alsa: 'front:1': capture open failed: No such file or directory
+Mar 30 10:02:19 katana pipewire[34818]: pw.node: (alsa_input.usb-Razer_Inc_Razer_Kiyo_Pro-02.analog-stereo-35) suspended -> error (Start error: No such file or directory)
+Mar 30 10:02:19 katana pipewire[34818]: pw.link: 0x65390618a370: one of the nodes is in error out:error in:running
+Mar 30 10:02:19 katana gsd-media-keys[37752]: Unable to get default source
+Mar 30 10:02:19 katana pipewire-pulse[34835]: mod.protocol-pulse: client 0x56fb4ef347b0 [Google Chrome input]: ERROR command:-1 (invalid) tag:244 error:25 (Input/output error)
+Mar 30 10:02:19 katana google-chrome.desktop[714842]: [716592:716592:0330/100219.986664:ERROR:media/audio/pulse/pulse_util.cc:381] pa_operation is nullptr.
+Mar 30 10:02:19 katana wireplumber[34828]: <WpSiStandardLink:0x6207aa4c5400> si-standard-link: in/out items are not valid anymore
+Mar 30 10:02:19 katana wireplumber[34828]: <WpSiStandardLink:0x6207aa3c5440> si-standard-link: in/out items are not valid anymore
+Mar 30 10:02:20 katana kernel: usb 1-4: USB disconnect, device number 3
+Mar 30 10:02:20 katana kernel: usb 1-4.1: USB disconnect, device number 8
+Mar 30 10:02:20 katana pipewire[34818]: spa.alsa: set_hw_params: No such device
+Mar 30 10:02:20 katana pipewire[34818]: pw.node: (alsa_input.usb-GeneralPlus_USB_Audio_Device-00.mono-fallback-57) suspended -> error (Start error: No such device)
+Mar 30 10:02:20 katana kernel: usb 1-7.3: Not enough bandwidth for altsetting 1
+Mar 30 10:02:20 katana kernel: usb 1-7.3: 2:1: usb_set_interface failed (-19)
+Mar 30 10:02:20 katana kernel: usb 1-7.3: Not enough bandwidth for altsetting 1
+Mar 30 10:02:20 katana kernel: usb 1-7.3: 2:1: usb_set_interface failed (-19)
+Mar 30 10:02:20 katana pipewire[34818]: spa.alsa: set_hw_params: No such device
+Mar 30 10:02:20 katana pipewire[34818]: spa.alsa: set_hw_params: No such device
+Mar 30 10:02:20 katana kernel: usb 1-7.3: Not enough bandwidth for altsetting 1
+Mar 30 10:02:20 katana kernel: usb 1-7.3: 2:1: usb_set_interface failed (-19)
+Mar 30 10:02:20 katana pipewire[34818]: pw.link: 0x653905cea270: one of the nodes is in error out:error in:suspended
+Mar 30 10:02:20 katana kernel: usb 1-4.2: USB disconnect, device number 11
+Mar 30 10:02:20 katana kernel: usb 1-4.3: USB disconnect, device number 14
+Mar 30 10:02:20 katana kernel: usb 1-4.4: USB disconnect, device number 15
+Mar 30 10:02:20 katana kernel: usb 1-7: USB disconnect, device number 5
+Mar 30 10:02:20 katana kernel: usb 1-7.3: USB disconnect, device number 7
+Mar 30 10:02:20 katana pipewire[34818]: spa.alsa: hw:3c: close failed: No such device
+Mar 30 10:02:20 katana gsd-media-keys[37752]: Unable to get default source
+Mar 30 10:02:20 katana gsd-media-keys[37752]: Unable to get default source
+Mar 30 10:02:20 katana kernel: usb 1-8: USB disconnect, device number 6
+Mar 30 10:02:20 katana kernel: usb 1-8.1: USB disconnect, device number 10
+Mar 30 10:02:20 katana kernel: usb 1-8.5: USB disconnect, device number 13
+Mar 30 10:02:20 katana kernel: usb 1-10: USB disconnect, device number 9
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSource/ldac
+Mar 30 10:02:20 katana kernel: usb 1-14: USB disconnect, device number 12
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSink/aptx_hd
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSource/aptx_hd
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSink/aptx
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSource/aptx
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSink/sbc
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSource/sbc
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSink/sbc_xq
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSource/sbc_xq
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSource/aptx_ll_1
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSource/aptx_ll_0
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSource/aptx_ll_duplex_1
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSource/aptx_ll_duplex_0
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSource/faststream
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSource/faststream_duplex
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSink/opus_05
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSource/opus_05
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSink/opus_05_duplex
+Mar 30 10:02:20 katana bluetoothd[1518]: Endpoint unregistered: sender=:1.216 path=/MediaEndpoint/A2DPSource/opus_05_duplex
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.MediaEndpoint1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:02:20 katana bluetoothd[1518]: Battery Provider Manager destroyed
+Mar 30 10:02:20 katana systemd[1]: Starting systemd-rfkill.service - Load/Save RF Kill Switch Status...
+Mar 30 10:02:20 katana systemd[1]: Started systemd-rfkill.service - Load/Save RF Kill Switch Status.
+Mar 30 10:02:20 katana systemd[1]: Stopped target bluetooth.target - Bluetooth Support.
+Mar 30 10:02:23 katana fwupd[433625]: 17:02:23.980 FuDevice             disabling polling: error polling Bolt receiver: failed to receive: error condition
+Mar 30 10:02:25 katana systemd[1]: systemd-rfkill.service: Deactivated successfully.
+Mar 30 10:02:29 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:34 katana fwupd[433625]: 17:02:34.981 FuDevice             disabling polling: failed to open /dev/hidraw14
+Mar 30 10:02:35 katana systemd-logind[1539]: Power key pressed short.
+Mar 30 10:02:35 katana dbus-daemon[1520]: [system] Activating via systemd: service name='org.freedesktop.PackageKit' unit='packagekit.service' requested by ':1.219' (uid=1000 pid=35194 comm="/usr/bin/gnome-shell" label="unconfined")
+Mar 30 10:02:35 katana dbus-daemon[1520]: [system] Activation via systemd failed for unit 'packagekit.service': Unit packagekit.service is masked.
+Mar 30 10:02:35 katana gnome-shell[35194]: Failed to get update info from PackageKit: GDBus.Error:org.freedesktop.systemd1.UnitMasked: Unit packagekit.service is masked.
+Mar 30 10:02:35 katana gnome-shell[35194]: endSessionDialog: No XDG_SESSION_ID, fetched from logind: 6
+Mar 30 10:02:36 katana dbus-daemon[1520]: [system] Activating via systemd: service name='org.freedesktop.PackageKit' unit='packagekit.service' requested by ':1.219' (uid=1000 pid=35194 comm="/usr/bin/gnome-shell" label="unconfined")
+Mar 30 10:02:36 katana dbus-daemon[1520]: [system] Activation via systemd failed for unit 'packagekit.service': Unit packagekit.service is masked.
+Mar 30 10:02:36 katana gnome-shell[35194]: Failed to get update info from PackageKit: GDBus.Error:org.freedesktop.systemd1.UnitMasked: Unit packagekit.service is masked.
+Mar 30 10:02:36 katana gnome-shell[35194]: endSessionDialog: No XDG_SESSION_ID, fetched from logind: 6
+Mar 30 10:02:39 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:47 katana google-chrome.desktop[714842]: [714835:714863:0330/100247.250751:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+Mar 30 10:02:49 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:49 katana kernel: [UFW BLOCK] IN=enp5s0 OUT= MAC= SRC=fe80:0000:0000:0000:9b52:085e:4b41:00a3 DST=ff12:0000:0000:0000:0000:0000:0000:8384 LEN=417 TC=0 HOPLIMIT=1 FLOWLBL=781965 PROTO=UDP SPT=57332 DPT=21027 LEN=377 
+Mar 30 10:02:54 katana ghostty_ghostty.desktop[39201]: info(page_list): adjusting page capacity=.{ .cols = 60, .rows = 765, .styles = 128, .hyperlink_bytes = 384, .grapheme_bytes = 8192, .string_bytes = 2048 }
+Mar 30 10:02:56 katana ghostty_ghostty.desktop[39201]: info(page_list): adjusting page capacity=.{ .cols = 60, .rows = 765, .styles = 128, .hyperlink_bytes = 768, .grapheme_bytes = 8192, .string_bytes = 2048 }
+Mar 30 10:02:57 katana google-chrome.desktop[714842]: [716676:20:0330/100257.744072:ERROR:third_party/webrtc/pc/sdp_offer_answer.cc:514] A BUNDLE group contains a codec collision between [111: audio/opus] and [111: audio/opus]. All codecs must share the same type, encoding name, clock rate and parameters. (INVALID_PARAMETER)
+Mar 30 10:02:58 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:58 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:02:59 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:03:00 katana gsd-media-keys[37752]: Failed to call Shutdown on session manager: Timeout was reached
+Mar 30 10:03:08 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:03:19 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:03:19 katana kernel: [UFW BLOCK] IN=enp5s0 OUT= MAC= SRC=fe80:0000:0000:0000:9b52:085e:4b41:00a3 DST=ff12:0000:0000:0000:0000:0000:0000:8384 LEN=417 TC=0 HOPLIMIT=1 FLOWLBL=781965 PROTO=UDP SPT=57332 DPT=21027 LEN=377 
+Mar 30 10:03:19 katana kernel: [UFW BLOCK] IN=enp5s0.9 OUT= MAC= SRC=fe80:0000:0000:0000:11a8:091c:2dc2:b17d DST=ff12:0000:0000:0000:0000:0000:0000:8384 LEN=417 TC=0 HOPLIMIT=1 FLOWLBL=175215 PROTO=UDP SPT=57332 DPT=21027 LEN=377 
+Mar 30 10:03:29 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:03:32 katana gpg-agent[35523]: can't connect to the daemon /usr/lib/gnupg/scdaemon: IPC connect call failed
+Mar 30 10:03:35 katana systemd-logind[1539]: The system will power off now!
+Mar 30 10:03:35 katana gnome-shell[35194]: Shutting down GNOME Shell
+Mar 30 10:03:35 katana kernel: rfkill: input handler enabled
+Mar 30 10:03:35 katana systemd-logind[1539]: System is powering down.
+Mar 30 10:03:35 katana systemd[1]: unattended-upgrades.service: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopping session-6.scope - Session 6 of User jp...
+Mar 30 10:03:35 katana systemd[1]: Removed slice system-getty.slice - Slice /system/getty.
+Mar 30 10:03:35 katana systemd[1]: Removed slice system-modprobe.slice - Slice /system/modprobe.
+Mar 30 10:03:35 katana gdm-password][34787]: pam_unix(gdm-password:session): session closed for user jp
+Mar 30 10:03:35 katana systemd[1]: Stopped target getty-pre.target - Preparation for Logins.
+Mar 30 10:03:35 katana systemd[1]: Stopped target graphical.target - Graphical Interface.
+Mar 30 10:03:35 katana systemd[1]: Stopped target multi-user.target - Multi-User System.
+Mar 30 10:03:35 katana systemd[1]: Stopped target getty.target - Login Prompts.
+Mar 30 10:03:35 katana systemd[1]: Stopped target machines.target - Containers.
+Mar 30 10:03:35 katana systemd[1]: Stopped target nss-lookup.target - Host and Network Name Lookups.
+Mar 30 10:03:35 katana systemd[1]: Stopped target rpc_pipefs.target.
+Mar 30 10:03:35 katana systemd[1]: Stopped target rpcbind.target - RPC Port Mapper.
+Mar 30 10:03:35 katana systemd[1]: Stopped target sound.target - Sound Card.
+Mar 30 10:03:35 katana systemd[1]: Stopped target timers.target - Timer Units.
+Mar 30 10:03:35 katana systemd[1]: anacron.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped anacron.timer - Trigger anacron every hour.
+Mar 30 10:03:35 katana systemd[1]: apport-autoreport.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped apport-autoreport.timer - Process error reports when automatic reporting is enabled (timer based).
+Mar 30 10:03:35 katana systemd[1]: apt-daily-upgrade.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped apt-daily-upgrade.timer - Daily apt upgrade and clean activities.
+Mar 30 10:03:35 katana systemd[1]: apt-daily.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped apt-daily.timer - Daily apt download activities.
+Mar 30 10:03:35 katana systemd[1]: dpkg-db-backup.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped dpkg-db-backup.timer - Daily dpkg database backup timer.
+Mar 30 10:03:35 katana systemd[1]: e2scrub_all.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped e2scrub_all.timer - Periodic ext4 Online Metadata Check for All Filesystems.
+Mar 30 10:03:35 katana systemd[1]: fstrim.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped fstrim.timer - Discard unused filesystem blocks once a week.
+Mar 30 10:03:35 katana systemd[1]: fwupd-refresh.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped fwupd-refresh.timer - Refresh fwupd metadata regularly.
+Mar 30 10:03:35 katana systemd[1]: logrotate.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped logrotate.timer - Daily rotation of log files.
+Mar 30 10:03:35 katana systemd[1]: man-db.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped man-db.timer - Daily man-db regeneration.
+Mar 30 10:03:35 katana systemd[1]: mdcheck_continue.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped mdcheck_continue.timer - MD array scrubbing - continuation.
+Mar 30 10:03:35 katana systemd[1]: mdcheck_start.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped mdcheck_start.timer - MD array scrubbing.
+Mar 30 10:03:35 katana systemd[1]: mdmonitor-oneshot.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped mdmonitor-oneshot.timer - Reminder for degraded MD arrays.
+Mar 30 10:03:35 katana systemd[1]: motd-news.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped motd-news.timer - Message of the Day.
+Mar 30 10:03:35 katana systemd[1]: systemd-tmpfiles-clean.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped systemd-tmpfiles-clean.timer - Daily Cleanup of Temporary Directories.
+Mar 30 10:03:35 katana gdm3[1847]: Gdm: on_display_added: assertion 'GDM_IS_REMOTE_DISPLAY (display)' failed
+Mar 30 10:03:35 katana systemd[1]: update-notifier-download.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped update-notifier-download.timer - Download data for packages that failed at package install time.
+Mar 30 10:03:35 katana systemd[1]: update-notifier-motd.timer: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Stopped update-notifier-motd.timer - Check to see whether there is a new version of Ubuntu available.
+Mar 30 10:03:35 katana systemd[1]: Stopped target network-online.target - Network is Online.
+Mar 30 10:03:35 katana systemd[1]: lvm2-lvmpolld.socket: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Closed lvm2-lvmpolld.socket - LVM2 poll daemon socket.
+Mar 30 10:03:35 katana systemd[1]: systemd-rfkill.socket: Deactivated successfully.
+Mar 30 10:03:35 katana systemd[1]: Closed systemd-rfkill.socket - Load/Save RF Kill Switch Status /dev/rfkill Watch.
+Mar 30 10:03:35 katana systemd[1]: Unmounting run-rpc_pipefs.mount - RPC Pipe File System...
+Mar 30 10:03:35 katana systemd[1]: Stopping accounts-daemon.service - Accounts Service...
+Mar 30 10:03:35 katana systemd[1]: Stopping alsa-restore.service - Save/Restore Sound Card State...
+Mar 30 10:03:36 katana avahi-daemon[1517]: Got SIGTERM, quitting.
+Mar 30 10:03:36 katana avahi-daemon[1517]: Leaving mDNS multicast group on interface virbr0.IPv4 with address 192.168.122.1.
+Mar 30 10:03:36 katana avahi-daemon[1517]: Leaving mDNS multicast group on interface enp5s0.9.IPv6 with address fe80::11a8:91c:2dc2:b17d.
+Mar 30 10:03:36 katana avahi-daemon[1517]: Leaving mDNS multicast group on interface enp5s0.9.IPv4 with address 10.0.9.101.
+Mar 30 10:03:36 katana avahi-daemon[1517]: Leaving mDNS multicast group on interface enp5s0.IPv6 with address fe80::9b52:85e:4b41:a3.
+Mar 30 10:03:36 katana avahi-daemon[1517]: Leaving mDNS multicast group on interface enp5s0.IPv4 with address 10.0.6.129.
+Mar 30 10:03:36 katana avahi-daemon[1517]: Leaving mDNS multicast group on interface lo.IPv6 with address ::1.
+Mar 30 10:03:36 katana avahi-daemon[1517]: Leaving mDNS multicast group on interface lo.IPv4 with address 127.0.0.1.
+Mar 30 10:03:36 katana avahi-daemon[1517]: avahi-daemon 0.8 exiting.
+Mar 30 10:03:36 katana systemd[1]: Stopping avahi-daemon.service - Avahi mDNS/DNS-SD Stack...
+Mar 30 10:03:36 katana systemd[1]: Stopping blk-availability.service - Availability of block devices...
+Mar 30 10:03:36 katana bluetoothd[1518]: Terminating
+Mar 30 10:03:36 katana systemd[1]: Stopping bluetooth.service - Bluetooth service...
+Mar 30 10:03:36 katana collectd[1789]: Exiting normally.
+Mar 30 10:03:36 katana collectd[1789]: collectd: Stopping 5 read threads.
+Mar 30 10:03:36 katana collectd[1789]: collectd: Stopping 5 write threads.
+Mar 30 10:03:36 katana gdm3[1847]: Gdm: Failed to list cached users: GDBus.Error:org.freedesktop.DBus.Error.ServiceUnknown: The name :1.7 was not provided by any .service files
+Mar 30 10:03:36 katana systemd[1]: Stopping collectd.service - Statistics collection and monitoring daemon...
+Mar 30 10:03:36 katana systemd[1]: Stopping cron.service - Regular background program processing daemon...
+Mar 30 10:03:36 katana systemd[1]: Stopping cups.service - CUPS Scheduler...
+Mar 30 10:03:36 katana systemd[1]: Stopping earlyoom.service - Early OOM Daemon...
+Mar 30 10:03:36 katana collectd[1789]: rrdtool plugin: Shutting down the queue thread.
+Mar 30 10:03:36 katana collectd[1789]: network plugin: Stopping receive thread.
+Mar 30 10:03:36 katana systemd[1]: Stopping finalrd.service - Create final runtime dir for shutdown pivot root...
+Mar 30 10:03:36 katana bluetoothd[1518]: Stopping SDP server
+Mar 30 10:03:36 katana systemd[1]: Stopping gdm.service - GNOME Display Manager...
+Mar 30 10:03:36 katana bluetoothd[1518]: Exit
+Mar 30 10:03:36 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.Profile1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:03:36 katana dbus-daemon[1520]: [system] Rejected send message, 0 matched rules; type="error", sender=":1.216" (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined") interface="(unset)" member="(unset)" error name="org.bluez.Profile1.Error.NotImplemented" requested_reply="0" destination=":1.6" (uid=0 pid=1518 comm="/usr/libexec/bluetooth/bluetoothd" label="unconfined")
+Mar 30 10:03:36 katana collectd[1789]: network plugin: Stopping dispatch thread.
+Mar 30 10:03:36 katana dbus-daemon[1520]: [system] Activating via systemd: service name='org.freedesktop.Avahi' unit='dbus-org.freedesktop.Avahi.service' requested by ':1.454' (uid=1000 pid=645596 comm="/usr/libexec/gvfsd-dnssd --spawner :1.483 /org/gtk" label="unconfined")
+Mar 30 10:03:36 katana dbus-daemon[1520]: [system] Activating via systemd: service name='org.bluez' unit='dbus-org.bluez.service' requested by ':1.216' (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined")
+Mar 30 10:03:36 katana systemd[1]: Stopping libvirt-guests.service - libvirt guests suspend/resume service...
+Mar 30 10:03:36 katana systemd[1]: nvidia-pm.service: Deactivated successfully.
+Mar 30 10:03:36 katana nvidia-persistenced[1537]: Received signal 15
+Mar 30 10:03:36 katana systemd[1]: Stopped nvidia-pm.service - Enable NVIDIA Persistence Mode.
+Mar 30 10:03:36 katana nvidia-persistenced[1537]: Socket closed.
+Mar 30 10:03:36 katana systemd[1]: Stopping nvidia-persistenced.service - NVIDIA Persistence Daemon...
+Mar 30 10:03:36 katana systemd[1]: Stopping polkit.service - Authorization Manager...
+Mar 30 10:03:36 katana systemd[1]: Stopping power-profiles-daemon.service - Power Profiles daemon...
+Mar 30 10:03:36 katana systemd[1]: qemu-kvm.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped qemu-kvm.service - QEMU KVM preparation - module, ksm, hugepages.
+Mar 30 10:03:36 katana systemd[1]: Stopping rsyslog.service - System Logging Service...
+Mar 30 10:03:36 katana systemd[1]: Stopping rtkit-daemon.service - RealtimeKit Scheduling Policy Service...
+Mar 30 10:03:36 katana snapd[1536]: main.go:168: Exiting on terminated signal.
+Mar 30 10:03:36 katana sshd[1814]: Received signal 15; terminating.
+Mar 30 10:03:36 katana systemd[1]: snapd.seeded.service: Deactivated successfully.
+Mar 30 10:03:36 katana rsyslogd[1656]: [origin software="rsyslogd" swVersion="8.2312.0" x-pid="1656" x-info="https://www.rsyslog.com"] exiting on signal 15.
+Mar 30 10:03:36 katana systemd[1]: Stopped snapd.seeded.service - Wait until snapd is fully seeded.
+Mar 30 10:03:36 katana systemd[1]: Stopping snapd.service - Snap Daemon...
+Mar 30 10:03:36 katana systemd[1]: snapd.system-shutdown.service - Ubuntu core (all-snaps) system shutdown helper setup service was skipped because of an unmet condition check (ConditionPathExists=!/usr/bin/finalrd).
+Mar 30 10:03:36 katana systemd[1]: Stopping ssh.service - OpenBSD Secure Shell server...
+Mar 30 10:03:36 katana systemd[34796]: Stopped target gnome-session-wayland@ubuntu.target - GNOME Wayland Session (session: ubuntu).
+Mar 30 10:03:36 katana systemd[1]: Stopping systemd-machined.service - Virtual Machine and Container Registration Service...
+Mar 30 10:03:36 katana systemd[34796]: Stopping flatpak-session-helper.service - flatpak session helper...
+Mar 30 10:03:36 katana systemd[34796]: Stopping gvfs-afc-volume-monitor.service - Virtual filesystem service - Apple File Conduit monitor...
+Mar 30 10:03:36 katana systemd[34796]: Stopping gvfs-daemon.service - Virtual filesystem service...
+Mar 30 10:03:36 katana systemd[34796]: Stopping gvfs-goa-volume-monitor.service - Virtual filesystem service - GNOME Online Accounts monitor...
+Mar 30 10:03:36 katana systemd[34796]: Stopping gvfs-gphoto2-volume-monitor.service - Virtual filesystem service - digital camera monitor...
+Mar 30 10:03:36 katana systemd[34796]: Stopping gvfs-metadata.service - Virtual filesystem metadata service...
+Mar 30 10:03:36 katana systemd[34796]: Stopping gvfs-mtp-volume-monitor.service - Virtual filesystem service - Media Transfer Protocol monitor...
+Mar 30 10:03:36 katana systemd[34796]: Stopping gvfs-udisks2-volume-monitor.service - Virtual filesystem service - disk device monitor...
+Mar 30 10:03:36 katana systemd[34796]: Stopping xdg-desktop-portal-gnome.service - Portal service (GNOME implementation)...
+Mar 30 10:03:36 katana systemd[34796]: Stopping xdg-desktop-portal.service - Portal service...
+Mar 30 10:03:36 katana systemd[34796]: Stopping xdg-document-portal.service - flatpak document portal service...
+Mar 30 10:03:36 katana systemd[34796]: Stopping xdg-permission-store.service - sandboxed app permission store...
+Mar 30 10:03:36 katana systemd[1]: Stopping systemd-random-seed.service - Load/Save OS Random Seed...
+Mar 30 10:03:36 katana systemd[1]: Stopping tailscaled.service - Tailscale node agent...
+Mar 30 10:03:36 katana tailscaled[1786]: tailscaled got signal terminated; shutting down
+Mar 30 10:03:36 katana systemd[1]: Stopping thermald.service - Thermal Daemon Service...
+Mar 30 10:03:36 katana thermald[1544]: Terminating ...
+Mar 30 10:03:36 katana tailscaled[1786]: canceling captive portal context
+Mar 30 10:03:36 katana tailscaled[1786]: control: client.Shutdown ...
+Mar 30 10:03:36 katana systemd[1]: Stopping udisks2.service - Disk Manager...
+Mar 30 10:03:36 katana systemd[1]: Stopping upower.service - Daemon for power management...
+Mar 30 10:03:36 katana systemd[1]: Stopping virtlockd.service - libvirt locking daemon...
+Mar 30 10:03:36 katana tailscaled[1786]: control: authRoutine: exiting
+Mar 30 10:03:36 katana tailscaled[1786]: control: updateRoutine: exiting
+Mar 30 10:03:36 katana tailscaled[1786]: control: mapRoutine: exiting
+Mar 30 10:03:36 katana tailscaled[1786]: control: Client.Shutdown done.
+Mar 30 10:03:36 katana tailscaled[1786]: ipnext: work queue shutdown failed: execqueue shut down
+Mar 30 10:03:36 katana tailscaled[1786]: magicsock: closing connection to derp-2 (conn-close), age 8h24m19s
+Mar 30 10:03:36 katana tailscaled[1786]: magicsock: 0 active derp conns
+Mar 30 10:03:36 katana systemd[1]: Stopping virtlogd.service - libvirt logging daemon...
+Mar 30 10:03:36 katana systemd[1]: run-user-1000-gvfs.mount: Deactivated successfully.
+Mar 30 10:03:36 katana fwupd[433625]: 17:03:36.035 FuPluginUpower       failed to query lid state
+Mar 30 10:03:36 katana fwupd[433625]: 17:03:36.035 FuPluginUpower       failed to query lid state
+Mar 30 10:03:36 katana systemd[1]: Unmounted run-user-1000-gvfs.mount - /run/user/1000/gvfs.
+Mar 30 10:03:36 katana systemd[1]: run-user-1000-doc.mount: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Unmounted run-user-1000-doc.mount - /run/user/1000/doc.
+Mar 30 10:03:36 katana systemd[34796]: Stopped xdg-permission-store.service - sandboxed app permission store.
+Mar 30 10:03:36 katana systemd[34796]: Stopped xdg-document-portal.service - flatpak document portal service.
+Mar 30 10:03:36 katana systemd[34796]: Stopped gvfs-udisks2-volume-monitor.service - Virtual filesystem service - disk device monitor.
+Mar 30 10:03:36 katana systemd[34796]: gvfs-udisks2-volume-monitor.service: Consumed 1.005s CPU time.
+Mar 30 10:03:36 katana systemd[34796]: Stopped gvfs-afc-volume-monitor.service - Virtual filesystem service - Apple File Conduit monitor.
+Mar 30 10:03:36 katana udisksd[1545]: udisks daemon version 2.10.1 exiting
+Mar 30 10:03:36 katana systemd[34796]: Stopped gvfs-goa-volume-monitor.service - Virtual filesystem service - GNOME Online Accounts monitor.
+Mar 30 10:03:36 katana systemd[1]: accounts-daemon.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped accounts-daemon.service - Accounts Service.
+Mar 30 10:03:36 katana systemd[1]: avahi-daemon.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[34796]: Stopped gvfs-mtp-volume-monitor.service - Virtual filesystem service - Media Transfer Protocol monitor.
+Mar 30 10:03:36 katana systemd[1]: Stopped avahi-daemon.service - Avahi mDNS/DNS-SD Stack.
+Mar 30 10:03:36 katana systemd[1]: bluetooth.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[34796]: Stopped xdg-desktop-portal.service - Portal service.
+Mar 30 10:03:36 katana systemd[1]: Stopped bluetooth.service - Bluetooth service.
+Mar 30 10:03:36 katana systemd[34796]: Stopped gvfs-metadata.service - Virtual filesystem metadata service.
+Mar 30 10:03:36 katana systemd[34796]: Stopped flatpak-session-helper.service - flatpak session helper.
+Mar 30 10:03:36 katana systemd[34796]: Stopped gvfs-daemon.service - Virtual filesystem service.
+Mar 30 10:03:36 katana systemd[1]: cron.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped cron.service - Regular background program processing daemon.
+Mar 30 10:03:36 katana systemd[1]: earlyoom.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped earlyoom.service - Early OOM Daemon.
+Mar 30 10:03:36 katana systemd[34796]: Stopped org.gnome.SettingsDaemon.XSettings.service - GNOME XSettings service.
+Mar 30 10:03:36 katana systemd[1]: power-profiles-daemon.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped power-profiles-daemon.service - Power Profiles daemon.
+Mar 30 10:03:36 katana systemd[1]: systemd-machined.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped systemd-machined.service - Virtual Machine and Container Registration Service.
+Mar 30 10:03:36 katana systemd[1]: systemd-machined.service: Consumed 1.272s CPU time, 3.3M memory peak, 0B memory swap peak.
+Mar 30 10:03:36 katana systemd[1]: udisks2.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped udisks2.service - Disk Manager.
+Mar 30 10:03:36 katana systemd[1]: udisks2.service: Consumed 5.055s CPU time, 11.4M memory peak, 0B memory swap peak.
+Mar 30 10:03:36 katana systemd[1]: virtlockd.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped virtlockd.service - libvirt locking daemon.
+Mar 30 10:03:36 katana systemd[1]: virtlogd.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped virtlogd.service - libvirt logging daemon.
+Mar 30 10:03:36 katana systemd[1]: polkit.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped polkit.service - Authorization Manager.
+Mar 30 10:03:36 katana systemd[1]: polkit.service: Consumed 4.444s CPU time, 10.3M memory peak, 0B memory swap peak.
+Mar 30 10:03:36 katana systemd[34796]: Stopped gnome-session-manager@ubuntu.service - GNOME Session Manager (session: ubuntu).
+Mar 30 10:03:36 katana systemd[1]: rsyslog.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped rsyslog.service - System Logging Service.
+Mar 30 10:03:36 katana systemd[1]: rsyslog.service: Consumed 1min 2.643s CPU time, 4.5G memory peak, 0B memory swap peak.
+Mar 30 10:03:36 katana systemd[1]: collectd.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped collectd.service - Statistics collection and monitoring daemon.
+Mar 30 10:03:36 katana systemd[1]: collectd.service: Consumed 5min 11.746s CPU time, 233.0M memory peak, 0B memory swap peak.
+Mar 30 10:03:36 katana systemd[1]: cups.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped cups.service - CUPS Scheduler.
+Mar 30 10:03:36 katana systemd[1]: ssh.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped ssh.service - OpenBSD Secure Shell server.
+Mar 30 10:03:36 katana systemd[1]: gdm.service: Main process exited, code=exited, status=1/FAILURE
+Mar 30 10:03:36 katana systemd[1]: gdm.service: Failed with result 'exit-code'.
+Mar 30 10:03:36 katana systemd[1]: Stopped gdm.service - GNOME Display Manager.
+Mar 30 10:03:36 katana systemd[1]: gdm.service: Triggering OnFailure= dependencies.
+Mar 30 10:03:36 katana systemd[1]: gdm.service: Failed to enqueue OnFailure= job, ignoring: Unit plymouth-quit.service is masked.
+Mar 30 10:03:36 katana systemd[1]: rtkit-daemon.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped rtkit-daemon.service - RealtimeKit Scheduling Policy Service.
+Mar 30 10:03:36 katana systemd[34796]: Stopped gnome-session-monitor.service - Monitor Session leader for GNOME Session.
+Mar 30 10:03:36 katana systemd[1]: upower.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[34796]: Stopped gvfs-gphoto2-volume-monitor.service - Virtual filesystem service - digital camera monitor.
+Mar 30 10:03:36 katana systemd[1]: Stopped upower.service - Daemon for power management.
+Mar 30 10:03:36 katana systemd[1]: Requested transaction contradicts existing jobs: Transaction for avahi-daemon.service/start is destructive (veritysetup.target has 'stop' job queued, but 'start' is included in transaction).
+Mar 30 10:03:36 katana dbus-daemon[1520]: [system] Activation via systemd failed for unit 'dbus-org.freedesktop.Avahi.service': Transaction for avahi-daemon.service/start is destructive (veritysetup.target has 'stop' job queued, but 'start' is included in transaction).
+Mar 30 10:03:36 katana tailscaled[1786]: monitor: RTM_DELROUTE: src=, dst=fe80::/64, gw=, outif=6, table=254
+Mar 30 10:03:36 katana tailscaled[1786]: monitor: RTM_DELROUTE: src=, dst=fe80::26bd:b682:e95f:71b3/128, gw=, outif=6, table=255
+Mar 30 10:03:36 katana tailscaled[1786]: monitor: RTM_DELROUTE: src=, dst=ff00::/8, gw=, outif=6, table=255
+Mar 30 10:03:36 katana systemd[1]: Requested transaction contradicts existing jobs: Transaction for bluetooth.service/start is destructive (sysinit.target has 'stop' job queued, but 'start' is included in transaction).
+Mar 30 10:03:36 katana NetworkManager[1580]: <info>  [1774890216.0704] device (tailscale0): state change: activated -> unmanaged (reason 'connection-assumed', sys-iface-state: 'external')
+Mar 30 10:03:36 katana dbus-daemon[1520]: [system] Activation via systemd failed for unit 'dbus-org.bluez.service': Transaction for bluetooth.service/start is destructive (sysinit.target has 'stop' job queued, but 'start' is included in transaction).
+Mar 30 10:03:36 katana tailscaled[1786]: monitor: ip rule deleted: {Family:2 DstLength:0 SrcLength:0 Tos:0 Table:254 Protocol:0 Scope:0 Type:1 Flags:0 Attributes:{Dst:<nil> Src:<nil> Gateway:<nil> OutIface:0 Priority:5210 Table:254 Mark:16711680 Pref:<nil> Expires:<nil> Metrics:<nil> Multipath:[]}}
+Mar 30 10:03:36 katana tailscaled[1786]: monitor: ip rule deleted: {Family:2 DstLength:0 SrcLength:0 Tos:0 Table:253 Protocol:0 Scope:0 Type:1 Flags:0 Attributes:{Dst:<nil> Src:<nil> Gateway:<nil> OutIface:0 Priority:5230 Table:253 Mark:16711680 Pref:<nil> Expires:<nil> Metrics:<nil> Multipath:[]}}
+Mar 30 10:03:36 katana tailscaled[1786]: monitor: ip rule deleted: {Family:2 DstLength:0 SrcLength:0 Tos:0 Table:0 Protocol:0 Scope:0 Type:7 Flags:0 Attributes:{Dst:<nil> Src:<nil> Gateway:<nil> OutIface:0 Priority:5250 Table:0 Mark:16711680 Pref:<nil> Expires:<nil> Metrics:<nil> Multipath:[]}}
+Mar 30 10:03:36 katana tailscaled[1786]: monitor: ip rule deleted: {Family:2 DstLength:0 SrcLength:0 Tos:0 Table:52 Protocol:0 Scope:0 Type:1 Flags:0 Attributes:{Dst:<nil> Src:<nil> Gateway:<nil> OutIface:0 Priority:5270 Table:52 Mark:0 Pref:<nil> Expires:<nil> Metrics:<nil> Multipath:[]}}
+Mar 30 10:03:36 katana systemd[1]: Stopping fwupd.service - Firmware update daemon...
+Mar 30 10:03:36 katana systemd[1]: plymouth-poweroff.service - Show Plymouth Power Off Screen was skipped because of an unmet condition check (ConditionKernelCommandLine=splash).
+Mar 30 10:03:36 katana fwupd[433625]: 17:03:36.071 FuMain               Received SIGTERM
+Mar 30 10:03:36 katana systemd[1]: plymouth-switch-root-initramfs.service - Tell Plymouth To Jump To initramfs was skipped because no trigger condition checks were met.
+Mar 30 10:03:36 katana dbus-daemon[1520]: [system] Activating via systemd: service name='org.bluez' unit='dbus-org.bluez.service' requested by ':1.216' (uid=1000 pid=34828 comm="/usr/bin/wireplumber" label="unconfined")
+Mar 30 10:03:36 katana dbus-daemon[1520]: [system] Activating via systemd: service name='org.freedesktop.nm_dispatcher' unit='dbus-org.freedesktop.nm-dispatcher.service' requested by ':1.11' (uid=0 pid=1580 comm="/usr/sbin/NetworkManager --no-daemon" label="unconfined")
+Mar 30 10:03:36 katana systemd[1]: Requested transaction contradicts existing jobs: Transaction for bluetooth.service/start is destructive (finalrd.service has 'stop' job queued, but 'start' is included in transaction).
+Mar 30 10:03:36 katana dbus-daemon[1520]: [system] Activation via systemd failed for unit 'dbus-org.bluez.service': Transaction for bluetooth.service/start is destructive (finalrd.service has 'stop' job queued, but 'start' is included in transaction).
+Mar 30 10:03:36 katana systemd[1]: Requested transaction contradicts existing jobs: Transaction for NetworkManager-dispatcher.service/start is destructive (integritysetup.target has 'stop' job queued, but 'start' is included in transaction).
+Mar 30 10:03:36 katana dbus-daemon[1520]: [system] Activation via systemd failed for unit 'dbus-org.freedesktop.nm-dispatcher.service': Transaction for NetworkManager-dispatcher.service/start is destructive (integritysetup.target has 'stop' job queued, but 'start' is included in transaction).
+Mar 30 10:03:36 katana systemd[1]: fwupd.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped fwupd.service - Firmware update daemon.
+Mar 30 10:03:36 katana systemd[1]: fwupd.service: Consumed 1.100s CPU time, 31.6M memory peak, 0B memory swap peak.
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was kill-window-effects on ShellWM 0x5b36fbb7b960.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was kill-window-effects on ShellWM 0x5b36fbb7b960.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was destroy on ShellWM 0x5b36fbb7b960.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was destroy on ShellWM 0x5b36fbb7b960.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was destroy on ShellWM 0x5b36fbb7b960.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was window-left-monitor on MetaDisplay 0x5b36fbb68380.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was window-left-monitor on MetaDisplay 0x5b36fbb68380.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was unmanaged on MetaWindowWayland 0x5b37008806c0.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was unmanaged on MetaWindowWayland 0x5b37008806c0.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was kill-window-effects on ShellWM 0x5b36fbb7b960.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was kill-window-effects on ShellWM 0x5b36fbb7b960.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was destroy on ShellWM 0x5b36fbb7b960.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was destroy on ShellWM 0x5b36fbb7b960.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was destroy on ShellWM 0x5b36fbb7b960.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was window-left-monitor on MetaDisplay 0x5b36fbb68380.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was window-left-monitor on MetaDisplay 0x5b36fbb68380.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was unmanaged on MetaWindowWayland 0x5b3700891e70.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was unmanaged on MetaWindowWayland 0x5b3700891e70.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was kill-window-effects on ShellWM 0x5b36fbb7b960.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was kill-window-effects on ShellWM 0x5b36fbb7b960.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was destroy on ShellWM 0x5b36fbb7b960.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was destroy on ShellWM 0x5b36fbb7b960.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was destroy on ShellWM 0x5b36fbb7b960.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was window-left-monitor on MetaDisplay 0x5b36fbb68380.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was window-left-monitor on MetaDisplay 0x5b36fbb68380.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was unmanaged on MetaWindowWayland 0x5b37006c23e0.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana gnome-shell[35194]: Attempting to call back into JSAPI during the sweeping phase of GC. This is most likely caused by not destroying a Clutter actor or Gtk+ widget with ::destroy signals connected, but can also be caused by using the destroy(), dispose(), or remove() vfuncs. Because it would crash the application, it has been blocked and the JS callback not invoked.
+                                           The offending signal was unmanaged on MetaWindowWayland 0x5b37006c23e0.
+                                           == Stack trace for context 0x5b36fb21a6d0 ==
+Mar 30 10:03:36 katana nvidia-persistenced[1537]: device 0000:01:00.0 - persistence mode disabled.
+Mar 30 10:03:36 katana nvidia-persistenced[1537]: device 0000:01:00.0 - NUMA memory offlined.
+Mar 30 10:03:36 katana nvidia-persistenced[1537]: PID file unlocked.
+Mar 30 10:03:36 katana nvidia-persistenced[1537]: PID file closed.
+Mar 30 10:03:36 katana nvidia-persistenced[1537]: The daemon no longer has permission to remove its runtime data directory /var/run/nvidia-persistenced
+Mar 30 10:03:36 katana nvidia-persistenced[1537]: Shutdown (1537)
+Mar 30 10:03:36 katana systemd-logind[1539]: Session 6 logged out. Waiting for processes to exit.
+Mar 30 10:03:36 katana systemd[1]: nvidia-persistenced.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped nvidia-persistenced.service - NVIDIA Persistence Daemon.
+Mar 30 10:03:36 katana systemd[1]: run-rpc_pipefs.mount: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Unmounted run-rpc_pipefs.mount - RPC Pipe File System.
+Mar 30 10:03:36 katana systemd[1]: alsa-restore.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped alsa-restore.service - Save/Restore Sound Card State.
+Mar 30 10:03:36 katana blkdeactivate[736692]: Deactivating block devices:
+Mar 30 10:03:36 katana systemd[1]: systemd-random-seed.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped systemd-random-seed.service - Load/Save OS Random Seed.
+Mar 30 10:03:36 katana tailscaled[1786]: flushing log.
+Mar 30 10:03:36 katana tailscaled[1786]: logger closing down
+Mar 30 10:03:36 katana blkdeactivate[736692]:   [MD]: deactivating part device md127p1...
+Mar 30 10:03:36 katana blkdeactivate[736873]: cat: /sys/block/md127p1/md/sync_action: No such file or directory
+Mar 30 10:03:36 katana blkdeactivate[736692]:  action in progress... skipping
+Mar 30 10:03:36 katana systemd[34796]: Stopped xdg-desktop-portal-gnome.service - Portal service (GNOME implementation).
+Mar 30 10:03:36 katana systemd[34796]: xdg-desktop-portal-gnome.service: Consumed 4.512s CPU time.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target graphical-session.target - Current graphical user session.
+Mar 30 10:03:36 katana libvirt-guests.sh[736907]: Can't connect to default. Skipping.
+Mar 30 10:03:36 katana systemd[34796]: Stopped update-notifier-release.path - Path trigger for new release of Ubuntu notifications.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target gnome-session.target - GNOME Session.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target gnome-session-wayland.target - GNOME Wayland Session.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target gnome-session-x11-services-ready.target - GNOME session X11 services.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target gnome-session-x11-services.target - GNOME session X11 services.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target gnome-session@ubuntu.target - GNOME Session (session: ubuntu).
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.SettingsDaemon.A11ySettings.target - GNOME accessibility target.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.SettingsDaemon.Color.target - GNOME color management target.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.SettingsDaemon.Datetime.target - GNOME date & time target.
+Mar 30 10:03:36 katana xdg-desktop-por[38894]: Error reading events from display: Broken pipe
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.SettingsDaemon.Housekeeping.target - GNOME maintenance of expirable data target.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.SettingsDaemon.Keyboard.target - GNOME keyboard configuration target.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.SettingsDaemon.MediaKeys.target - GNOME keyboard shortcuts target.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.SettingsDaemon.Power.target - GNOME power management target.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.SettingsDaemon.PrintNotifications.target - GNOME printer notifications target.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.SettingsDaemon.Rfkill.target - GNOME RFKill support target.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.SettingsDaemon.ScreensaverProxy.target - GNOME FreeDesktop screensaver target.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.SettingsDaemon.Sharing.target - GNOME file sharing target.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.SettingsDaemon.Smartcard.target - GNOME smartcard target.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.SettingsDaemon.Sound.target - GNOME sound sample caching target.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.SettingsDaemon.Wacom.target - GNOME Wacom tablet support target.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.SettingsDaemon.XSettings.target - GNOME XSettings target.
+Mar 30 10:03:36 katana systemd[1]: libvirt-guests.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[34796]: Stopping org.freedesktop.IBus.session.GNOME.service - IBus Daemon for GNOME...
+Mar 30 10:03:36 katana systemd[34796]: Stopping org.gnome.SettingsDaemon.Color.service - GNOME color management service...
+Mar 30 10:03:36 katana snapd-desktop-i[38177]: Error reading events from display: Broken pipe
+Mar 30 10:03:36 katana systemd[1]: Stopped libvirt-guests.service - libvirt guests suspend/resume service.
+Mar 30 10:03:36 katana systemd[34796]: Stopping org.gnome.SettingsDaemon.Keyboard.service - GNOME keyboard configuration service...
+Mar 30 10:03:36 katana systemd[34796]: Stopping org.gnome.SettingsDaemon.MediaKeys.service - GNOME keyboard shortcuts service...
+Mar 30 10:03:36 katana systemd[34796]: Stopping org.gnome.SettingsDaemon.Power.service - GNOME power management service...
+Mar 30 10:03:36 katana systemd[34796]: Stopping org.gnome.SettingsDaemon.Wacom.service - GNOME Wacom tablet support service...
+Mar 30 10:03:36 katana systemd[1]: Stopped target virt-guest-shutdown.target - libvirt guests shutdown target.
+Mar 30 10:03:36 katana systemd[34796]: Stopped org.freedesktop.IBus.session.GNOME.service - IBus Daemon for GNOME.
+Mar 30 10:03:36 katana systemd[34796]: org.freedesktop.IBus.session.GNOME.service: Consumed 6.759s CPU time, 27.4M memory peak, 0B memory swap peak.
+Mar 30 10:03:36 katana systemd[34796]: xdg-desktop-portal-gtk.service: Main process exited, code=exited, status=1/FAILURE
+Mar 30 10:03:36 katana systemd[34796]: xdg-desktop-portal-gtk.service: Failed with result 'exit-code'.
+Mar 30 10:03:36 katana systemd[34796]: Stopped org.gnome.SettingsDaemon.Keyboard.service - GNOME keyboard configuration service.
+Mar 30 10:03:36 katana systemd[34796]: Stopped org.gnome.SettingsDaemon.Color.service - GNOME color management service.
+Mar 30 10:03:36 katana systemd-tmpfiles[736965]: /run/finalrd-libs.conf:47: Duplicate line for path "/run/initramfs/lib64", ignoring.
+Mar 30 10:03:36 katana ghostty_ghostty.desktop[39201]: info(glib): MESSAGE: Gdk: Error reading events from display: Broken pipe
+Mar 30 10:03:36 katana update-notifier[47094]: Error reading events from display: Broken pipe
+Mar 30 10:03:36 katana systemd[34796]: Stopped org.gnome.SettingsDaemon.MediaKeys.service - GNOME keyboard shortcuts service.
+Mar 30 10:03:36 katana systemd[34796]: Stopped org.gnome.SettingsDaemon.Power.service - GNOME power management service.
+Mar 30 10:03:36 katana systemd[34796]: Stopped org.gnome.SettingsDaemon.Wacom.service - GNOME Wacom tablet support service.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target gnome-session-initialized.target - GNOME Session is initialized.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target org.gnome.Shell.target - GNOME Shell.
+Mar 30 10:03:36 katana systemd[34796]: Stopping org.gnome.Shell@wayland.service - GNOME Shell on Wayland...
+Mar 30 10:03:36 katana systemd[34796]: app-gnome-update\x2dnotifier-47094.scope: Consumed 2.436s CPU time.
+Mar 30 10:03:36 katana tailscaled[736869]: TPM: successfully read all properties
+Mar 30 10:03:36 katana gnome-text-edit[433640]: Error reading events from display: Broken pipe
+Mar 30 10:03:36 katana gnome-calendar[714628]: Error reading events from display: Broken pipe
+Mar 30 10:03:36 katana finalrd[736976]: run-parts: executing /usr/share/finalrd/mdadm.finalrd setup
+Mar 30 10:03:36 katana kernel: md127: detected capacity change from 499851904 to 0
+Mar 30 10:03:36 katana kernel: md: md127 stopped.
+Mar 30 10:03:36 katana mdadm[859]: mdadm: DeviceDisappeared event detected on md device /dev/md127
+Mar 30 10:03:36 katana mdadm[859]: mdadm: No array with redundancy detected, stopping
+Mar 30 10:03:36 katana systemd[1]: blk-availability.service: Deactivated successfully.
+Mar 30 10:03:36 katana blkdeactivate[736692]:   [MD]: deactivating raid1 device md127... done
+Mar 30 10:03:36 katana systemd[1]: Stopped blk-availability.service - Availability of block devices.
+Mar 30 10:03:36 katana systemd[1]: mdmonitor.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[34796]: snap.ghostty.ghostty-d6485170-ac97-4aab-a798-4effb72296b1.scope: Consumed 49min 16.260s CPU time.
+Mar 30 10:03:36 katana systemd[34796]: app-gnome-org.gnome.TextEditor-433640.scope: Consumed 2.644s CPU time.
+Mar 30 10:03:36 katana systemd[1]: finalrd.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped finalrd.service - Create final runtime dir for shutdown pivot root.
+Mar 30 10:03:36 katana tailscaled[736869]: logtail started
+Mar 30 10:03:36 katana tailscaled[736869]: Program starting: v1.96.4-t8cf541dfd-g62bc84ce7, Go 1.26.1: []string{"/usr/sbin/tailscaled", "--cleanup"}
+Mar 30 10:03:36 katana tailscaled[736869]: LogID: 298709580178ccd150f325312b794e52c49011e187129e45a5e9ae1cd3e03940
+Mar 30 10:03:36 katana tailscaled[736869]: logpolicy: using $STATE_DIRECTORY, "/var/lib/tailscale"
+Mar 30 10:03:36 katana tailscaled[736869]: dns: [resolved-ping=yes rc=resolved resolved=file nm=yes nm-resolved=yes nm-safe=no resolv-conf-mode=stub ret=systemd-resolved]
+Mar 30 10:03:36 katana tailscaled[736869]: dns: using "systemd-resolved" mode
+Mar 30 10:03:36 katana tailscaled[736869]: creating dns cleanup: route ip+net: no such network interface
+Mar 30 10:03:36 katana systemd[34796]: app-com.google.Chrome-714835.scope: Consumed 18.509s CPU time.
+Mar 30 10:03:36 katana systemd[34796]: app-gnome-google\x2dchrome-714835.scope: Consumed 5.195s CPU time.
+Mar 30 10:03:36 katana tailscaled[736869]: flushing log.
+Mar 30 10:03:36 katana tailscaled[736869]: logger closing down
+Mar 30 10:03:36 katana systemd[34796]: Stopped org.gnome.Shell@wayland.service - GNOME Shell on Wayland.
+Mar 30 10:03:36 katana systemd[34796]: org.gnome.Shell@wayland.service: Consumed 24min 55.580s CPU time.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target gnome-session-manager.target - GNOME Session Manager is ready.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target gnome-session-pre.target - Tasks to be run before GNOME Session starts.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target graphical-session-pre.target - Session services which should run early before the graphical session is brought up.
+Mar 30 10:03:36 katana systemd[34796]: Reached target gnome-session-shutdown.target - Shutdown running GNOME Session.
+Mar 30 10:03:36 katana systemd[34796]: Starting gnome-session-restart-dbus.service - Restart DBus after GNOME Session shutdown...
+Mar 30 10:03:36 katana systemd[34796]: Stopped target gnome-session-shutdown.target - Shutdown running GNOME Session.
+Mar 30 10:03:36 katana systemd[34796]: Started gnome-session-restart-dbus.service - Restart DBus after GNOME Session shutdown.
+Mar 30 10:03:36 katana systemd[34796]: Stopping dbus.service - D-Bus User Message Bus...
+Mar 30 10:03:36 katana systemd[1]: session-6.scope: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped session-6.scope - Session 6 of User jp.
+Mar 30 10:03:36 katana realm-theme-watcher.sh[38678]: Terminated
+Mar 30 10:03:36 katana systemd[34796]: dconf.service: Consumed 1.381s CPU time.
+Mar 30 10:03:36 katana systemd[34796]: realm-theme-watcher.service: Main process exited, code=exited, status=143/n/a
+Mar 30 10:03:36 katana systemd[34796]: realm-theme-watcher.service: Failed with result 'exit-code'.
+Mar 30 10:03:36 katana systemd[34796]: realm-theme-watcher.service: Consumed 9min 21.405s CPU time.
+Mar 30 10:03:36 katana systemd[1]: Stopping systemd-logind.service - User Login Management...
+Mar 30 10:03:36 katana systemd[1]: Stopping user@1000.service - User Manager for UID 1000...
+Mar 30 10:03:36 katana systemd-logind[1539]: Removed session 6.
+Mar 30 10:03:36 katana systemd[34796]: Activating special unit exit.target...
+Mar 30 10:03:36 katana systemd[34796]: Stopping app-ghostty-surface-transient-39302.scope...
+Mar 30 10:03:36 katana systemd[34796]: Stopping app-ghostty-surface-transient-615515.scope...
+Mar 30 10:03:36 katana systemd[34796]: Removed slice app-gnome\x2dsession\x2dmanager.slice - Slice /app/gnome-session-manager.
+Mar 30 10:03:36 katana systemd[34796]: Stopped target default.target - Main User Target.
+Mar 30 10:03:36 katana systemd[34796]: Stopping filter-chain.service - PipeWire filter chain daemon...
+Mar 30 10:03:36 katana systemd[34796]: Stopping gcr-ssh-agent.service - GCR ssh-agent wrapper...
+Mar 30 10:03:36 katana systemd[34796]: Stopping gpg-agent.service - GnuPG cryptographic agent and passphrase cache...
+Mar 30 10:03:36 katana gpg-agent[35523]: DBG: SIGCONT received - breaking select
+Mar 30 10:03:36 katana gpg-agent[35523]: SIGTERM received - shutting down ...
+Mar 30 10:03:36 katana systemd[34796]: Stopping pipewire-pulse.service - PipeWire PulseAudio...
+Mar 30 10:03:36 katana python3[34823]: [10:03:36] Shutting down launcher...
+Mar 30 10:03:36 katana systemd[34796]: Stopping realm-ingest.service - RealmWatch SSE Event Ingest...
+Mar 30 10:03:36 katana systemd[34796]: Stopping realm-launcher.service - Realm Launcher — branch portal on :8899...
+Mar 30 10:03:36 katana systemd[34796]: Stopped realm-theme-watcher.service - Realm Desktop Theme Watcher — auto-deploy on dark/light switch.
+Mar 30 10:03:36 katana systemd[34796]: realm-theme-watcher.service: Consumed 9min 21.405s CPU time.
+Mar 30 10:03:36 katana systemd[34796]: Stopped snap.snapd-desktop-integration.snapd-desktop-integration.service - Service for snap application snapd-desktop-integration.snapd-desktop-integration.
+Mar 30 10:03:36 katana systemd[34796]: Stopping syncthing.service - Syncthing - Open Source Continuous File Synchronization...
+Mar 30 10:03:36 katana systemd[34796]: Stopping ydotoold.service - ydotoold - ydotool daemon (user)...
+Mar 30 10:03:36 katana syncthing[34827]: [monitor] INFO: Signal 15 received; exiting
+Mar 30 10:03:36 katana systemd[34796]: Stopped filter-chain.service - PipeWire filter chain daemon.
+Mar 30 10:03:36 katana systemd[34796]: Stopped gcr-ssh-agent.service - GCR ssh-agent wrapper.
+Mar 30 10:03:36 katana syncthing[34827]: [DZ3ZM] INFO: Lost primary connection to 27WUF2H at 10.0.6.129:22000-10.0.6.120:22000/tcp-client/TLS1.3-TLS_AES_128_GCM_SHA256/LAN-P10-651I7ICGVMP1UK8JNTG6MBI6SK: Syncthing is being stopped (0 remain)
+Mar 30 10:03:36 katana syncthing[34827]: [DZ3ZM] INFO: Connection to 27WUF2H at 10.0.6.129:22000-10.0.6.120:22000/tcp-client/TLS1.3-TLS_AES_128_GCM_SHA256/LAN-P10-651I7ICGVMP1UK8JNTG6MBI6SK closed: Syncthing is being stopped
+Mar 30 10:03:36 katana syncthing[34827]: [DZ3ZM] INFO: Relay listener (dynamic+https://relays.syncthing.net/endpoint) shutting down
+Mar 30 10:03:36 katana syncthing[34827]: [DZ3ZM] INFO: QUIC listener ([::]:22000) shutting down
+Mar 30 10:03:36 katana systemd[34796]: Stopped dbus.service - D-Bus User Message Bus.
+Mar 30 10:03:36 katana systemd[34796]: dbus.service: Consumed 14.341s CPU time.
+Mar 30 10:03:36 katana systemd[34796]: Stopped pipewire-pulse.service - PipeWire PulseAudio.
+Mar 30 10:03:36 katana systemd[34796]: pipewire-pulse.service: Consumed 1.096s CPU time.
+Mar 30 10:03:36 katana systemd[34796]: Stopping wireplumber.service - Multimedia Service Session Manager...
+Mar 30 10:03:36 katana wireplumber[34828]: stopped by signal: Terminated
+Mar 30 10:03:36 katana wireplumber[34828]: disconnected from pipewire
+Mar 30 10:03:36 katana gpg-agent[35523]: gpg-agent (GnuPG) 2.4.4 stopped
+Mar 30 10:03:36 katana systemd[34796]: Stopped realm-ingest.service - RealmWatch SSE Event Ingest.
+Mar 30 10:03:36 katana systemd[34796]: realm-ingest.service: Consumed 1.962s CPU time.
+Mar 30 10:03:36 katana systemd[34796]: Stopped gpg-agent.service - GnuPG cryptographic agent and passphrase cache.
+Mar 30 10:03:36 katana systemd[34796]: gpg-agent.service: Consumed 8.152s CPU time.
+Mar 30 10:03:36 katana systemd[34796]: Stopped wireplumber.service - Multimedia Service Session Manager.
+Mar 30 10:03:36 katana systemd[34796]: Stopping pipewire.service - PipeWire Multimedia Service...
+Mar 30 10:03:36 katana systemd[34796]: Stopped pipewire.service - PipeWire Multimedia Service.
+Mar 30 10:03:36 katana systemd[34796]: pipewire.service: Consumed 36.117s CPU time.
+Mar 30 10:03:36 katana kernel: [UFW BLOCK] IN=enp5s0 OUT= MAC=00:d8:61:bb:9f:8e:3c:d9:2b:6f:72:29:08:00 SRC=172.18.0.3 DST=10.0.6.129 LEN=60 TOS=0x00 PREC=0x00 TTL=63 ID=10569 DF PROTO=TCP SPT=22000 DPT=22000 WINDOW=65535 RES=0x00 SYN URGP=0 
+Mar 30 10:03:36 katana systemd[34796]: Removed slice session.slice - User Core Session Slice.
+Mar 30 10:03:36 katana systemd[34796]: session.slice: Consumed 26min 682ms CPU time.
+Mar 30 10:03:36 katana systemd[1]: systemd-logind.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped systemd-logind.service - User Login Management.
+Mar 30 10:03:36 katana systemd[34796]: Stopped ydotoold.service - ydotoold - ydotool daemon (user).
+Mar 30 10:03:36 katana python3[34823]: [10:03:36] Launcher stopped.
+Mar 30 10:03:36 katana systemd[34796]: Stopped realm-launcher.service - Realm Launcher — branch portal on :8899.
+Mar 30 10:03:36 katana systemd[34796]: realm-launcher.service: Consumed 7.175s CPU time.
+Mar 30 10:03:36 katana systemd[34796]: Stopping realm-map-server.service - Realm Map Server — HTTP :80 for realmwatch...
+Mar 30 10:03:36 katana systemd[1]: tailscaled.service: Deactivated successfully.
+Mar 30 10:03:36 katana systemd[1]: Stopped tailscaled.service - Tailscale node agent.
+Mar 30 10:03:36 katana systemd[1]: tailscaled.service: Consumed 1min 15.159s CPU time, 55.3M memory peak, 0B memory swap peak.
+Mar 30 10:03:36 katana systemd[34796]: Stopped app-ghostty-surface-transient-615515.scope.
+Mar 30 10:03:36 katana systemd[34796]: app-ghostty-surface-transient-615515.scope: Consumed 43.751s CPU time.
+Mar 30 10:03:36 katana systemd[34796]: Stopped app-ghostty-surface-transient-39302.scope.
+Mar 30 10:03:36 katana systemd[34796]: app-ghostty-surface-transient-39302.scope: Consumed 55min 20.456s CPU time.
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] 53 unknown clients, 30 with signal data
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] 53 unknown clients, 30 with signal data
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] kindle roamed: woodshed → ea6350v3-family
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] 53 unknown clients, 30 with signal data
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] 53 unknown clients, 30 with signal data
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] 53 unknown clients, 30 with signal data
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] 53 unknown clients, 30 with signal data
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] LLDP: skipping wndr4300sw-shed↔wrt1900ac-family (share common parent — unmanaged switch)
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] LLDP: detected 5 ethernet links
+Mar 30 10:03:36 katana python3[34822]:   woodshed:eth0 ↔ wrt1900ac-family:lan3 (LLDP)
+Mar 30 10:03:36 katana python3[34822]:   wrt1900ac-family:lan2 ↔ cpe710-client:br0 (CDPv1)
+Mar 30 10:03:36 katana python3[34822]:   wndr4300sw-shed:eth0 ↔ wrt1900ac-family:wan (LLDP)
+Mar 30 10:03:36 katana python3[34822]:   gs308t:lan5 ↔ ea6350-cl:wan (CDPv1)
+Mar 30 10:03:36 katana python3[34822]:   gs308t:lan6 ↔ mr8300-glenn:wan (CDPv1)
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] 54 unknown clients, 30 with signal data
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] 54 unknown clients, 30 with signal data
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] 54 unknown clients, 30 with signal data
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] 53 unknown clients, 30 with signal data
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] 53 unknown clients, 30 with signal data
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] 53 unknown clients, 30 with signal data
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] 53 unknown clients, 30 with signal data
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] LLDP: skipping wndr4300sw-shed↔wrt1900ac-family (share common parent — unmanaged switch)
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] LLDP: detected 5 ethernet links
+Mar 30 10:03:36 katana python3[34822]:   woodshed:eth0 ↔ wrt1900ac-family:lan3 (LLDP)
+Mar 30 10:03:36 katana python3[34822]:   wrt1900ac-family:lan2 ↔ cpe710-client:br0 (CDPv1)
+Mar 30 10:03:36 katana python3[34822]:   wndr4300sw-shed:eth0 ↔ wrt1900ac-family:wan (LLDP)
+Mar 30 10:03:36 katana python3[34822]:   gs308t:lan5 ↔ ea6350-cl:wan (CDPv1)
+Mar 30 10:03:36 katana python3[34822]:   gs308t:lan6 ↔ mr8300-glenn:wan (CDPv1)
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] _unknown_b63b87b7bfde IP changed: 10.0.11.110 → 10.0.11.112
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] _unknown_b63b87b7bfde IP changed: 10.0.11.112 → 10.0.11.110
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] 53 unknown clients, 30 with signal data
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] _unknown_b63b87b7bfde IP changed: 10.0.11.110 → 10.0.11.112
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] _unknown_b63b87b7bfde IP changed: 10.0.11.112 → 10.0.11.110
+Mar 30 10:03:36 katana python3[34822]: [AP Scanner] 53 unknown clients, 30 with signal data
+Mar 30 10:03:36 katana python3[34822]: [HA Bridge] Polled 2041 entities → 20 nodes
+Mar 30 10:03:36 katana python3[34822]: [WLED Bridge] Polled 2 devices, 2 online
+Mar 30 10:03:36 katana python3[34822]: Shutting down realm map server...
+Mar 30 10:03:36 katana python3[34822]: Realm map server stopped.
+Mar 30 10:03:37 katana systemd[34796]: Stopped realm-map-server.service - Realm Map Server — HTTP :80 for realmwatch.
+Mar 30 10:03:37 katana systemd[34796]: realm-map-server.service: Consumed 4h 48min 9.463s CPU time.
+Mar 30 10:03:37 katana thermald[1544]: terminating on user request ..
+Mar 30 10:03:37 katana syncthing[34827]: [DZ3ZM] INFO: TCP listener ([::]:22000) shutting down
+Mar 30 10:03:37 katana syncthing[34827]: [DZ3ZM] INFO: Exiting
+Mar 30 10:03:37 katana systemd[34796]: Stopped syncthing.service - Syncthing - Open Source Continuous File Synchronization.
+Mar 30 10:03:37 katana systemd[34796]: syncthing.service: Consumed 1h 13min 39.207s CPU time.
+Mar 30 10:03:37 katana systemd[34796]: Stopped target basic.target - Basic System.
+Mar 30 10:03:37 katana systemd[34796]: Stopped target paths.target - Paths.
+Mar 30 10:03:37 katana systemd[34796]: Stopped ubuntu-report.path - Pending report trigger for Ubuntu Report.
+Mar 30 10:03:37 katana systemd[34796]: Stopped target sockets.target - Sockets.
+Mar 30 10:03:37 katana systemd[34796]: Stopped target timers.target - Timers.
+Mar 30 10:03:37 katana systemd[34796]: Stopped launchpadlib-cache-clean.timer - Clean up old files in the Launchpadlib cache.
+Mar 30 10:03:37 katana systemd[34796]: Stopped realm-optimizer.timer - Run RealmWatch Optimizer audit every 30 minutes.
+Mar 30 10:03:37 katana systemd[34796]: Closed dbus.socket - D-Bus User Message Bus Socket.
+Mar 30 10:03:37 katana systemd[34796]: Closed dirmngr.socket - GnuPG network certificate management daemon.
+Mar 30 10:03:37 katana systemd[34796]: Closed gcr-ssh-agent.socket - GCR ssh-agent wrapper.
+Mar 30 10:03:37 katana systemd[34796]: Closed gnome-keyring-daemon.socket - GNOME Keyring daemon.
+Mar 30 10:03:37 katana systemd[34796]: Closed gpg-agent-browser.socket - GnuPG cryptographic agent and passphrase cache (access for web browsers).
+Mar 30 10:03:37 katana systemd[34796]: Closed gpg-agent-extra.socket - GnuPG cryptographic agent and passphrase cache (restricted).
+Mar 30 10:03:37 katana systemd[34796]: Stopping gpg-agent-ssh.socket - GnuPG cryptographic agent (ssh-agent emulation)...
+Mar 30 10:03:37 katana systemd[34796]: Closed gpg-agent.socket - GnuPG cryptographic agent and passphrase cache.
+Mar 30 10:03:37 katana systemd[34796]: Closed keyboxd.socket - GnuPG public key management service.
+Mar 30 10:03:37 katana systemd[34796]: Closed pipewire-pulse.socket - PipeWire PulseAudio.
+Mar 30 10:03:37 katana systemd[34796]: Closed pipewire.socket - PipeWire Multimedia System Sockets.
+Mar 30 10:03:37 katana systemd[34796]: Closed pk-debconf-helper.socket - debconf communication socket.
+Mar 30 10:03:37 katana systemd[34796]: Closed snapd.session-agent.socket - REST API socket for snapd user session agent.
+Mar 30 10:03:37 katana systemd[34796]: Closed speech-dispatcher.socket - Speech Dispatcher Socket.
+Mar 30 10:03:37 katana systemd[34796]: Closed gpg-agent-ssh.socket - GnuPG cryptographic agent (ssh-agent emulation).
+Mar 30 10:03:37 katana systemd[34796]: Removed slice app.slice - User Application Slice.
+Mar 30 10:03:37 katana systemd[34796]: app.slice: Consumed 7h 59min 55.546s CPU time.
+Mar 30 10:03:37 katana systemd[34796]: Reached target shutdown.target - Shutdown.
+Mar 30 10:03:37 katana systemd[34796]: Finished systemd-exit.service - Exit the Session.
+Mar 30 10:03:37 katana systemd[34796]: Reached target exit.target - Exit the Session.
+Mar 30 10:03:37 katana (sd-pam)[34800]: pam_unix(systemd-user:session): session closed for user jp
+Mar 30 10:03:37 katana systemd[1]: user@1000.service: Deactivated successfully.
+Mar 30 10:03:37 katana systemd[1]: Stopped user@1000.service - User Manager for UID 1000.
+Mar 30 10:03:37 katana systemd[1]: user@1000.service: Consumed 8h 25min 57.693s CPU time, 11.0G memory peak, 0B memory swap peak.
+Mar 30 10:03:37 katana systemd[1]: Stopping systemd-oomd.service - Userspace Out-Of-Memory (OOM) Killer...
+Mar 30 10:03:37 katana systemd[1]: Stopping systemd-user-sessions.service - Permit User Sessions...
+Mar 30 10:03:37 katana systemd[1]: Stopping user-runtime-dir@1000.service - User Runtime Directory /run/user/1000...
+Mar 30 10:03:37 katana systemd[1]: systemd-oomd.service: Deactivated successfully.
+Mar 30 10:03:37 katana systemd[1]: Stopped systemd-oomd.service - Userspace Out-Of-Memory (OOM) Killer.
+Mar 30 10:03:37 katana systemd[1]: systemd-oomd.service: Consumed 4.745s CPU time, 2.3M memory peak, 0B memory swap peak.
+Mar 30 10:03:37 katana systemd[1]: systemd-user-sessions.service: Deactivated successfully.
+Mar 30 10:03:37 katana systemd[1]: Stopped systemd-user-sessions.service - Permit User Sessions.
+Mar 30 10:03:37 katana systemd[1]: Stopped target network.target - Network.
+Mar 30 10:03:37 katana systemd[1]: Stopped target nss-user-lookup.target - User and Group Name Lookups.
+Mar 30 10:03:37 katana systemd[1]: Stopped target remote-fs.target - Remote File Systems.
+Mar 30 10:03:37 katana systemd[1]: Stopped target remote-fs-pre.target - Preparation for Remote File Systems.
+Mar 30 10:03:37 katana systemd[1]: Stopped target nfs-client.target - NFS client services.
+Mar 30 10:03:37 katana systemd[1]: Stopping NetworkManager.service - Network Manager...
+Mar 30 10:03:37 katana systemd[1]: Stopping wpa_supplicant.service - WPA supplicant...
+Mar 30 10:03:37 katana NetworkManager[1580]: <info>  [1774890217.4272] caught SIGTERM, shutting down normally.
+Mar 30 10:03:37 katana NetworkManager[1580]: <info>  [1774890217.4276] dhcp4 (enp5s0): canceled DHCP transaction
+Mar 30 10:03:37 katana NetworkManager[1580]: <info>  [1774890217.4276] dhcp4 (enp5s0): activation: beginning transaction (timeout in 45 seconds)
+Mar 30 10:03:37 katana NetworkManager[1580]: <info>  [1774890217.4276] dhcp4 (enp5s0): state changed no lease
+Mar 30 10:03:37 katana NetworkManager[1580]: <info>  [1774890217.4278] dhcp4 (enp5s0.9): canceled DHCP transaction
+Mar 30 10:03:37 katana NetworkManager[1580]: <info>  [1774890217.4278] dhcp4 (enp5s0.9): activation: beginning transaction (timeout in 45 seconds)
+Mar 30 10:03:37 katana NetworkManager[1580]: <info>  [1774890217.4278] dhcp4 (enp5s0.9): state changed no lease
+Mar 30 10:03:37 katana systemd[1]: wpa_supplicant.service: Deactivated successfully.
+Mar 30 10:03:37 katana NetworkManager[1580]: <info>  [1774890217.4279] manager: NetworkManager state is now CONNECTED_SITE
+Mar 30 10:03:37 katana systemd[1]: Stopped wpa_supplicant.service - WPA supplicant.
+Mar 30 10:03:37 katana dbus-daemon[1520]: [system] Activating via systemd: service name='org.freedesktop.nm_dispatcher' unit='dbus-org.freedesktop.nm-dispatcher.service' requested by ':1.11' (uid=0 pid=1580 comm="/usr/sbin/NetworkManager --no-daemon" label="unconfined")
+Mar 30 10:03:37 katana NetworkManager[1580]: <info>  [1774890217.4281] device (wlp6s0): state change: unavailable -> unmanaged (reason 'unmanaged', sys-iface-state: 'managed')
+Mar 30 10:03:37 katana systemd[1]: Requested transaction contradicts existing jobs: Transaction for NetworkManager-dispatcher.service/start is destructive (systemd-tmpfiles-setup-dev.service has 'stop' job queued, but 'start' is included in transaction).
+Mar 30 10:03:37 katana dbus-daemon[1520]: [system] Activation via systemd failed for unit 'dbus-org.freedesktop.nm-dispatcher.service': Transaction for NetworkManager-dispatcher.service/start is destructive (systemd-tmpfiles-setup-dev.service has 'stop' job queued, but 'start' is included in transaction).
+Mar 30 10:03:37 katana systemd[1]: run-user-1000.mount: Deactivated successfully.
+Mar 30 10:03:37 katana systemd[1]: Unmounted run-user-1000.mount - /run/user/1000.
+Mar 30 10:03:37 katana systemd[1]: user-runtime-dir@1000.service: Deactivated successfully.
+Mar 30 10:03:37 katana systemd[1]: Stopped user-runtime-dir@1000.service - User Runtime Directory /run/user/1000.
+Mar 30 10:03:37 katana systemd[1]: Removed slice user-1000.slice - User Slice of UID 1000.
+Mar 30 10:03:37 katana systemd[1]: user-1000.slice: Consumed 8h 25min 58.129s CPU time, 11.0G memory peak, 0B memory swap peak.
+Mar 30 10:03:37 katana NetworkManager[1580]: <info>  [1774890217.4479] exiting (success)
+Mar 30 10:03:37 katana systemd[1]: NetworkManager.service: Deactivated successfully.
+Mar 30 10:03:37 katana systemd[1]: Stopped NetworkManager.service - Network Manager.
+Mar 30 10:03:37 katana systemd[1]: NetworkManager.service: Consumed 15.076s CPU time, 40.8M memory peak, 0B memory swap peak.
+Mar 30 10:03:37 katana systemd[1]: Stopped target network-pre.target - Preparation for Network.
+Mar 30 10:03:37 katana kernel: [UFW BLOCK] IN=enp5s0 OUT= MAC=00:d8:61:bb:9f:8e:3c:d9:2b:6f:72:29:08:00 SRC=172.18.0.3 DST=10.0.6.129 LEN=60 TOS=0x00 PREC=0x00 TTL=63 ID=10570 DF PROTO=TCP SPT=22000 DPT=22000 WINDOW=65535 RES=0x00 SYN URGP=0 
+Mar 30 10:03:38 katana systemd[1]: thermald.service: Deactivated successfully.
+Mar 30 10:03:38 katana systemd[1]: Stopped thermald.service - Thermal Daemon Service.
+Mar 30 10:03:38 katana kernel: [UFW BLOCK] IN=enp5s0 OUT= MAC=00:d8:61:bb:9f:8e:3c:d9:2b:6f:72:29:08:00 SRC=172.18.0.3 DST=10.0.6.129 LEN=60 TOS=0x00 PREC=0x00 TTL=63 ID=10571 DF PROTO=TCP SPT=22000 DPT=22000 WINDOW=65535 RES=0x00 SYN URGP=0 
+Mar 30 10:03:39 katana snapd[1536]: standby.go:121: standby monitoring stop requested
+Mar 30 10:03:39 katana snapd[1536]: overlord.go:543: Released state lock file
+Mar 30 10:03:39 katana systemd[1]: snapd.service: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped snapd.service - Snap Daemon.
+Mar 30 10:03:39 katana systemd[1]: snapd.service: Consumed 2.604s CPU time, 92.9M memory peak, 0B memory swap peak.
+Mar 30 10:03:39 katana systemd[1]: Stopped target basic.target - Basic System.
+Mar 30 10:03:39 katana systemd[1]: Stopped target paths.target - Path Units.
+Mar 30 10:03:39 katana systemd[1]: apport-autoreport.path: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped apport-autoreport.path - Process error reports when automatic reporting is enabled (file watch).
+Mar 30 10:03:39 katana systemd[1]: cups.path: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped cups.path - CUPS Scheduler.
+Mar 30 10:03:39 katana systemd[1]: whoopsie.path: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped whoopsie.path - Start whoopsie on modification of the /var/crash directory.
+Mar 30 10:03:39 katana systemd[1]: Stopped target slices.target - Slice Units.
+Mar 30 10:03:39 katana systemd[1]: Removed slice machine.slice - Virtual Machine and Container Slice.
+Mar 30 10:03:39 katana systemd[1]: Removed slice user.slice - User and Session Slice.
+Mar 30 10:03:39 katana systemd[1]: user.slice: Consumed 8h 30min 14.243s CPU time, 13.6G memory peak, 56.0K memory swap peak.
+Mar 30 10:03:39 katana systemd[1]: Stopped target sockets.target - Socket Units.
+Mar 30 10:03:39 katana systemd[1]: Stopped target time-set.target - System Time Set.
+Mar 30 10:03:39 katana systemd[1]: avahi-daemon.socket: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Closed avahi-daemon.socket - Avahi mDNS/DNS-SD Stack Activation Socket.
+Mar 30 10:03:39 katana systemd[1]: cups.socket: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Closed cups.socket - CUPS Scheduler.
+Mar 30 10:03:39 katana systemd[1]: docker.socket: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Closed docker.socket - Docker Socket for the API.
+Mar 30 10:03:39 katana systemd[1]: libvirtd-admin.socket: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Closed libvirtd-admin.socket - libvirt legacy monolithic daemon admin socket.
+Mar 30 10:03:39 katana systemd[1]: libvirtd-ro.socket: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Closed libvirtd-ro.socket - libvirt legacy monolithic daemon read-only socket.
+Mar 30 10:03:39 katana systemd[1]: libvirtd.socket: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Closed libvirtd.socket - libvirt legacy monolithic daemon socket.
+Mar 30 10:03:39 katana systemd[1]: snapd.socket: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Closed snapd.socket - Socket activation for snappy daemon.
+Mar 30 10:03:39 katana systemd[1]: ssh.socket: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Closed ssh.socket - OpenBSD Secure Shell server socket.
+Mar 30 10:03:39 katana systemd[1]: syslog.socket: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Closed syslog.socket - Syslog Socket.
+Mar 30 10:03:39 katana systemd[1]: systemd-oomd.socket: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Closed systemd-oomd.socket - Userspace Out-Of-Memory (OOM) Killer Socket.
+Mar 30 10:03:39 katana systemd[1]: uuidd.socket: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Closed uuidd.socket - UUID daemon activation socket.
+Mar 30 10:03:39 katana systemd[1]: virtlockd-admin.socket: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Closed virtlockd-admin.socket - libvirt locking daemon admin socket.
+Mar 30 10:03:39 katana systemd[1]: virtlockd.socket: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Closed virtlockd.socket - libvirt locking daemon socket.
+Mar 30 10:03:39 katana systemd[1]: virtlogd-admin.socket: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Closed virtlogd-admin.socket - libvirt logging daemon admin socket.
+Mar 30 10:03:39 katana systemd[1]: virtlogd.socket: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Closed virtlogd.socket - libvirt logging daemon socket.
+Mar 30 10:03:39 katana systemd[1]: Stopped target sysinit.target - System Initialization.
+Mar 30 10:03:39 katana systemd[1]: Stopped target cryptsetup.target - Local Encrypted Volumes.
+Mar 30 10:03:39 katana systemd[1]: systemd-ask-password-console.path: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped systemd-ask-password-console.path - Dispatch Password Requests to Console Directory Watch.
+Mar 30 10:03:39 katana systemd[1]: systemd-ask-password-wall.path: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped systemd-ask-password-wall.path - Forward Password Requests to Wall Directory Watch.
+Mar 30 10:03:39 katana systemd[1]: Stopped target integritysetup.target - Local Integrity Protected Volumes.
+Mar 30 10:03:39 katana systemd[1]: Stopped target veritysetup.target - Local Verity Protected Volumes.
+Mar 30 10:03:39 katana systemd[1]: Stopping systemd-binfmt.service - Set Up Additional Binary Formats...
+Mar 30 10:03:39 katana systemd[1]: Stopping systemd-resolved.service - Network Name Resolution...
+Mar 30 10:03:39 katana systemd[1]: Stopping systemd-timesyncd.service - Network Time Synchronization...
+Mar 30 10:03:39 katana systemd[1]: Stopping systemd-update-utmp.service - Record System Boot/Shutdown in UTMP...
+Mar 30 10:03:39 katana systemd[1]: systemd-timesyncd.service: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped systemd-timesyncd.service - Network Time Synchronization.
+Mar 30 10:03:39 katana systemd[1]: systemd-resolved.service: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped systemd-resolved.service - Network Name Resolution.
+Mar 30 10:03:39 katana systemd[1]: systemd-resolved.service: Consumed 1.296s CPU time, 8.1M memory peak, 0B memory swap peak.
+Mar 30 10:03:39 katana systemd[1]: systemd-binfmt.service: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped systemd-binfmt.service - Set Up Additional Binary Formats.
+Mar 30 10:03:39 katana systemd[1]: systemd-update-utmp.service: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped systemd-update-utmp.service - Record System Boot/Shutdown in UTMP.
+Mar 30 10:03:39 katana systemd[1]: proc-sys-fs-binfmt_misc.automount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unset automount proc-sys-fs-binfmt_misc.automount - Arbitrary Executable File Formats File System Automount Point.
+Mar 30 10:03:39 katana systemd[1]: systemd-sysctl.service: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped systemd-sysctl.service - Apply Kernel Variables.
+Mar 30 10:03:39 katana systemd[1]: systemd-modules-load.service: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped systemd-modules-load.service - Load Kernel Modules.
+Mar 30 10:03:39 katana systemd[1]: systemd-tmpfiles-setup.service: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped systemd-tmpfiles-setup.service - Create Volatile Files and Directories.
+Mar 30 10:03:39 katana systemd[1]: Stopped target local-fs.target - Local File Systems.
+Mar 30 10:03:39 katana systemd[1]: Stopped target snapd.mounts.target - Mounted snaps.
+Mar 30 10:03:39 katana systemd[1]: Unmounting boot-efi.mount - /boot/efi...
+Mar 30 10:03:39 katana systemd[1]: Unmounting home-jp-cubic\x2drealmwatch-custom\x2droot-dev-pts.mount - /home/jp/cubic-realmwatch/custom-root/dev/pts...
+Mar 30 10:03:39 katana systemd[1]: Unmounting home-jp-cubic\x2drealmwatch-custom\x2droot-proc.mount - /home/jp/cubic-realmwatch/custom-root/proc...
+Mar 30 10:03:39 katana systemd[1]: Unmounting home-jp-cubic\x2drealmwatch-custom\x2droot-run.mount - /home/jp/cubic-realmwatch/custom-root/run...
+Mar 30 10:03:39 katana systemd[1]: Unmounting home-jp-cubic\x2drealmwatch-custom\x2droot-sys.mount - /home/jp/cubic-realmwatch/custom-root/sys...
+Mar 30 10:03:39 katana systemd[1]: Unmounting run-qemu.mount - Prepare /run/qemu to allow still running qemu binaries of former builds (after package upgrades) to fallback-load modules from there...
+Mar 30 10:03:39 katana systemd[1]: Unmounting run-snapd-ns-snapd\x2ddesktop\x2dintegration.mnt.mount - /run/snapd/ns/snapd-desktop-integration.mnt...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-bare-5.mount - Mount unit for bare, revision 5...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-core-17284.mount - Mount unit for core, revision 17284...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-core18-2999.mount - Mount unit for core18, revision 2999...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-core20-2769.mount - Mount unit for core20, revision 2769...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-core22-2411.mount - Mount unit for core22, revision 2411...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-core24-1499.mount - Mount unit for core24, revision 1499...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-core24-1587.mount - Mount unit for core24, revision 1587...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-firefox-8054.mount - Mount unit for firefox, revision 8054...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-ghostty-718.mount - Mount unit for ghostty, revision 718...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-git\x2drepo-18.mount - Mount unit for git-repo, revision 18...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-gnome\x2d3\x2d34\x2d1804-93.mount - Mount unit for gnome-3-34-1804, revision 93...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-gnome\x2d3\x2d38\x2d2004-143.mount - Mount unit for gnome-3-38-2004, revision 143...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-gnome\x2d42\x2d2204-247.mount - Mount unit for gnome-42-2204, revision 247...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-gnome\x2d46\x2d2404-153.mount - Mount unit for gnome-46-2404, revision 153...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-go-11103.mount - Mount unit for go, revision 11103...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-gping-13.mount - Mount unit for gping, revision 13...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-gtk\x2dcommon\x2dthemes-1535.mount - Mount unit for gtk-common-themes, revision 1535...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-hunspell\x2ddictionaries\x2d1\x2d7\x2d2004-2.mount - Mount unit for hunspell-dictionaries-1-7-2004, revision 2...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-kicad-22.mount - Mount unit for kicad, revision 22...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-mesa\x2d2404-1165.mount - Mount unit for mesa-2404, revision 1165...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-slack-216.mount - Mount unit for slack, revision 216...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-snapd-26382.mount - Mount unit for snapd, revision 26382...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-snapd\x2ddesktop\x2dintegration-343.mount - Mount unit for snapd-desktop-integration, revision 343...
+Mar 30 10:03:39 katana systemd[1]: Unmounting snap-thunderbird-1040.mount - Mount unit for thunderbird, revision 1040...
+Mar 30 10:03:39 katana systemd[1]: Unmounting var-snap-firefox-common-host\x2dhunspell.mount - Mount unit for firefox, revision 1860 via mount-control...
+Mar 30 10:03:39 katana systemd[1]: proc-sys-fs-binfmt_misc.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: boot-efi.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted boot-efi.mount - /boot/efi.
+Mar 30 10:03:39 katana systemd[1]: home-jp-cubic\x2drealmwatch-custom\x2droot-dev-pts.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted home-jp-cubic\x2drealmwatch-custom\x2droot-dev-pts.mount - /home/jp/cubic-realmwatch/custom-root/dev/pts.
+Mar 30 10:03:39 katana systemd[1]: home-jp-cubic\x2drealmwatch-custom\x2droot-proc.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted home-jp-cubic\x2drealmwatch-custom\x2droot-proc.mount - /home/jp/cubic-realmwatch/custom-root/proc.
+Mar 30 10:03:39 katana systemd[1]: home-jp-cubic\x2drealmwatch-custom\x2droot-run.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted home-jp-cubic\x2drealmwatch-custom\x2droot-run.mount - /home/jp/cubic-realmwatch/custom-root/run.
+Mar 30 10:03:39 katana systemd[1]: home-jp-cubic\x2drealmwatch-custom\x2droot-sys.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted home-jp-cubic\x2drealmwatch-custom\x2droot-sys.mount - /home/jp/cubic-realmwatch/custom-root/sys.
+Mar 30 10:03:39 katana systemd[1]: run-qemu.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted run-qemu.mount - Prepare /run/qemu to allow still running qemu binaries of former builds (after package upgrades) to fallback-load modules from there.
+Mar 30 10:03:39 katana systemd[1]: run-snapd-ns-snapd\x2ddesktop\x2dintegration.mnt.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted run-snapd-ns-snapd\x2ddesktop\x2dintegration.mnt.mount - /run/snapd/ns/snapd-desktop-integration.mnt.
+Mar 30 10:03:39 katana systemd[1]: snap-bare-5.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-bare-5.mount - Mount unit for bare, revision 5.
+Mar 30 10:03:39 katana systemd[1]: snap-core-17284.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-core-17284.mount - Mount unit for core, revision 17284.
+Mar 30 10:03:39 katana systemd[1]: snap-core18-2999.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-core18-2999.mount - Mount unit for core18, revision 2999.
+Mar 30 10:03:39 katana systemd[1]: snap-core20-2769.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-core20-2769.mount - Mount unit for core20, revision 2769.
+Mar 30 10:03:39 katana systemd[1]: snap-core22-2411.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-core22-2411.mount - Mount unit for core22, revision 2411.
+Mar 30 10:03:39 katana systemd[1]: snap-core24-1499.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-core24-1499.mount - Mount unit for core24, revision 1499.
+Mar 30 10:03:39 katana systemd[1]: snap-core24-1587.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-core24-1587.mount - Mount unit for core24, revision 1587.
+Mar 30 10:03:39 katana systemd[1]: snap-firefox-8054.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-firefox-8054.mount - Mount unit for firefox, revision 8054.
+Mar 30 10:03:39 katana systemd[1]: snap-ghostty-718.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-ghostty-718.mount - Mount unit for ghostty, revision 718.
+Mar 30 10:03:39 katana systemd[1]: snap-git\x2drepo-18.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-git\x2drepo-18.mount - Mount unit for git-repo, revision 18.
+Mar 30 10:03:39 katana systemd[1]: snap-gnome\x2d3\x2d34\x2d1804-93.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-gnome\x2d3\x2d34\x2d1804-93.mount - Mount unit for gnome-3-34-1804, revision 93.
+Mar 30 10:03:39 katana systemd[1]: snap-gnome\x2d3\x2d38\x2d2004-143.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-gnome\x2d3\x2d38\x2d2004-143.mount - Mount unit for gnome-3-38-2004, revision 143.
+Mar 30 10:03:39 katana systemd[1]: snap-gnome\x2d42\x2d2204-247.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-gnome\x2d42\x2d2204-247.mount - Mount unit for gnome-42-2204, revision 247.
+Mar 30 10:03:39 katana systemd[1]: snap-gnome\x2d46\x2d2404-153.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-gnome\x2d46\x2d2404-153.mount - Mount unit for gnome-46-2404, revision 153.
+Mar 30 10:03:39 katana systemd[1]: snap-go-11103.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-go-11103.mount - Mount unit for go, revision 11103.
+Mar 30 10:03:39 katana systemd[1]: snap-gping-13.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-gping-13.mount - Mount unit for gping, revision 13.
+Mar 30 10:03:39 katana systemd[1]: snap-gtk\x2dcommon\x2dthemes-1535.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-gtk\x2dcommon\x2dthemes-1535.mount - Mount unit for gtk-common-themes, revision 1535.
+Mar 30 10:03:39 katana systemd[1]: snap-hunspell\x2ddictionaries\x2d1\x2d7\x2d2004-2.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-hunspell\x2ddictionaries\x2d1\x2d7\x2d2004-2.mount - Mount unit for hunspell-dictionaries-1-7-2004, revision 2.
+Mar 30 10:03:39 katana systemd[1]: snap-kicad-22.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-kicad-22.mount - Mount unit for kicad, revision 22.
+Mar 30 10:03:39 katana systemd[1]: snap-mesa\x2d2404-1165.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-mesa\x2d2404-1165.mount - Mount unit for mesa-2404, revision 1165.
+Mar 30 10:03:39 katana systemd[1]: snap-slack-216.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-slack-216.mount - Mount unit for slack, revision 216.
+Mar 30 10:03:39 katana systemd[1]: snap-snapd-26382.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-snapd-26382.mount - Mount unit for snapd, revision 26382.
+Mar 30 10:03:39 katana systemd[1]: snap-snapd\x2ddesktop\x2dintegration-343.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-snapd\x2ddesktop\x2dintegration-343.mount - Mount unit for snapd-desktop-integration, revision 343.
+Mar 30 10:03:39 katana systemd[1]: snap-thunderbird-1040.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted snap-thunderbird-1040.mount - Mount unit for thunderbird, revision 1040.
+Mar 30 10:03:39 katana systemd[1]: var-snap-firefox-common-host\x2dhunspell.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted var-snap-firefox-common-host\x2dhunspell.mount - Mount unit for firefox, revision 1860 via mount-control.
+Mar 30 10:03:39 katana systemd[1]: Stopped target snapd.mounts-pre.target - Mounting snaps.
+Mar 30 10:03:39 katana systemd[1]: Unmounting home-jp-cubic\x2drealmwatch-custom\x2droot-dev.mount - /home/jp/cubic-realmwatch/custom-root/dev...
+Mar 30 10:03:39 katana systemd[1]: Unmounting run-snapd-ns.mount - /run/snapd/ns...
+Mar 30 10:03:39 katana systemd[1]: systemd-fsck@dev-disk-by\x2duuid-AB0B\x2d743A.service: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped systemd-fsck@dev-disk-by\x2duuid-AB0B\x2d743A.service - File System Check on /dev/disk/by-uuid/AB0B-743A.
+Mar 30 10:03:39 katana systemd[1]: Removed slice system-systemd\x2dfsck.slice - Slice /system/systemd-fsck.
+Mar 30 10:03:39 katana systemd[1]: home-jp-cubic\x2drealmwatch-custom\x2droot-dev.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted home-jp-cubic\x2drealmwatch-custom\x2droot-dev.mount - /home/jp/cubic-realmwatch/custom-root/dev.
+Mar 30 10:03:39 katana systemd[1]: run-snapd-ns.mount: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Unmounted run-snapd-ns.mount - /run/snapd/ns.
+Mar 30 10:03:39 katana systemd[1]: Stopped target local-fs-pre.target - Preparation for Local File Systems.
+Mar 30 10:03:39 katana systemd[1]: Stopped target swap.target - Swaps.
+Mar 30 10:03:39 katana systemd[1]: Deactivating swap swapfile.swap - /swapfile...
+Mar 30 10:03:39 katana systemd[1]: systemd-tmpfiles-setup-dev.service: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped systemd-tmpfiles-setup-dev.service - Create Static Device Nodes in /dev.
+Mar 30 10:03:39 katana systemd[1]: systemd-tmpfiles-setup-dev-early.service: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped systemd-tmpfiles-setup-dev-early.service - Create Static Device Nodes in /dev gracefully.
+Mar 30 10:03:39 katana systemd[1]: swapfile.swap: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Deactivated swap swapfile.swap - /swapfile.
+Mar 30 10:03:39 katana systemd[1]: Reached target umount.target - Unmount All Filesystems.
+Mar 30 10:03:39 katana systemd[1]: systemd-remount-fs.service: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Stopped systemd-remount-fs.service - Remount Root and Kernel File Systems.
+Mar 30 10:03:39 katana systemd[1]: Reached target shutdown.target - System Shutdown.
+Mar 30 10:03:39 katana systemd[1]: Reached target final.target - Late Shutdown Services.
+Mar 30 10:03:39 katana systemd[1]: systemd-poweroff.service: Deactivated successfully.
+Mar 30 10:03:39 katana systemd[1]: Finished systemd-poweroff.service - System Power Off.
+Mar 30 10:03:39 katana systemd[1]: Reached target poweroff.target - System Power Off.
+Mar 30 10:03:39 katana systemd[1]: Shutting down.
+Mar 30 10:03:39 katana systemd-shutdown[1]: Syncing filesystems and block devices.
+Mar 30 10:03:39 katana systemd-shutdown[1]: Sending SIGTERM to remaining processes...
+Mar 30 10:03:39 katana systemd-journald[607]: Received SIGTERM from PID 1 (systemd-shutdow).
+Mar 30 10:03:39 katana dnsmasq[1930]: exiting on receipt of SIGTERM
+Mar 30 10:03:39 katana systemd-journald[607]: Journal stopped
