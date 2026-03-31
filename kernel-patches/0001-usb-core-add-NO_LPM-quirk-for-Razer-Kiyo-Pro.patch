@@ -23,7 +23,6 @@ Disabling LPM prevents the firmware from entering the problematic low-
 power states that precede the stall. This is the same approach used for
 other webcams with similar firmware issues (e.g., Logitech HD Webcam C270).
 
-Cc: stable@vger.kernel.org
 Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/2061177
 Signed-off-by: JP Hein <jp@jphein.com>
 ---

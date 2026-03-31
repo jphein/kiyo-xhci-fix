@@ -32,7 +32,6 @@ Introduce UVC_QUIRK_CTRL_THROTTLE (0x00080000) to address both issues:
 The UVC control path is serialized by ctrl_mutex, so last_ctrl_set_jiffies
 does not require additional locking.
 
-Cc: stable@vger.kernel.org
 Signed-off-by: JP Hein <jp@jphein.com>
 ---
  drivers/media/usb/uvc/uvc_video.c | 32 +++++++++++++++++++++++++++++++

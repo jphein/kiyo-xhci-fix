@@ -25,7 +25,6 @@ Add the device to the UVC driver table with:
   - UVC_QUIRK_NO_RESET_RESUME: avoid the fragile reset-during-resume
     path. Same approach as Logitech Rally Bar.
 
-Cc: stable@vger.kernel.org
 Link: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/2061177
 Signed-off-by: JP Hein <jp@jphein.com>
 ---
