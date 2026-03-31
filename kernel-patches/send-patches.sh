@@ -8,7 +8,8 @@ git send-email \
   --to="Greg Kroah-Hartman <gregkh@linuxfoundation.org>" \
   --cc="linux-media@vger.kernel.org" \
   --cc="linux-usb@vger.kernel.org" \
-  --cc="stable@vger.kernel.org" \
+  --cc="Ricardo Ribalda <ribalda@chromium.org>" \
+  --cc="Michal Pecio <michal.pecio@gmail.com>" \
   --thread \
   --no-chain-reply-to \
   0000-cover-letter.txt \

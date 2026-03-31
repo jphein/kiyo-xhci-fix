@@ -1,5 +1,5 @@
 From: JP Hein <jp@jphein.com>
-Subject: [PATCH v4 0/3] USB/UVC: Add quirks to prevent Razer Kiyo Pro xHCI cascade failure
+Subject: [PATCH v5 0/3] USB/UVC: Add quirks to prevent Razer Kiyo Pro xHCI cascade failure
 
 The Razer Kiyo Pro (1532:0e05) is a USB 3.0 webcam whose firmware has a
 well-documented failure mode that cascades into complete xHCI host
@@ -20,9 +20,7 @@ The device has two crash triggers:
      pushing it into a full lockup and xHCI controller death.
 
 This has been reported as Ubuntu Launchpad Bug #2061177, with reports
-across kernel versions 6.5 through 6.8. There are
-currently no device-specific quirks for this webcam in either the USB
-core quirks table or the UVC driver device table.
+across kernel versions 6.5 through 6.8.
 
 This series adds three patches:
 
@@ -41,17 +39,34 @@ Together, these keep the device in a stable active state, prevent rapid
 control transfer crashes, and avoid the power management transitions
 that trigger the firmware bug.
 
+Testing on 6.17.0-19-generic (Ubuntu 24.04 HWE) with dynamic debug
+enabled and NO patches or workarounds applied:
+  - v4l2-ctl stress test (control transfers only): passes 50/50
+  - Starting a video call: triggers hc_died() via LPM disable failure
+    during isochronous stream setup
+  - Stress test during active video call: firmware stalls at round 19,
+    repeated endpoint stalls with -32 EPIPE
+
+The 6.8 -> 6.17 xHCI error handling improvements help with control
+transfer recovery, but the firmware lockup during video streaming still
+cascades to hc_died(). The patches in this series prevent the firmware
+from reaching the lockup state in the first place.
+
+Changes since v4:
+  - Dropped stable CC (new quirks, not regression fixes)
+  - Updated cover letter with 6.17 test results
+
 Changes since v3:
   - Regenerated patches against media-committers next branch to fix
     context mismatch (v3 was based on Ubuntu 6.8 source)
 
 Tested on:
-  - Kernel: 6.8.0-106-generic (Ubuntu 24.04)
+  - Kernel: 6.17.0-19-generic (Ubuntu 24.04 HWE) and 6.8.0-106-generic
   - Hardware: Intel Cannon Lake PCH xHCI (8086:a36d)
-  - Device: Razer Kiyo Pro (1532:0e05), firmware 8.21
-  - Stress test: 50 rounds of rapid UVC control changes, 0 failures
+  - Device: Razer Kiyo Pro (1532:0e05), firmware 1.5.0.1
 
-Stress test and crash evidence: https://github.com/jphein/kiyo-xhci-fix
+Stress test, crash evidence, and debug logs:
+  https://github.com/jphein/kiyo-xhci-fix
 
 JP Hein (3):
   USB: core: add NO_LPM quirk for Razer Kiyo Pro webcam
