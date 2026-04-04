@@ -51,6 +51,66 @@ sudo update-initramfs -u
 
 Note: This only addresses crash trigger #1 (LPM). For full protection against rapid control transfer crashes, the CTRL_THROTTLE patch is also needed.
 
+## DKMS Install (recommended)
+
+Builds the patched uvcvideo module automatically on every kernel upgrade:
+
+```bash
+# Copy patched source to DKMS directory
+sudo mkdir -p /usr/src/uvcvideo-kiyo-1.0/drivers/media/usb/uvc
+
+# Download UVC source matching your kernel and apply patches
+KVER=$(uname -r | sed 's/-.*//')
+for f in uvc_driver.c uvc_video.c uvc_ctrl.c uvc_queue.c uvc_isight.c \
+         uvc_v4l2.c uvc_status.c uvc_entity.c uvc_metadata.c \
+         uvc_debugfs.c uvcvideo.h; do
+    sudo curl -sL "https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/drivers/media/usb/uvc/$f?h=v$KVER" \
+        -o /usr/src/uvcvideo-kiyo-1.0/drivers/media/usb/uvc/$f
+done
+
+# Apply CTRL_THROTTLE patches
+cd /usr/src/uvcvideo-kiyo-1.0
+sudo git init && sudo git add . && sudo git commit -m "stock"
+sudo git apply /path/to/kiyo-xhci-fix/kernel-patches/0002-*.patch
+sudo git apply /path/to/kiyo-xhci-fix/kernel-patches/0003-*.patch
+
+# Create DKMS config
+sudo tee dkms.conf << 'EOF'
+PACKAGE_NAME="uvcvideo-kiyo"
+PACKAGE_VERSION="1.0"
+BUILT_MODULE_NAME[0]="uvcvideo"
+DEST_MODULE_LOCATION[0]="/updates"
+AUTOINSTALL="yes"
+CLEAN="make clean"
+MAKE[0]="make -C ${kernel_source_dir} M=${dkms_tree}/${PACKAGE_NAME}/${PACKAGE_VERSION}/build modules"
+EOF
+
+# Create Makefile
+sudo tee Makefile << 'EOF'
+KDIR := /lib/modules/$(shell uname -r)/build
+obj-m := uvcvideo.o
+uvcvideo-objs := drivers/media/usb/uvc/uvc_driver.o drivers/media/usb/uvc/uvc_queue.o \
+    drivers/media/usb/uvc/uvc_v4l2.o drivers/media/usb/uvc/uvc_video.o \
+    drivers/media/usb/uvc/uvc_ctrl.o drivers/media/usb/uvc/uvc_status.o \
+    drivers/media/usb/uvc/uvc_isight.o drivers/media/usb/uvc/uvc_debugfs.o \
+    drivers/media/usb/uvc/uvc_metadata.o drivers/media/usb/uvc/uvc_entity.o
+all:
+	$(MAKE) -C $(KDIR) M=$(PWD) modules
+clean:
+	$(MAKE) -C $(KDIR) M=$(PWD) clean
+EOF
+
+# Register, build, install
+sudo dkms add uvcvideo-kiyo/1.0
+sudo dkms build uvcvideo-kiyo/1.0
+sudo dkms install uvcvideo-kiyo/1.0
+
+# Load immediately (close video apps first)
+sudo rmmod uvcvideo && sudo modprobe uvcvideo
+```
+
+To remove when upstream patches land: `sudo dkms remove uvcvideo-kiyo/1.0 --all`
+
 ## Testing
 
 ```bash
@@ -98,9 +158,14 @@ bash kernel-patches/install-watchdog.sh
 
 ## Hardware
 
-- **Webcam:** Razer Kiyo Pro (1532:0e05, firmware 8.21)
+- **Webcam:** Razer Kiyo Pro (1532:0e05, firmware 1.5.0.1)
 - **Controller:** Intel Cannon Lake PCH xHCI (8086:a36d) at PCI 0000:00:14.0
-- **Kernel:** 6.8.0-106-generic (Ubuntu 24.04)
+- **Kernel:** Tested on 6.8.0-106-generic and 6.17.0-19/20-generic (Ubuntu 24.04 + HWE)
+
+## Upstream Status
+
+- **Patch 1** (`USB_QUIRK_NO_LPM`): **Merged** into `usb-linus` by Greg Kroah-Hartman. Will ship in the next -rc release and be backported to stable kernels.
+- **Patches 2-3** (`UVC_QUIRK_CTRL_THROTTLE` + device entry): Submitted to linux-media, awaiting review.
 
 ## License
 
