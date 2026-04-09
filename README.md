@@ -43,41 +43,46 @@ If all levels fail, the watchdog **stops** — no retry loops, no death spirals.
 ```bash
 # Disable LPM for the Kiyo at runtime (k = USB_QUIRK_NO_LPM)
 echo "1532:0e05:k" | sudo tee /sys/module/usbcore/parameters/quirks
-
-# Make it permanent
-echo 'options usbcore quirks=1532:0e05:k' | sudo tee /etc/modprobe.d/razer-kiyo-usb.conf
-sudo update-initramfs -u
+# Then replug the camera (or unbind/rebind the USB port)
 ```
 
-Note: This only addresses crash trigger #1 (LPM). For full protection against rapid control transfer crashes, the CTRL_THROTTLE patch is also needed.
+Note: The runtime quirk only applies to devices enumerated **after** it's set. This only addresses crash trigger #1 (LPM). For full protection against rapid control transfer crashes, the CTRL_THROTTLE patch (via DKMS) is also needed.
 
 ## Full Install (recommended)
 
 Two components are needed for a complete fix before all patches are merged upstream:
 
-1. **DKMS module** — patches 2-3 (CTRL_THROTTLE + device quirks) as an out-of-tree uvcvideo module
-2. **udev rule** — covers patch 1 (NO_LPM) which modifies `usb/core/quirks.c` and can't be built via DKMS
+1. **modprobe.d config** — covers patch 1 (NO_LPM) via `usbcore quirks=` parameter, since patch 1 modifies `usb/core/quirks.c` and can't be built via DKMS. Must be in initramfs so LPM is disabled before device enumeration.
+2. **udev rule** — disables autosuspend at plug time to complement the modprobe.d config.
+3. **DKMS module** — patches 2-3 (CTRL_THROTTLE + device quirks) as an out-of-tree uvcvideo module.
 
-Both are required. The DKMS module alone won't prevent LPM-triggered stalls, and the udev rule alone won't prevent rapid control transfer crashes.
+All three are required. The DKMS module alone won't prevent LPM-triggered stalls, and the usbcore quirk alone won't prevent rapid control transfer crashes.
 
 > **Secure Boot note:** DKMS modules are unsigned. If Secure Boot is enabled, you must either enroll a MOK signing key (with `CA:TRUE` — non-CA certs land in the `.platform` keyring which the kernel ignores for module verification) or disable Secure Boot.
 
-### Step 1: udev rule (covers patch 1 — USB_QUIRK_NO_LPM)
+### Step 1: Disable LPM (covers patch 1 — USB_QUIRK_NO_LPM)
+
+LPM must be disabled at the USB core level **before** the device enumerates. A udev rule fires too late — the `usb3_hardware_lpm_u1/u2` sysfs attributes are read-only at runtime. The only way is a usbcore module parameter baked into the initramfs.
+
+```bash
+sudo cp razer-kiyo-usb.conf /etc/modprobe.d/
+sudo update-initramfs -u
+```
+
+This takes effect on next reboot. To verify after reboot:
+```bash
+cat /sys/module/usbcore/parameters/quirks   # should show 1532:0e05:k
+cat /sys/bus/usb/devices/*/power/usb3_hardware_lpm_u1  # should show "disabled" for Kiyo ports
+```
+
+### Step 2: udev rule (autosuspend + reset quirk)
 
 ```bash
 sudo cp 99-razer-kiyo-pro.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules
-# Apply immediately without replug:
-echo 0 | sudo tee /sys/bus/usb/devices/$(
-  for d in /sys/bus/usb/devices/*/; do
-    [ "$(cat "$d/idVendor" 2>/dev/null)" = "1532" ] && \
-    [ "$(cat "$d/idProduct" 2>/dev/null)" = "0e05" ] && \
-    basename "$d" && break
-  done
-)/power/usb3_lpm_permit
 ```
 
-Remove this rule once patch 1 ships in your running kernel (check: `grep -r "1532.*0e05" /lib/modules/$(uname -r)/kernel/drivers/usb/core/`).
+Remove both the modprobe.d config and udev rule once patch 1 ships in your running kernel (check: `grep -r "1532.*0e05" /lib/modules/$(uname -r)/kernel/drivers/usb/core/`).
 
 ### Step 2: DKMS module (covers patches 2-3)
 
@@ -163,7 +168,8 @@ bash kernel-patches/install-watchdog.sh
 
 | File | Purpose |
 |------|---------|
-| `99-razer-kiyo-pro.rules` | udev rule — disables USB3 LPM + autosuspend at plug time (covers patch 1) |
+| `razer-kiyo-usb.conf` | modprobe.d config — `usbcore quirks=1532:0e05:k` disables LPM (covers patch 1) |
+| `99-razer-kiyo-pro.rules` | udev rule — disables autosuspend at plug time |
 | `usb-watchdog.sh` | Watchdog daemon — monitors kernel log, escalates recovery |
 | `usb-watchdog.service` | systemd user service unit |
 | `usb-watchdog-sudoers` | Targeted sudoers rules for watchdog |
