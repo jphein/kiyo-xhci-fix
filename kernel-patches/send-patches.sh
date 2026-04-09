@@ -10,6 +10,7 @@ git send-email \
   --cc="linux-usb@vger.kernel.org" \
   --cc="Ricardo Ribalda <ribalda@chromium.org>" \
   --cc="Michal Pecio <michal.pecio@gmail.com>" \
+  --in-reply-to="<20260331003806.212565-1-jp@jphein.com>" \
   --thread \
   --no-chain-reply-to \
   0000-cover-letter.txt \
