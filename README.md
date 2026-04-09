@@ -201,7 +201,7 @@ bash kernel-patches/install-watchdog.sh
 
 ## Hardware
 
-- **Webcam:** Razer Kiyo Pro (1532:0e05, firmware 1.5.0.1)
+- **Webcam:** Razer Kiyo Pro (1532:0e05, firmware 1.5.0.1) — reproduced on two separate units running simultaneously, confirming the bug is not unit-specific
 - **Controller:** Intel Cannon Lake PCH xHCI (8086:a36d) at PCI 0000:00:14.0
 - **Kernel:** Tested on 6.8.0-106-generic and 6.17.0-19/20-generic (Ubuntu 24.04 + HWE)
 
