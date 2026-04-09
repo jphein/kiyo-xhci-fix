@@ -4,7 +4,7 @@ Linux kernel patches and userspace watchdog for the **Razer Kiyo Pro (1532:0e05)
 
 ## The Problem
 
-The Razer Kiyo Pro's firmware (v8.21) has two failure modes that cascade into complete xHCI host controller death, disconnecting **all** USB devices on the bus — keyboard, mouse, everything — requiring a hard reboot.
+The Razer Kiyo Pro's firmware (v1.5.0.1) has two failure modes that cascade into complete xHCI host controller death, disconnecting **all** USB devices on the bus — keyboard, mouse, everything — requiring a hard reboot.
 
 1. **LPM/autosuspend resume:** The device fails to reinitialize after USB Link Power Management transitions, producing EPIPE (-32) on UVC SET_CUR. The stalled endpoint triggers an xHCI stop-endpoint timeout, and the kernel declares the controller dead.
 
@@ -14,7 +14,7 @@ The kernel's built-in xHCI error recovery makes it worse: it detects the fault, 
 
 **Important:** Testing shows NO_LPM alone is insufficient — a stress test with NO_LPM active caused delayed controller death 13 minutes later via TRB warning escalation. Both LPM prevention and control throttling are needed.
 
-**Affected:** Linux 6.8+ (tested on Ubuntu 24.04), Intel xHCI controllers, Razer Kiyo Pro firmware 8.21.
+**Affected:** Linux 6.8+ (tested on Ubuntu 24.04), Intel xHCI controllers, Razer Kiyo Pro firmware 1.5.0.1 (bcdDevice 8.21).
 
 ## The Fix
 
