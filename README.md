@@ -50,7 +50,7 @@ Note: The runtime quirk only applies to devices enumerated **after** it's set. T
 
 ## Full Install (recommended)
 
-Two components are needed for a complete fix before all patches are merged upstream:
+Three components are needed for a complete fix before all patches are merged upstream:
 
 1. **modprobe.d config** — covers patch 1 (NO_LPM) via `usbcore quirks=` parameter, since patch 1 modifies `usb/core/quirks.c` and can't be built via DKMS. Must be in initramfs so LPM is disabled before device enumeration.
 2. **udev rule** — disables autosuspend at plug time to complement the modprobe.d config.
@@ -80,7 +80,8 @@ A `modprobe.d` config (`razer-kiyo-usb.conf`) is also included as a fallback for
 This takes effect on next reboot. To verify after reboot:
 ```bash
 cat /proc/cmdline | grep -o 'usbcore.quirks=[^ ]*'   # should show usbcore.quirks=1532:0e05:k
-cat /sys/bus/usb/devices/*/power/usb3_hardware_lpm_u1  # should show "disabled" for Kiyo ports
+# Verify LPM files are absent for Kiyo ports (quirk prevents LPM negotiation entirely):
+ls /sys/bus/usb/devices/2-*/power/usb3_hardware_lpm_u1 2>&1  # should show "No such file"
 ```
 
 ### Step 2: udev rule (autosuspend + reset quirk)
@@ -207,8 +208,8 @@ bash kernel-patches/install-watchdog.sh
 
 ## Upstream Status
 
-- **Patch 1** (`USB_QUIRK_NO_LPM`): **Merged** into `usb-linus` by Greg Kroah-Hartman. Will ship in the next -rc release and be backported to stable kernels.
-- **Patches 2-3** (`UVC_QUIRK_CTRL_THROTTLE` + device entry): Submitted to linux-media, awaiting review.
+- **Patch 1** (`USB_QUIRK_NO_LPM`): **Merged** into `usb-linus` by Greg Kroah-Hartman. Backported to stable kernels 6.1, 6.6, 6.12, 6.18, and 6.19 as of 2026-04-09.
+- **Patches 2-3** (`UVC_QUIRK_CTRL_THROTTLE` + device entry): Submitted to linux-media, under review by Ricardo Ribalda. v6 in progress.
 
 ## License
 
