@@ -1,7 +1,7 @@
-From 86281f9b7097d1df2d114b20c20b61a72336f5e5 Mon Sep 17 00:00:00 2001
+From 8cab7315dbf83a76c5c9de2c98bd5ca47b9172b8 Mon Sep 17 00:00:00 2001
 From: JP Hein <jp@jphein.com>
-Date: Thu, 9 Apr 2026 00:23:02 -0700
-Subject: [PATCH v6 0/2] media: uvcvideo: Add quirks to prevent Razer Kiyo Pro xHCI cascade failure
+Date: Thu, 9 Apr 2026 01:07:21 -0700
+Subject: [PATCH v7 0/2] media: uvcvideo: Add quirks to prevent Razer Kiyo Pro xHCI cascade failure
 
 The Razer Kiyo Pro (1532:0e05) is a USB 3.0 webcam whose firmware has a
 well-documented failure mode that cascades into complete xHCI host
@@ -16,36 +16,34 @@ The device has two crash triggers:
      kernel declares the host controller dead.
 
   2. Rapid control transfers: sustained rapid UVC control operations
-     (hundreds over several seconds) overwhelm the firmware. The error-code
-     query (GET_CUR on UVC_VC_REQUEST_ERROR_CODE_CONTROL) amplifies the
-     failure by sending a second transfer to the already-stalling device,
-     pushing it into a full lockup and xHCI controller death.
+     (hundreds over several seconds) overwhelm the firmware.
 
 Patch 1 of the original 3-patch series (USB_QUIRK_NO_LPM for 1532:0e05)
 has been merged by Greg Kroah-Hartman and backported to stable kernels
 6.1, 6.6, 6.12, 6.18, and 6.19.
 
-This v6 series covers the remaining two UVC patches:
+This v7 series covers the remaining two UVC patches:
 
 Patch 1/2: UVC driver -- introduce UVC_QUIRK_CTRL_THROTTLE to rate-limit
-  all USB control transfers (50ms minimum interval) in __uvc_query_ctrl()
-  and skip the error-code query after EPIPE errors on affected devices.
+  all USB control transfers (50ms minimum interval) in __uvc_query_ctrl().
 
 Patch 2/2: UVC driver -- add Razer Kiyo Pro device table entry with
   UVC_QUIRK_CTRL_THROTTLE, UVC_QUIRK_DISABLE_AUTOSUSPEND, and
   UVC_QUIRK_NO_RESET_RESUME.
 
+Changes since v6:
+  - Dropped the error-code query skip after EPIPE -- no longer needed
+    since the throttle in __uvc_query_ctrl() already rate-limits the
+    error-code query path (Ricardo Ribalda)
+  - Included full lsusb -vv output in patch 2/2 commit message
+    (Ricardo Ribalda)
+
 Changes since v5:
   - Moved throttle from uvc_query_ctrl() to __uvc_query_ctrl() so
     all callers are covered, including uvc_set_video_ctrl() which
     bypasses the higher-level function (Ricardo Ribalda)
-  - Throttle now applies to all query types, not just SET_CUR -- the
-    firmware doesn't distinguish between query directions under load
+  - Throttle now applies to all query types, not just SET_CUR
     (Ricardo Ribalda)
-  - Added lsusb -v Device Descriptor to patch 2/2 commit message
-    (Ricardo Ribalda)
-  - Bug reproduced on two separate Kiyo Pro units, confirming not
-    unit-specific
 
 Changes since v4:
   - Dropped stable CC (new quirks, not regression fixes)
@@ -68,9 +66,9 @@ JP Hein (2):
   media: uvcvideo: add Razer Kiyo Pro to device info table
 
  drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++++++++++
- drivers/media/usb/uvc/uvc_video.c  | 30 ++++++++++++++++++++++++++++++
+ drivers/media/usb/uvc/uvc_video.c  | 20 ++++++++++++++++++++
  drivers/media/usb/uvc/uvcvideo.h   |  3 +++
- 3 files changed, 49 insertions(+)
+ 3 files changed, 39 insertions(+)
 
 -- 
 2.43.0
