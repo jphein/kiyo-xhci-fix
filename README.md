@@ -51,7 +51,35 @@ sudo update-initramfs -u
 
 Note: This only addresses crash trigger #1 (LPM). For full protection against rapid control transfer crashes, the CTRL_THROTTLE patch is also needed.
 
-## DKMS Install (recommended)
+## Full Install (recommended)
+
+Two components are needed for a complete fix before all patches are merged upstream:
+
+1. **DKMS module** — patches 2-3 (CTRL_THROTTLE + device quirks) as an out-of-tree uvcvideo module
+2. **udev rule** — covers patch 1 (NO_LPM) which modifies `usb/core/quirks.c` and can't be built via DKMS
+
+Both are required. The DKMS module alone won't prevent LPM-triggered stalls, and the udev rule alone won't prevent rapid control transfer crashes.
+
+> **Secure Boot note:** DKMS modules are unsigned. If Secure Boot is enabled, you must either enroll a MOK signing key (with `CA:TRUE` — non-CA certs land in the `.platform` keyring which the kernel ignores for module verification) or disable Secure Boot.
+
+### Step 1: udev rule (covers patch 1 — USB_QUIRK_NO_LPM)
+
+```bash
+sudo cp 99-razer-kiyo-pro.rules /etc/udev/rules.d/
+sudo udevadm control --reload-rules
+# Apply immediately without replug:
+echo 0 | sudo tee /sys/bus/usb/devices/$(
+  for d in /sys/bus/usb/devices/*/; do
+    [ "$(cat "$d/idVendor" 2>/dev/null)" = "1532" ] && \
+    [ "$(cat "$d/idProduct" 2>/dev/null)" = "0e05" ] && \
+    basename "$d" && break
+  done
+)/power/usb3_lpm_permit
+```
+
+Remove this rule once patch 1 ships in your running kernel (check: `grep -r "1532.*0e05" /lib/modules/$(uname -r)/kernel/drivers/usb/core/`).
+
+### Step 2: DKMS module (covers patches 2-3)
 
 Builds the patched uvcvideo module automatically on every kernel upgrade:
 
@@ -135,6 +163,7 @@ bash kernel-patches/install-watchdog.sh
 
 | File | Purpose |
 |------|---------|
+| `99-razer-kiyo-pro.rules` | udev rule — disables USB3 LPM + autosuspend at plug time (covers patch 1) |
 | `usb-watchdog.sh` | Watchdog daemon — monitors kernel log, escalates recovery |
 | `usb-watchdog.service` | systemd user service unit |
 | `usb-watchdog-sudoers` | Targeted sudoers rules for watchdog |
