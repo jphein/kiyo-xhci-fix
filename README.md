@@ -23,7 +23,7 @@ Three kernel patches, all necessary:
 ### 1. Kernel Patches (upstream submissions)
 
 - **`0001`** — `USB_QUIRK_NO_LPM` for 1532:0e05 — disables Link Power Management to prevent firmware destabilization during power state transitions
-- **`0002`** — `UVC_QUIRK_CTRL_THROTTLE` — new UVC quirk that rate-limits SET_CUR transfers (50ms interval) and skips error-code queries after EPIPE to prevent crash amplification
+- **`0002`** — `UVC_QUIRK_CTRL_THROTTLE` — new UVC quirk that rate-limits all control transfers (50ms interval) in `__uvc_query_ctrl()` and skips error-code queries after EPIPE to prevent crash amplification
 - **`0003`** — Razer Kiyo Pro device entry with `UVC_QUIRK_CTRL_THROTTLE | UVC_QUIRK_DISABLE_AUTOSUSPEND | UVC_QUIRK_NO_RESET_RESUME`
 
 See [`kernel-patches/upstream-report.md`](kernel-patches/upstream-report.md) for the full bug analysis submitted to `linux-usb@vger.kernel.org`.
@@ -209,7 +209,7 @@ bash kernel-patches/install-watchdog.sh
 ## Upstream Status
 
 - **Patch 1** (`USB_QUIRK_NO_LPM`): **Merged** into `usb-linus` by Greg Kroah-Hartman. Backported to stable kernels 6.1, 6.6, 6.12, 6.18, and 6.19 as of 2026-04-09.
-- **Patches 2-3** (`UVC_QUIRK_CTRL_THROTTLE` + device entry): Submitted to linux-media, under review by Ricardo Ribalda. v6 in progress.
+- **Patches 2-3** (`UVC_QUIRK_CTRL_THROTTLE` + device entry): Submitted to linux-media, under review by Ricardo Ribalda. v6 ready — throttle moved to `__uvc_query_ctrl()`, covers all query types.
 
 ## License
 

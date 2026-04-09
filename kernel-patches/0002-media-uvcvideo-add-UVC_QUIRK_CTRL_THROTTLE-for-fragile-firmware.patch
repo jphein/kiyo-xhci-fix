@@ -1,79 +1,69 @@
-From 38102791307088a3f781290704d6d10662432a64 Mon Sep 17 00:00:00 2001
+From 8ee54e33d68ac032ca91adb9bdec4160dbf0c71a Mon Sep 17 00:00:00 2001
 From: JP Hein <jp@jphein.com>
-Date: Sun, 22 Mar 2026 15:48:18 -0700
-Subject: [PATCH v5 2/3] media: uvcvideo: add UVC_QUIRK_CTRL_THROTTLE for
- fragile firmware
+Date: Thu, 9 Apr 2026 00:22:17 -0700
+Subject: [PATCH v6 1/2] media: uvcvideo: add UVC_QUIRK_CTRL_THROTTLE for
+ fragile USB firmware
 
-Some USB webcams have firmware that crashes when it receives rapid
-consecutive UVC control transfers (SET_CUR). The Razer Kiyo Pro
-(1532:0e05) is one such device -- after several hundred rapid control
-changes over a few seconds, the device stops responding entirely,
-triggering an xHCI stop-endpoint command timeout that causes the host
-controller to be declared dead, disconnecting every USB device on the
-bus.
+Some UVC devices have firmware that locks up under sustained rapid
+USB control transfers, crashing the xHCI host controller and taking
+all USB devices on the bus with it.
 
-The failure is amplified by the standard UVC error-code query: when a
-SET_CUR fails with EPIPE, the driver sends a second transfer (GET_CUR
-on UVC_VC_REQUEST_ERROR_CODE_CONTROL) to read the UVC error code. On a
-device that is already stalling, this second transfer pushes the
-firmware into a full lockup.
+The Razer Kiyo Pro (1532:0e05) is the first known example: approximately
+25 rapid consecutive control transfers cause the firmware to stall an
+endpoint. The kernel's standard UVC error recovery (GET_CUR on
+UVC_VC_REQUEST_ERROR_CODE_CONTROL) then sends a second transfer to the
+already-stalling device, amplifying the failure into complete firmware
+lockup and xHCI controller death.
 
-Introduce UVC_QUIRK_CTRL_THROTTLE (0x00080000) to address both issues:
+Add UVC_QUIRK_CTRL_THROTTLE which:
+  - Rate-limits all USB control transfers to 50ms intervals in
+    __uvc_query_ctrl(), the lowest-level UVC control transfer function,
+    ensuring all callers are throttled including uvc_set_video_ctrl()
+    which bypasses uvc_query_ctrl()
+  - Skips the error-code query after EPIPE to avoid amplifying stalls
 
-  - Enforce a minimum 50ms interval between SET_CUR control transfers,
-    preventing the rapid-fire pattern that overwhelms the firmware.
-    50ms allows up to 20 control changes per second, which is sufficient
-    for interactive slider adjustments while keeping the device stable.
-
-  - Skip the UVC_VC_REQUEST_ERROR_CODE_CONTROL query after EPIPE errors
-    on devices with this quirk. EPIPE is returned directly without the
-    follow-up query that would amplify the failure.
-
-The UVC control path is serialized by ctrl_mutex, so last_ctrl_set_jiffies
-does not require additional locking.
+The 50ms interval was determined experimentally: the device is stable
+at this rate under sustained operation, while shorter intervals
+eventually trigger the firmware bug.
 
 Signed-off-by: JP Hein <jp@jphein.com>
 ---
- drivers/media/usb/uvc/uvc_video.c | 32 +++++++++++++++++++++++++++++++
+ drivers/media/usb/uvc/uvc_video.c | 30 ++++++++++++++++++++++++++++++
  drivers/media/usb/uvc/uvcvideo.h  |  3 +++
- 2 files changed, 35 insertions(+)
+ 2 files changed, 33 insertions(+)
 
 diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 40c76c051..9f402f55e 100644
+index a5013a7..cee93ac 100644
 --- a/drivers/media/usb/uvc/uvc_video.c
 +++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -75,8 +75,30 @@ int uvc_query_ctrl(struct uvc_device *dev, u8 query, u8 unit,
- 	u8 error;
- 	u8 tmp;
+@@ -36,6 +36,26 @@ static int __uvc_query_ctrl(struct uvc_device *dev, u8 query, u8 unit,
+ 	u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE;
+ 	unsigned int pipe;
  
 +	/*
-+	 * Rate-limit SET_CUR operations for devices with fragile firmware.
-+	 * The Razer Kiyo Pro locks up under sustained rapid SET_CUR
++	 * Rate-limit control transfers for devices with fragile firmware.
++	 * The Razer Kiyo Pro locks up under sustained rapid control
 +	 * transfers (hundreds without delay), crashing the xHCI controller.
++	 * Throttle in this low-level function to cover all callers,
++	 * including uvc_set_video_ctrl() which bypasses uvc_query_ctrl().
 +	 */
-+	if (query == UVC_SET_CUR &&
-+	    (dev->quirks & UVC_QUIRK_CTRL_THROTTLE)) {
++	if (dev->quirks & UVC_QUIRK_CTRL_THROTTLE) {
 +		unsigned long min_interval = msecs_to_jiffies(50);
 +
-+		if (dev->last_ctrl_set_jiffies &&
++		if (dev->last_ctrl_jiffies &&
 +		    time_before(jiffies,
-+				dev->last_ctrl_set_jiffies + min_interval)) {
-+			unsigned long elapsed = dev->last_ctrl_set_jiffies +
-+						min_interval - jiffies;
-+			msleep(jiffies_to_msecs(elapsed));
++				dev->last_ctrl_jiffies + min_interval)) {
++			unsigned long wait = dev->last_ctrl_jiffies +
++					     min_interval - jiffies;
++			msleep(jiffies_to_msecs(wait));
 +		}
++		dev->last_ctrl_jiffies = jiffies;
 +	}
 +
- 	ret = __uvc_query_ctrl(dev, query, unit, intfnum, cs, data, size,
- 				UVC_CTRL_CONTROL_TIMEOUT);
-+
-+	if (query == UVC_SET_CUR &&
-+	    (dev->quirks & UVC_QUIRK_CTRL_THROTTLE))
-+		dev->last_ctrl_set_jiffies = jiffies;
- 	if (likely(ret == size))
- 		return 0;
- 
-@@ -108,6 +130,16 @@ int uvc_query_ctrl(struct uvc_device *dev, u8 query, u8 unit,
+ 	pipe = (query & 0x80) ? usb_rcvctrlpipe(dev->udev, 0)
+ 			      : usb_sndctrlpipe(dev->udev, 0);
+ 	type |= (query & 0x80) ? USB_DIR_IN : USB_DIR_OUT;
+@@ -108,6 +128,16 @@ int uvc_query_ctrl(struct uvc_device *dev, u8 query, u8 unit,
  		return ret < 0 ? ret : -EPIPE;
  	}
  
@@ -91,10 +81,10 @@ index 40c76c051..9f402f55e 100644
  	tmp = *(u8 *)data;
  
 diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 8480d65ec..cafc71457 100644
+index 757254f..31f2af5 100644
 --- a/drivers/media/usb/uvc/uvcvideo.h
 +++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -81,6 +81,7 @@
+@@ -78,6 +78,7 @@
  #define UVC_QUIRK_INVALID_DEVICE_SOF	0x00010000
  #define UVC_QUIRK_MJPEG_NO_EOF		0x00020000
  #define UVC_QUIRK_MSXU_META		0x00040000
@@ -102,12 +92,12 @@ index 8480d65ec..cafc71457 100644
  
  /* Format flags */
  #define UVC_FMT_FLAG_COMPRESSED		0x00000001
-@@ -579,6 +580,8 @@ struct uvc_device {
+@@ -583,6 +584,8 @@ struct uvc_device {
  	struct usb_interface *intf;
  	unsigned long warnings;
  	u32 quirks;
-+	/* Control transfer throttling (UVC_QUIRK_CTRL_THROTTLE) */
-+	unsigned long last_ctrl_set_jiffies;
++	/* UVC control transfer throttling (UVC_QUIRK_CTRL_THROTTLE) */
++	unsigned long last_ctrl_jiffies;
  	int intfnum;
  	char name[32];
  
