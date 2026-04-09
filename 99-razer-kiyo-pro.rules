@@ -1,0 +1,8 @@
+# Razer Kiyo Pro (1532:0e05) — prevent xHCI cascade failure
+# Kernel patch 1/3 (USB_QUIRK_NO_LPM) is not in DKMS, so disable LPM via udev.
+# Remove usb3_lpm_permit line once patch 1 is merged upstream.
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="1532", ATTR{idProduct}=="0e05", \
+  ATTR{power/usb3_lpm_permit}="0", \
+  ATTR{avoid_reset_quirk}="1", \
+  ATTR{power/control}="on", \
+  ATTR{power/autosuspend_delay_ms}="-1"
