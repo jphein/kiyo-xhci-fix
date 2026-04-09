@@ -62,16 +62,24 @@ All three are required. The DKMS module alone won't prevent LPM-triggered stalls
 
 ### Step 1: Disable LPM (covers patch 1 — USB_QUIRK_NO_LPM)
 
-LPM must be disabled at the USB core level **before** the device enumerates. A udev rule fires too late — the `usb3_hardware_lpm_u1/u2` sysfs attributes are read-only at runtime. The only way is a usbcore module parameter baked into the initramfs.
+LPM must be disabled at the USB core level **before** the device enumerates. A udev rule fires too late — the `usb3_hardware_lpm_u1/u2` sysfs attributes are read-only at runtime.
+
+**Important:** On most distro kernels, `usbcore` is built-in (not a loadable module), so `modprobe.d` options are ignored. You must pass the quirk via the **kernel command line** instead.
 
 ```bash
-sudo cp razer-kiyo-usb.conf /etc/modprobe.d/
-sudo update-initramfs -u
+# Add to kernel command line (GRUB)
+sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 usbcore.quirks=1532:0e05:k"/' /etc/default/grub
+sudo update-grub
+
+# Or for systemd-boot:
+# Append usbcore.quirks=1532:0e05:k to your entry's options line
 ```
+
+A `modprobe.d` config (`razer-kiyo-usb.conf`) is also included as a fallback for kernels where usbcore is a loadable module.
 
 This takes effect on next reboot. To verify after reboot:
 ```bash
-cat /sys/module/usbcore/parameters/quirks   # should show 1532:0e05:k
+cat /proc/cmdline | grep -o 'usbcore.quirks=[^ ]*'   # should show usbcore.quirks=1532:0e05:k
 cat /sys/bus/usb/devices/*/power/usb3_hardware_lpm_u1  # should show "disabled" for Kiyo ports
 ```
 
@@ -82,9 +90,9 @@ sudo cp 99-razer-kiyo-pro.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules
 ```
 
-Remove both the modprobe.d config and udev rule once patch 1 ships in your running kernel (check: `grep -r "1532.*0e05" /lib/modules/$(uname -r)/kernel/drivers/usb/core/`).
+Remove the GRUB parameter, modprobe.d config, and udev rule once patch 1 ships in your running kernel (check: `grep -r "1532.*0e05" /lib/modules/$(uname -r)/kernel/drivers/usb/core/`).
 
-### Step 2: DKMS module (covers patches 2-3)
+### Step 3: DKMS module (covers patches 2-3)
 
 Builds the patched uvcvideo module automatically on every kernel upgrade:
 
