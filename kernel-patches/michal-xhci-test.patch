@@ -1,0 +1,35 @@
+From: Michal Pecio <michal.pecio@gmail.com>
+Subject: [TEST] xhci: fix max_esit_payload vs max_packet mismatch and enable short packet retries
+
+Test patch from Michal Pecio to investigate whether the Razer Kiyo Pro
+crash is related to wBytesPerInterval (8) being less than wMaxPacketSize
+(64) on the interrupt endpoint, and whether enabling retries on short
+packets prevents the cascade failure.
+
+diff --git a/drivers/usb/host/xhci-mem.c b/drivers/usb/host/xhci-mem.c
+index 1d50c91afd7f..17d78b4e07bf 100644
+--- a/drivers/usb/host/xhci-mem.c
++++ b/drivers/usb/host/xhci-mem.c
+@@ -1464,6 +1464,10 @@ int xhci_endpoint_init(struct xhci_hcd *xhci,
+ 	mult = xhci_get_endpoint_mult(xhci, udev, ep);
+ 	max_packet = xhci_usb_endpoint_maxp(udev, ep);
+ 	max_burst = xhci_get_endpoint_max_burst(udev, ep);
++	if (interval && max_esit_payload < max_packet) {
++		xhci_err(xhci, "max_esit_payload %d -> %d\n", max_esit_payload, max_packet);
++		max_esit_payload = max_packet;
++	}
+ 	avg_trb_len = max_esit_payload;
+
+ 	/* FIXME dig Mult and streams info out of ep companion desc */
+diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
+index 98ef014c8dee..e5823650850a 100644
+--- a/drivers/usb/host/xhci-ring.c
++++ b/drivers/usb/host/xhci-ring.c
+@@ -2544,6 +2544,7 @@ static void process_bulk_intr_td(struct xhci_hcd *xhci, struct xhci_virt_ep *ep,
+ 		td->status = 0;
+ 		break;
+ 	case COMP_SHORT_PACKET:
++		ep->err_count = 0;
+ 		td->status = 0;
+ 		break;
+ 	case COMP_STOPPED_SHORT_PACKET:
