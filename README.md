@@ -205,6 +205,9 @@ bash kernel-patches/install-watchdog.sh
 | `kernel-patches/crash-evidence/` | Kernel logs from real crash events |
 | `firmware-analysis/README.md` | Firmware analysis — UVC XU protocol, normal-mode flash, ROM boot, SCSI protocol |
 | `firmware-analysis/kiyo-flash.py` | Linux firmware tool — normal-mode flash, ROM boot, probe, u-boot shell |
+| `firmware-analysis/usbmon-capture.md` | USB protocol capture setup and analysis guide |
+| `firmware-analysis/capture-flash.sh` | usbmon capture script for flash protocol analysis |
+| `firmware-analysis/parse-usbmon.sh` | usbmon output parser for flash protocol verification |
 
 ## Hardware
 
@@ -222,7 +225,9 @@ The camera's firmware (Sigmastar SAV630D, built by AIT) has a **USB descriptor s
 
 The bug byte is at offset `0x1F570A` in the raw firmware image (`fwimage.bin`) and at offset `0xa1845d` in the .NET ResourceSet (`DeviceUpdater.resources`).
 
-A Linux firmware tool ([`firmware-analysis/kiyo-flash.py`](firmware-analysis/kiyo-flash.py)) can flash corrected firmware via the reverse-engineered UVC Extension Unit protocol — the same protocol used by the official Windows updater. The tool sends firmware in 32-byte chunks through XU6 selector 3, using raw USB control transfers to bypass the Linux UVC driver's descriptor validation (sel=3 is marked GET-only but the device accepts SET_CUR). ROM boot mode recovery via SCSI is also implemented as a fallback. See [`firmware-analysis/README.md`](firmware-analysis/README.md) for the full protocol documentation.
+A Linux firmware tool ([`firmware-analysis/kiyo-flash.py`](firmware-analysis/kiyo-flash.py)) implements the reverse-engineered UVC Extension Unit protocol — the same protocol used by the official Windows updater. The tool sends firmware in 32-byte chunks through XU6 selector 3, using raw USB control transfers to bypass the Linux UVC driver's descriptor validation (sel=3 is marked GET-only but the device accepts SET_CUR). ROM boot mode recovery via SCSI is also implemented as a fallback.
+
+**Flash status (2026-04-11):** After extensive testing (6+ attempts with progressive bug fixes), the normal-mode UVC XU flash path does NOT persist firmware on this device. The device accepts data and reports burn-complete (status 0x82) but wBytesPerInterval remains 8 after power cycle. The soft ROM boot entry path is also locked out in production firmware. A firmware-level fix would require either hardware ROM boot (grounding the SoC boot pin) or a Windows VM with USB passthrough to test the official updater. See [`firmware-analysis/README.md`](firmware-analysis/README.md) for the full protocol documentation and findings.
 
 ## Upstream Status
 
@@ -234,7 +239,7 @@ A Linux firmware tool ([`firmware-analysis/kiyo-flash.py`](firmware-analysis/kiy
 ### Key Upstream Discussion
 
 - **Mathias Nyman (Intel xHCI maintainer):** Dual-URB cancellation on control EP leaves dequeue on no-op TRB, violating xHCI spec 4.8.3. Disabling LPM reduces control transfers, lowering the dual-cancel risk.
-- **Michal Pecio:** Identified wBytesPerInterval=8 as a spec violation; xHCI driver's max_esit_payload derived from it. His test patch (clamp max_esit_payload + short packet retry) allowed HC to survive firmware lockup.
+- **Michal Pecio:** Identified wBytesPerInterval=8 as a spec violation; xHCI driver's max_esit_payload derived from it. His test patch (clamp max_esit_payload + short packet retry) allowed HC to survive firmware lockup. Latest (2026-04-11): asked Mathias about Intel vendor-defined error code 198 from Test 2 logs — ball is with Mathias, no action needed from JP.
 - **Test results (2026-04-10):** Two crash reproduction tests on kernel 6.17.0-xhci-test with Michal's xhci patch:
   - **Test 1** (all fixes + Michal's patch): HC DIED — 437 repeated cancel/resubmit on EP5 IN → ~994K spurious SHORT_PACKET events → control URB timeouts → hc_died
   - **Test 2** (Michal's patch only, no JP patches): HC SURVIVED — firmware locked at round ~23 but host controller handled errors gracefully

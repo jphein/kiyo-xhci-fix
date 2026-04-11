@@ -53,22 +53,29 @@ uvcvideo) are required for SET_CUR on sel=3.
 
 ### XU6 Sel=5 Status Register
 
-Sel=5 is the firmware's status/acknowledgment register (8 bytes, GET_CUR):
+Sel=5 is the firmware's status/acknowledgment register (8 bytes, GET_CUR).
+
+**Status byte meanings** (confirmed via DLL disassembly of `AITAPI_UpdateFW_842x`
+at VA 0x10003f2c: `cmp al, 0x82; je success_path`):
 
 | Context | Byte[0] | Meaning |
 |---------|---------|---------|
 | After sel=4 size write | `0x00` | Ready for data transfer |
 | After sel=4 size write | non-zero | Error — device not ready |
-| During burn (sel=5 poll) | `0x00` | Still burning (first time: wait 1s) |
-| During burn (sel=5 poll) | `0x82` | Burn error (fatal) |
-| During burn (sel=5 poll) | non-zero, ≠0x82 | Burn complete (success) |
+| During burn (sel=5 poll) | `0x00` | Still processing (DLL waits 100ms × 10 retries) |
+| During burn (sel=5 poll) | `0x81` | Intermediate — data received, burn in progress |
+| During burn (sel=5 poll) | `0x82` | **Burn complete** (SPI NAND write finished) |
 | Idle state | `0x80` | Idle (observed in hardware testing) |
 | After sel=4 command | `0x00` | Command acknowledged/processing |
 
-Observed in hardware testing: sel=5 reads `0x80...` in idle state. After
-writing to sel=4, it changes to `0x00...` briefly before returning to
-`0x80...`. This confirms the camera processes sel=4 data even if the
-command doesn't trigger a visible state change.
+**Important:** The DLL polls in a loop (`Sleep(30)` per iteration) until
+byte[0] == 0x82. Status 0x81 is an intermediate "burning in progress" state,
+NOT completion. Earlier versions of kiyo-flash.py incorrectly treated 0x81 as
+success and 0x82 as error — this was backwards.
+
+In hardware testing, firmware flash reaches 0x82 after ~14 polls (~420ms).
+IQ calibration file never reaches 0x82 (stuck at 0x81 indefinitely — see
+Normal-Mode Flash Status below).
 
 ### Firmware Version Query
 
@@ -128,12 +135,24 @@ All transfers target XU6 GUID `{23e49ed0-1178-4f31-ae52-d2fb8a8d3b48}`.
 
 **Phase 1 — Size handshake:**
 
-1. **SET_CUR XU6 sel=4** (8 bytes): firmware size as little-endian u32
+1. **SET_CUR XU6 sel=4** (8 bytes): command header + firmware size
    ```
-   data[0..3] = fw_length as LE u32
-   data[4..7] = 0x00
+   data[0..3] = command_code as LE u32
+   data[4..7] = fw_length as LE u32
    ```
-   DLL RVA: `0x10003e78` → `fcn.1000a270` (SET_CUR wrapper)
+
+   Command codes differ per partition (confirmed via DLL disassembly):
+
+   | DLL Function | Phase 1 cmd | Phase 3 cmd | Target |
+   |-------------|-------------|-------------|--------|
+   | `AITAPI_UpdateFW_842x` | `0x00030001` | `0x00030101` | Firmware partition |
+   | `AITAPI_UpdateCaliData` | `0x05030001` | `0x05030101` | IQ calibration partition |
+   | `AITAPI_UpdateFlash` | `0x00000001` | `0x00000101` | Generic flash |
+   | `AITUVCEXT_UpdateFW_with_progressEx` | `0x01000001` | `0x01000101` | Extended variant |
+
+   Firmware command confirmed via stack trace at VA 0x10003e70 (`mov dword
+   [esp+0x2c], 0x30001`). IQ calibration command confirmed at VA 0x10004026
+   (`mov dword [var_28h], 0x5030001`).
 
 2. **GET_CUR XU6 sel=5** (8 bytes): read acknowledgment
    ```
@@ -163,18 +182,43 @@ All transfers target XU6 GUID `{23e49ed0-1178-4f31-ae52-d2fb8a8d3b48}`.
 
 6. **SET_CUR XU6 sel=4** (8 bytes): completion signal
    ```
-   data = [0x01, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00]
+   data[0..3] = phase3_command_code as LE u32
+   data[4..7] = 0x00000000
    ```
-   Byte[3] = completion flag passed from caller (AITDLL passes 0x00).
+   The Phase 3 command code is derived from Phase 1 by setting byte[1] to
+   0x01: firmware `0x00030001` → `0x00030101`, IQ `0x05030001` → `0x05030101`.
    DLL RVA: `0x10003ee8` → `fcn.1000a270`
 
 7. **Poll GET_CUR XU6 sel=5** (8 bytes) every 30ms:
    ```
-   byte[0] == 0x82 → "Firmware burning error" (fatal)
-   byte[0] == 0x00 → first time only: sleep 100ms × 10, then retry
-   byte[0] != 0x00 → success, flash complete
+   byte[0] == 0x82 → burn complete, SPI NAND write finished (SUCCESS)
+   byte[0] == 0x81 → intermediate, data received, burn in progress (keep polling)
+   byte[0] == 0x00 → still processing (DLL waits 100ms × 10 retries, then continues polling)
    ```
    DLL RVA: `0x10003f23` → `fcn.1000a500` (in a loop with `Sleep(30)`)
+
+   The DLL's success condition is `cmp al, 0x82; je success_path` at VA
+   0x10003f2c. It loops until byte[0] == 0x82 or timeout.
+
+**Phase 4 — Device reset (DevReset):**
+
+8. **Device reset** — full ResetToRomBoot sequence:
+   ```
+   Step 1: SET_CUR XU6 sel=4 (8 bytes): [0x16, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+   Step 2: Sleep 500ms
+   Step 3: SET_CUR XU6 sel=14 (16 bytes): [0xFF, 0x03, 0x00, ...zeros]
+   ```
+   The Windows updater uses `AITDLL.dll DevReset` @ VA `0x1006e2d0` which
+   sends only the bare 0x16 command (step 1). However, the full
+   `AITAPI_ResetToRomboot` sequence (steps 1-3) is needed — the bare 0x16
+   is accepted silently but does not trigger a device reboot.
+
+   **Testing note (2026-04-11):** Even with the full ResetToRomBoot sequence,
+   the device does not actually reboot or enter ROM boot mode (114D:8200).
+   Both the UVC ioctl path (`/dev/videoN`) and raw USB control transfer path
+   (`/dev/bus/usb/`) were tested. The commands are accepted without error but
+   have no observable effect. Razer may have disabled soft ROM boot entry in
+   production firmware.
 
 **Key constraint:** Sel=3 is marked GET-only in the UVC descriptor. The
 Windows UVC minidriver ignores this and sends SET_CUR anyway. On Linux,
@@ -253,16 +297,25 @@ The field at offset 0x18 (`0x36A1`) was exhaustively tested against CRC16
 sum over multiple ranges. No match. Likely not a standard checksum, or
 computed over an unknown subset of the image.
 
-### To fix (hypothetical)
+### To fix
 
 Change byte at offset `0x1F570A` in fwimage.bin (or `0xa1845d` in the
 .NET ResourceSet) from `0x08` to `0x40`.
 
-**WARNING**: Flashing modified firmware risks bricking the device.
-The header field at offset 0x18 is of unknown purpose — it might be a
-non-standard integrity check. The DEFCON 33 BadCam research (CVE-2025-4371)
-found that Sigmastar webcams generally do **not** verify firmware signatures,
-but this is unconfirmed for the SAV630D specifically.
+**Current status (2026-04-11):** A patched firmware image has been created
+and verified (byte at 0x1F570A changed from 0x08 to 0x40). However, after
+6+ flash attempts via the normal-mode UVC XU protocol, the firmware does
+not persist to SPI NAND. The device accepts data and reports burn-complete
+(0x82) but reverts to stock after power cycle. Soft ROM boot entry is also
+locked out. Possible paths forward:
+
+1. **Hardware ROM boot** — open the camera and ground the Sigmastar SAV630D
+   boot pin to force mask ROM boot at power-on, then use the SCSI flash path
+2. **Windows VM** — run the official Razer updater with USB passthrough to
+   confirm whether the official tool can flash (would isolate whether the
+   issue is our protocol or a device-level write lock)
+3. **Accept kernel patches** — patches 2-3 (CTRL_THROTTLE) mitigate the
+   bug at the kernel level without needing a firmware fix
 
 **Recovery path**: If the flash fails but the mask ROM is intact, the
 device should fall into ROM boot mode (114D:8200) on next power cycle,
@@ -337,7 +390,7 @@ sudo python3 kiyo-flash.py probe
 sudo python3 kiyo-flash.py enter-romboot
 
 # Flash firmware via normal mode (recommended — no ROM boot needed)
-sudo python3 kiyo-flash.py flash-normal --firmware patched-fwimage.bin
+sudo python3 kiyo-flash.py flash-normal --firmware patched-fwimage.bin --iqfile iqfile.lfs
 
 # Flash firmware via ROM boot mode (for bricked devices)
 sudo python3 kiyo-flash.py flash --updater updater.bin --firmware fwimage.bin
@@ -352,8 +405,11 @@ sudo python3 kiyo-flash.py dump-flash -o backup.bin
 **Implementation:**
 - **Normal-mode flash** (`flash-normal`): Raw USB control transfers via
   `USBDEVFS_CONTROL` ioctl, detaches uvcvideo driver, sends 32-byte chunks
-  through XU6 sel=3. Protocol: sel=4 (size) → sel=5 (ack) → sel=3 (data
-  loop) → sel=4 (completion) → sel=5 (poll).
+  through XU6 sel=3. Two-stage protocol: Stage 1 flashes main firmware,
+  DevReset reboots device, Stage 2 flashes IQ calibration data (required —
+  `UpdateIQFile=1` in .NET ResourceSet), second DevReset activates.
+  Each stage: sel=4 (size) → sel=5 (ack) → sel=3 (data) → sel=4 (done)
+  → sel=5 (poll) → sleep 1s → close → fresh open → DevReset.
 - **ROM boot entry** (`enter-romboot`): `UVCIOC_CTRL_QUERY` ioctl sending
   XU6 commands
 - **SCSI flash** (`flash`): `SG_IO` ioctl with vendor command `0xE8`,
@@ -361,15 +417,31 @@ sudo python3 kiyo-flash.py dump-flash -o backup.bin
 - **Integrity:** MD5 verification via `UFU_LOADINFO` subcode
 - **Shell access:** `UFU_RUN_CMD` subcode executes u-boot command strings
 
-**Status:**
-- Normal-mode flash (`flash-normal`): Implemented, **untested on hardware**.
-  Protocol fully reverse-engineered from DLL disassembly.
-- ROM boot entry (`enter-romboot`): Implemented, tested — commands are
-  accepted but camera doesn't transition to ROM boot (may need different
-  opcode for this firmware version). The normal update path (`flash-normal`)
-  doesn't require ROM boot.
+**Status (2026-04-11):**
+- Normal-mode flash (`flash-normal`): **Does not persist firmware.** After
+  6+ flash attempts with progressive bug fixes, the device accepts data
+  and reports 0x82 (burn complete) for the firmware stage, but
+  wBytesPerInterval remains 8 after every power cycle. The normal-mode UVC
+  XU path appears to write to RAM only, not SPI NAND.
+  Bugs found and fixed along the way:
+  - Status byte semantics were backwards (0x82 = success, not error)
+  - IQ file needs different command codes (0x05030001, not 0x00030001)
+  - DevReset needs full ResetToRomBoot sequence (sel=4 + 500ms + sel=14)
+  - Two-stage protocol required (firmware + IQ file, `UpdateIQFile=1`)
+  - 1-second sleep after burn (matches DLL `Thread.Sleep(1000)`)
+  - Fresh USB connection for DevReset (matches Windows updater behavior)
+  Despite all fixes, IQ calibration stage never reaches 0x82 (stuck at
+  0x81 indefinitely), and firmware stage 0x82 does not persist to flash.
+- ROM boot entry (`enter-romboot`): **Does not work.** Commands are accepted
+  but the device never transitions to ROM boot mode (114D:8200). Tested via
+  both UVC ioctl and raw USB paths. Razer likely disabled soft ROM boot
+  entry in production firmware.
 - SCSI protocol (`flash`): Implemented based on DongshanPI/SigmaStar-USBDownloadTool
-  and OpenIPC/u-boot-sigmastar source code, untested.
+  and OpenIPC/u-boot-sigmastar source code. Untested — requires ROM boot
+  mode which is currently inaccessible.
+- **Remaining options:** Hardware ROM boot (ground boot pin on PCB), Windows
+  VM with USB passthrough (to verify if official updater succeeds), or accept
+  kernel patches as the fix.
 
 **Risk:** ROM boot mode (114D:8200) provides a recovery path — the mask ROM
 in the SoC presents a USB boot interface regardless of flash contents. Per
