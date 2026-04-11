@@ -203,21 +203,26 @@ bash kernel-patches/install-watchdog.sh
 | `kernel-patches/capture-crash.sh` | dmesg capture script for crash reproduction |
 | `kernel-patches/michal-xhci-test.patch` | Michal Pecio's xhci test patch (max_esit_payload clamp + short packet retry) |
 | `kernel-patches/crash-evidence/` | Kernel logs from real crash events |
-| `firmware-analysis/` | Firmware binary analysis — byte offsets, updater protocol, SoC identification |
+| `firmware-analysis/README.md` | Firmware analysis — UVC XU protocol, ROM boot, SCSI flash protocol |
+| `firmware-analysis/kiyo-flash.py` | Linux firmware tool — probe, enter ROM boot, flash, u-boot shell |
 
 ## Hardware
 
 - **Webcam:** Razer Kiyo Pro (1532:0e05, firmware 1.5.0.1 / bcdDevice 8.21) — reproduced on two separate units running simultaneously, confirming the bug is not unit-specific
-- **SoC:** Sigmastar ARM-based ISP (copyright string found at firmware offset 0x73c5f)
-- **Camera module vendor:** AIT (Advanced Imaging Technology)
+- **SoC:** Sigmastar SAV630D (ARM Cortex-A53 vision ISP, PSA Certified Level 1)
+- **Image sensor:** Sony IMX327 (2MP, 1/2.8", starlight)
+- **SPI flash:** Winbond W25N01GVZEIG (1Gbit SPI NAND)
+- **Camera module vendor:** AIT (Alpha Imaging Technology → MStar → SigmaStar → MediaTek lineage)
 - **Controller:** Intel Cannon Lake PCH xHCI (8086:a36d) at PCI 0000:00:14.0
 - **Kernel:** Tested on 6.8.0-106-generic, 6.17.0-19/20-generic (Ubuntu 24.04 + HWE), and custom 6.17.0-xhci-test (Michal Pecio's xhci patch)
 
 ## Firmware Root Cause
 
-The camera's firmware (Sigmastar ARM-based ISP, built by AIT) has a **USB descriptor spec violation**: the SuperSpeed Endpoint Companion Descriptor for EP5 IN (interrupt) declares `wBytesPerInterval = 8` when it should be `64` (matching `wMaxPacketSize`). This causes the xHCI driver to allocate insufficient bandwidth for the endpoint, contributing to spurious completion events that can cascade into host controller death.
+The camera's firmware (Sigmastar SAV630D, built by AIT) has a **USB descriptor spec violation**: the SuperSpeed Endpoint Companion Descriptor for EP5 IN (interrupt) declares `wBytesPerInterval = 8` when it should be `64` (matching `wMaxPacketSize`). This causes the xHCI driver to allocate insufficient bandwidth for the endpoint, contributing to spurious completion events that can cascade into host controller death.
 
-See [`firmware-analysis/README.md`](firmware-analysis/README.md) for exact byte offsets and updater protocol details.
+The bug byte is at offset `0x1F570A` in the raw firmware image (`fwimage.bin`) and at offset `0xa1845d` in the .NET ResourceSet (`DeviceUpdater.resources`).
+
+A Linux firmware tool ([`firmware-analysis/kiyo-flash.py`](firmware-analysis/kiyo-flash.py)) can enter the device's ROM boot mode via reverse-engineered UVC Extension Unit commands and flash corrected firmware via the Sigmastar SCSI protocol. See [`firmware-analysis/README.md`](firmware-analysis/README.md) for the full protocol documentation.
 
 ## Upstream Status
 
