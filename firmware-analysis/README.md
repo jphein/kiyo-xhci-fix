@@ -58,10 +58,63 @@ No recovery path is known if the flash fails.
 
 The updater uses UVC Extension Unit commands over USB control transfers:
 - `AitUVCExtApi.dll` — UVC extension API (talks to camera)
-- `FWUpdaterDLL.dll` — firmware update protocol
-- `AITDLL.dll` — low-level camera communication
-- `KiyoProCustomerFWU.exe` — .NET GUI wrapper
-- `DeviceUpdater.resources` — .NET resource bundle containing firmware image
+- `FWUpdaterDLL.dll` — firmware update protocol + Windows service management
+- `AITDLL.dll` — low-level camera communication (P/Invoke, Cdecl calling convention)
+- `KiyoProCustomerFWU.exe` — .NET Framework 4.6.1 GUI wrapper (C#)
+- `DeviceUpdater.resources` — .NET ResourceSet bundle containing firmware image
+
+### Update Protocol (from ProbablyXS source analysis)
+
+The updater is a C# Windows Forms app decompiled/reconstructed by ProbablyXS.
+Full source at https://github.com/ProbablyXS/razer-kiyo-pro-firmware-updater-fix.
+
+**Device communication via AITDLL.dll:**
+- `AITOpenDev(VID, PID)` → opens USB device handle by vendor/product ID
+- `AITGetFWVersion(handle, cmd[], ver[])` → queries firmware version via UVC XU
+  - For 0E05 (Kiyo Pro): command bytes `{0xC0, 0x03, 0x01}`, returns 4-byte version
+- `UpdateDeviceFlash(handle, fwdata[], len)` → writes firmware blob to device flash
+- `GetDevUpdateProgress()` → polls progress percentage during flash
+- `ResetToRomBoot(handle)` → forces device into bootloader (ROM boot) mode
+- `DevReset(handle)` → issues device reset after update
+
+**ROM boot mode:**
+- Device re-enumerates with VID/PID `114D:8200` (Sigmastar native USB ID)
+- `AITOpenROMDev()` → opens device in bootloader mode (no VID/PID needed)
+- `LoadUpdaterv3FW(handle, mode, path)` → loads updater firmware
+- `LoadDevFWAtROMBoot(handle, mode, EraseNextArea, path)` → flashes main firmware
+
+**Firmware extraction from .resources:**
+- `DeviceUpdater.resources` is a .NET `ResourceSet` with named entries
+- Firmware stored in sectors: `Device1FWSector0`, `Device1FWSector1`, ... + `Device1FWFileSize`
+- Updater firmware: `UpdaterFWSector0`, ... + `UpdaterFWFileSize`
+- IQ file (optional): `IQFWSector0`, ... + `IQFWFileSize`
+- For PID 0E05 (Kiyo Pro): firmware written as `fwimage` (no extension)
+- Updater written as `updater.bin`
+
+**CRC16 validation:** `Common.CRC16(byte[])` computes checksum for data integrity.
+
+**Flash sequence:**
+1. Extract firmware sectors from ResourceSet to temp files
+2. Open device via `AITOpenDev(0x1532, 0x0E05)`
+3. Read firmware file into byte array
+4. Call `UpdateDeviceFlash(handle, fwdata, len)` — returns 1 on success
+5. Poll `GetDevUpdateProgress()` for progress percentage
+6. Issue `DevReset()` after completion
+7. If IQ file update needed: repeat steps 2-6 for IQ firmware
+8. Verify new firmware version matches target
+9. Delete temp files (`fwimage`, `updater.bin`, `iqfile.lfs`)
+
+### Hypothetical Linux Flash Tool
+
+A Linux implementation would need to:
+1. Parse the .NET `DeviceUpdater.resources` to extract firmware sectors
+2. Patch byte at offset 0xa1845d from 0x08 to 0x40 in the extracted firmware
+3. Send the patched firmware via UVC Extension Unit control transfers
+4. The UVC XU protocol used by `AITDLL.dll` would need reverse engineering
+   (likely Wireshark USB capture of a Windows update session)
+
+**Risk:** No known recovery path if flash fails. The ROM boot mode (114D:8200)
+may provide a recovery path, but this is unverified.
 
 ## Sources
 

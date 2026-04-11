@@ -8,7 +8,9 @@ The Razer Kiyo Pro's firmware (v1.5.0.1) has two failure modes that cascade into
 
 1. **LPM/autosuspend resume:** The device fails to reinitialize after USB Link Power Management transitions, producing EPIPE (-32) on UVC SET_CUR. The stalled endpoint triggers an xHCI stop-endpoint timeout, and the kernel declares the controller dead.
 
-2. **Rapid control transfers:** ~25 rapid consecutive UVC SET_CUR operations overwhelm the firmware. The standard UVC error-code query (GET_CUR after EPIPE) amplifies the failure by sending a second transfer to the already-stalling device.
+2. **Rapid control transfers:** ~25 rapid consecutive UVC SET_CUR operations overwhelm the firmware, causing endpoint stalls that cascade into host controller death.
+
+3. **USB descriptor spec violation:** EP5 IN (interrupt) declares `wBytesPerInterval = 8` but `wMaxPacketSize = 64`. The xHCI driver under-allocates bandwidth based on this, leading to spurious SHORT_PACKET completion events that can flood the host controller.
 
 The kernel's built-in xHCI error recovery makes it worse: it detects the fault, resets the controller, the reset triggers another fault, and the system enters a death spiral.
 
@@ -23,8 +25,8 @@ Three kernel patches, all necessary:
 ### 1. Kernel Patches (upstream submissions)
 
 - **`0001`** — `USB_QUIRK_NO_LPM` for 1532:0e05 — disables Link Power Management to prevent firmware destabilization during power state transitions
-- **`0002`** — `UVC_QUIRK_CTRL_THROTTLE` — new UVC quirk that rate-limits all control transfers (50ms interval) in `__uvc_query_ctrl()` and skips error-code queries after EPIPE to prevent crash amplification
-- **`0003`** — Razer Kiyo Pro device entry with `UVC_QUIRK_CTRL_THROTTLE | UVC_QUIRK_DISABLE_AUTOSUSPEND | UVC_QUIRK_NO_RESET_RESUME`
+- **`0002`** — `UVC_QUIRK_CTRL_THROTTLE` — new UVC quirk that rate-limits all control transfers (50ms interval) in `__uvc_query_ctrl()`
+- **`0003`** — Razer Kiyo Pro device entry with `UVC_QUIRK_CTRL_THROTTLE | UVC_QUIRK_DISABLE_AUTOSUSPEND | UVC_QUIRK_NO_RESET_RESUME`, plus full `lsusb -v` in commit message documenting the wBytesPerInterval spec violation
 
 See [`kernel-patches/upstream-report.md`](kernel-patches/upstream-report.md) for the full bug analysis submitted to `linux-usb@vger.kernel.org`.
 
@@ -198,18 +200,39 @@ bash kernel-patches/install-watchdog.sh
 | `kernel-patches/upstream-report.md` | Full bug report for linux-usb mailing list |
 | `kernel-patches/test-methodology.md` | Test methodology and procedures |
 | `kernel-patches/research-*.md` | Root cause analysis notes |
+| `kernel-patches/capture-crash.sh` | dmesg capture script for crash reproduction |
+| `kernel-patches/michal-xhci-test.patch` | Michal Pecio's xhci test patch (max_esit_payload clamp + short packet retry) |
 | `kernel-patches/crash-evidence/` | Kernel logs from real crash events |
+| `firmware-analysis/` | Firmware binary analysis — byte offsets, updater protocol, SoC identification |
 
 ## Hardware
 
-- **Webcam:** Razer Kiyo Pro (1532:0e05, firmware 1.5.0.1) — reproduced on two separate units running simultaneously, confirming the bug is not unit-specific
+- **Webcam:** Razer Kiyo Pro (1532:0e05, firmware 1.5.0.1 / bcdDevice 8.21) — reproduced on two separate units running simultaneously, confirming the bug is not unit-specific
+- **SoC:** Sigmastar ARM-based ISP (copyright string found at firmware offset 0x73c5f)
+- **Camera module vendor:** AIT (Advanced Imaging Technology)
 - **Controller:** Intel Cannon Lake PCH xHCI (8086:a36d) at PCI 0000:00:14.0
-- **Kernel:** Tested on 6.8.0-106-generic and 6.17.0-19/20-generic (Ubuntu 24.04 + HWE)
+- **Kernel:** Tested on 6.8.0-106-generic, 6.17.0-19/20-generic (Ubuntu 24.04 + HWE), and custom 6.17.0-xhci-test (Michal Pecio's xhci patch)
+
+## Firmware Root Cause
+
+The camera's firmware (Sigmastar ARM-based ISP, built by AIT) has a **USB descriptor spec violation**: the SuperSpeed Endpoint Companion Descriptor for EP5 IN (interrupt) declares `wBytesPerInterval = 8` when it should be `64` (matching `wMaxPacketSize`). This causes the xHCI driver to allocate insufficient bandwidth for the endpoint, contributing to spurious completion events that can cascade into host controller death.
+
+See [`firmware-analysis/README.md`](firmware-analysis/README.md) for exact byte offsets and updater protocol details.
 
 ## Upstream Status
 
 - **Patch 1** (`USB_QUIRK_NO_LPM`): **Merged** into `usb-linus` by Greg Kroah-Hartman. Backported to stable kernels 6.1, 6.6, 6.12, 6.18, and 6.19 as of 2026-04-09.
-- **Patches 2-3** (`UVC_QUIRK_CTRL_THROTTLE` + device entry): Submitted to linux-media, under review by Ricardo Ribalda. v6 ready — throttle moved to `__uvc_query_ctrl()`, covers all query types.
+- **Patches 2-3** (`UVC_QUIRK_CTRL_THROTTLE` + device entry): Submitted to linux-media, under review by Ricardo Ribalda. v7 sent 2026-04-09 — throttle-only (dropped error-code skip per Ricardo), full `lsusb -v` in commit message per Ricardo.
+- **Thread Message-ID:** `<20260331003806.212565-1-jp@jphein.com>`
+- **v7 Message-ID:** `<20260410002720.1033303-1-jp@jphein.com>`
+
+### Key Upstream Discussion
+
+- **Mathias Nyman (Intel xHCI maintainer):** Dual-URB cancellation on control EP leaves dequeue on no-op TRB, violating xHCI spec 4.8.3. Disabling LPM reduces control transfers, lowering the dual-cancel risk.
+- **Michal Pecio:** Identified wBytesPerInterval=8 as a spec violation; xHCI driver's max_esit_payload derived from it. His test patch (clamp max_esit_payload + short packet retry) allowed HC to survive firmware lockup.
+- **Test results (2026-04-10):** Two crash reproduction tests on kernel 6.17.0-xhci-test with Michal's xhci patch:
+  - **Test 1** (all fixes + Michal's patch): HC DIED — 437 repeated cancel/resubmit on EP5 IN → ~994K spurious SHORT_PACKET events → control URB timeouts → hc_died
+  - **Test 2** (Michal's patch only, no JP patches): HC SURVIVED — firmware locked at round ~23 but host controller handled errors gracefully
 
 ## License
 

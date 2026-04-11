@@ -256,50 +256,48 @@ the most common real-world trigger.
 
 ### [PATCH 2/3] media: uvcvideo: add UVC_QUIRK_CTRL_THROTTLE for fragile firmware
 
-Introduces `UVC_QUIRK_CTRL_THROTTLE` (0x00080000) with two protections:
+Introduces `UVC_QUIRK_CTRL_THROTTLE` (0x00080000) that rate-limits all
+UVC control transfers (not just SET_CUR) when the quirk is set.
 
-**Rate limiting:** Enforces a minimum 50ms interval between SET_CUR
-control transfers when the quirk is set. This limits the effective rate to
-20 control changes per second, which is sufficient for interactive use
+**Rate limiting:** Enforces a minimum 50ms interval between control
+transfers in `__uvc_query_ctrl()`. This limits the effective rate to
+20 control operations per second, which is sufficient for interactive use
 (slider adjustments, application control panels) while preventing the
 rapid-fire pattern that overwhelms the firmware.
 
-Implementation in `uvc_query_ctrl()` (uvc_video.c):
+Implementation in `__uvc_query_ctrl()` (uvc_video.c):
 ```c
-if (query == UVC_SET_CUR && (dev->quirks & UVC_QUIRK_CTRL_THROTTLE)) {
+if (dev->quirks & UVC_QUIRK_CTRL_THROTTLE) {
     min_interval = msecs_to_jiffies(50);
-    if (dev->last_ctrl_set_jiffies &&
-        time_before(jiffies, dev->last_ctrl_set_jiffies + min_interval)) {
-        elapsed = dev->last_ctrl_set_jiffies + min_interval - jiffies;
+    if (dev->last_ctrl_jiffies &&
+        time_before(jiffies, dev->last_ctrl_jiffies + min_interval)) {
+        elapsed = dev->last_ctrl_jiffies + min_interval - jiffies;
         msleep(jiffies_to_msecs(elapsed));
     }
+    dev->last_ctrl_jiffies = jiffies;
 }
 ```
 
-A new `unsigned long last_ctrl_set_jiffies` field is added to
-`struct uvc_device` to track the timestamp of the last SET_CUR.
+A new `unsigned long last_ctrl_jiffies` field is added to
+`struct uvc_device` to track the timestamp of the last control transfer.
 
-**Error amplification suppression:** When a SET_CUR returns EPIPE, the
-driver normally sends a second USB transfer (GET_CUR to
-`UVC_VC_REQUEST_ERROR_CODE_CONTROL`) to read the UVC error code. On a
-device that is already stalling, this second transfer can push the firmware
-into a full lockup. With this quirk, EPIPE is returned directly:
-
-```c
-if (dev->quirks & UVC_QUIRK_CTRL_THROTTLE)
-    return -EPIPE;
-```
+> **Note:** Earlier versions (v1-v6) also suppressed error-code queries
+> after EPIPE. This was dropped in v7 per Ricardo Ribalda's review — the
+> throttle alone is sufficient to prevent the crash cascade.
 
 ### [PATCH 3/3] media: uvcvideo: add quirks for Razer Kiyo Pro webcam
 
 Adds a device entry in `uvc_ids[]` for the Razer Kiyo Pro (1532:0e05)
 with all three UVC quirks combined:
-- `UVC_QUIRK_CTRL_THROTTLE` — rate-limits SET_CUR and skips error-code
-  queries after EPIPE (the primary crash prevention from patch 2)
+- `UVC_QUIRK_CTRL_THROTTLE` — rate-limits all control transfers (the
+  primary crash prevention from patch 2)
 - `UVC_QUIRK_DISABLE_AUTOSUSPEND` — prevents autosuspend transitions that
   destabilize the firmware (same approach as Insta360 Link)
 - `UVC_QUIRK_NO_RESET_RESUME` — avoids the fragile reset-during-resume
   path (same approach as Logitech Rally Bar)
+
+The commit message includes full `lsusb -v` output (usbutils 019)
+documenting the wBytesPerInterval spec violation on EP5 IN.
 
 ## Test Results
 
