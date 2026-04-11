@@ -360,11 +360,12 @@ def uvc_xu_get_cur(video_fd, unit, selector, size):
 # The Windows driver ignores descriptor capabilities; Linux enforces them.
 
 # USBDEVFS ioctl numbers (x86_64)
-USBDEVFS_CONTROL = 0xc0185500       # _IOWR('U', 0, 24)
-USBDEVFS_CLAIMINTERFACE = 0x8004550f   # _IOR('U', 15, 4)
-USBDEVFS_RELEASEINTERFACE = 0x80045510  # _IOR('U', 16, 4)
-USBDEVFS_DISCONNECT = 0x80045516    # _IOR('U', 22, 4)
-USBDEVFS_CONNECT = 0x80045517       # _IOR('U', 23, 4)
+USBDEVFS_CONTROL = 0xc0185500         # _IOWR('U', 0, struct usbdevfs_ctrltransfer)
+USBDEVFS_CLAIMINTERFACE = 0x8004550f  # _IOR('U', 15, unsigned int)
+USBDEVFS_RELEASEINTERFACE = 0x80045510  # _IOR('U', 16, unsigned int)
+USBDEVFS_IOCTL = 0xc0105512           # _IOWR('U', 18, struct usbdevfs_ioctl)
+USBDEVFS_DISCONNECT = 0x5516          # _IO('U', 22) — sub-ioctl code
+USBDEVFS_CONNECT = 0x5517             # _IO('U', 23) — sub-ioctl code
 
 # UVC class request constants
 UVC_SET_CUR = 0x01
@@ -439,14 +440,16 @@ class RawUsbXu:
         self.interface = interface_num
         self.detached = False
 
-        # Detach kernel driver (uvcvideo) from the VC interface
+        # Detach kernel driver (uvcvideo) from the VC interface.
+        # Uses USBDEVFS_IOCTL with USBDEVFS_DISCONNECT sub-ioctl:
+        #   struct usbdevfs_ioctl { int ifno; int ioctl_code; void *data; }
         try:
-            intf_buf = struct.pack("@I", self.interface)
-            fcntl.ioctl(self.usb_fd, USBDEVFS_DISCONNECT, intf_buf)
+            ioctl_buf = struct.pack("@iiP", self.interface, USBDEVFS_DISCONNECT, 0)
+            fcntl.ioctl(self.usb_fd, USBDEVFS_IOCTL, ioctl_buf)
             self.detached = True
         except OSError as e:
-            # ENODATA = no driver attached, that's fine
-            if e.errno != 61:  # ENODATA
+            # ENODATA (61) = no driver attached, that's fine
+            if e.errno != 61:
                 raise
 
         # Claim the interface
@@ -484,8 +487,8 @@ class RawUsbXu:
             pass
         if self.detached:
             try:
-                intf_buf = struct.pack("@I", self.interface)
-                fcntl.ioctl(self.usb_fd, USBDEVFS_CONNECT, intf_buf)
+                ioctl_buf = struct.pack("@iiP", self.interface, USBDEVFS_CONNECT, 0)
+                fcntl.ioctl(self.usb_fd, USBDEVFS_IOCTL, ioctl_buf)
             except OSError:
                 pass
         os.close(self.usb_fd)
@@ -636,76 +639,32 @@ def cmd_enter_romboot(args):
     return 1
 
 
-def cmd_flash_normal(args):
-    """Flash firmware via normal-mode UVC Extension Unit protocol.
+def _flash_image(usb_path, intf, fw_data, label="firmware",
+                  phase1_cmd=0x30001, phase3_cmd=None):
+    """Flash a single firmware image via UVC XU protocol.
 
-    Protocol reverse-engineered from AitUVCExtApi.dll AITAPI_UpdateFW_842x:
+    Sends data through XU6 and polls for burn completion.
+    Returns True on success, False on error.
+    The caller manages USB connection lifecycle.
 
-    Phase 1 — Size handshake:
-      1. SET_CUR XU6 sel=4 (8 bytes): firmware size as LE u32, rest zero
-      2. GET_CUR XU6 sel=5 (8 bytes): check byte[0]==0 (ready)
-
-    Phase 2 — Data transfer:
-      3. GET_CUR XU6 sel=3 (32 bytes): initial handshake read
-      4. Sleep 300ms
-      5. Loop SET_CUR XU6 sel=3 (32 bytes): send firmware in 32-byte chunks
-
-    Phase 3 — Completion:
-      6. SET_CUR XU6 sel=4 (8 bytes): [0x01, 0x01, 0x03, 0x00, ...]
-      7. Poll GET_CUR XU6 sel=5 (8 bytes) every 30ms until done
-
-    Uses raw USB control transfers (bypassing uvcvideo driver) because
-    sel=3 is marked GET-only in the UVC descriptor, but the firmware
-    accepts SET_CUR on it. The Windows driver ignores this restriction.
+    Command codes (from DLL disassembly):
+      Firmware:  phase1=0x00030001, phase3=0x00030101
+      IQ data:   phase1=0x05030001, phase3=0x05030101
     """
+    if phase3_cmd is None:
+        # Default: derive phase3 from phase1 by setting byte[1] to 0x01
+        # 0x00030001 -> 0x00030101, 0x05030001 -> 0x05030101
+        phase3_cmd = phase1_cmd | 0x100
     XU6_UNIT = 6
-
-    print("=== Normal-Mode Firmware Flash ===")
-    print()
-
-    # Validate firmware file
-    if not os.path.isfile(args.firmware):
-        print(f"ERROR: Firmware file not found: {args.firmware}")
-        return 1
-
-    with open(args.firmware, 'rb') as f:
-        fw_data = f.read()
     fw_len = len(fw_data)
-    print(f"Firmware: {args.firmware} ({fw_len} bytes)")
 
-    # Find the raw USB device
-    usb_path, intf = find_kiyo_usb_path()
-    if not usb_path:
-        print("ERROR: Razer Kiyo Pro (1532:0e05) not found on USB bus.")
-        return 1
-    print(f"USB device: {usb_path}")
-    print()
-
-    if not args.force:
-        print("WARNING: This will flash new firmware to the camera.")
-        print("A bad flash can brick the device (recoverable via ROM boot mode).")
-        print("Make sure you have a backup of the original firmware.")
-        print()
-        try:
-            confirm = input("Continue? [y/N] ").strip().lower()
-            if confirm != 'y':
-                print("Aborted.")
-                return
-        except (EOFError, KeyboardInterrupt):
-            print("\nAborted.")
-            return
-
-    try:
-        xu = RawUsbXu(usb_path, intf)
-    except OSError as e:
-        print(f"ERROR: Cannot open USB device: {e}")
-        print("Try: sudo python3 kiyo-flash.py flash-normal --firmware <file>")
-        return 1
-
+    xu = RawUsbXu(usb_path, intf)
     try:
         # Phase 1: Size handshake
-        print("[Phase 1] Sending firmware size to sel=4...")
-        size_data = struct.pack("<I", fw_len) + bytes(4)  # LE u32 + 4 zero bytes
+        # DLL sends command header + fw_len as LE u32 to sel=4
+        # Firmware uses 0x00030001, IQ calibration uses 0x05030001
+        print(f"[Phase 1] Sending {label} size to sel=4...")
+        size_data = struct.pack("<II", phase1_cmd, fw_len)
         xu.set_cur(XU6_UNIT, 4, size_data)
         print(f"  Sent size: {fw_len} bytes ({size_data.hex()})")
 
@@ -714,14 +673,18 @@ def cmd_flash_normal(args):
         print(f"  Ack: {ack.hex()}")
         if ack[0] != 0x00:
             print(f"  ERROR: Device not ready (byte[0]=0x{ack[0]:02x}, expected 0x00)")
-            return 1
+            return False
         print("  Device ready for data.")
 
         # Phase 2: Data transfer
-        print(f"\n[Phase 2] Transferring firmware ({fw_len} bytes in 32-byte chunks)...")
+        print(f"\n[Phase 2] Transferring {label} ({fw_len} bytes in 32-byte chunks)...")
         print("  Reading initial handshake from sel=3...")
-        handshake = xu.get_cur(XU6_UNIT, 3, 32)
-        print(f"  Handshake: {handshake[:8].hex()}...")
+        try:
+            handshake = xu.get_cur(XU6_UNIT, 3, 32)
+            print(f"  Handshake: {handshake[:8].hex()}...")
+        except OSError:
+            # sel=3 GET may STALL — the DLL does this but it's not required
+            print("  Handshake: STALL (expected, continuing)")
 
         print("  Sleeping 300ms...")
         time.sleep(0.3)
@@ -753,47 +716,211 @@ def cmd_flash_normal(args):
         print(f"\n  Transfer complete in {elapsed:.1f}s")
 
         # Phase 3: Completion
+        # DLL sends phase3_cmd as LE u32 in first 4 bytes of 8-byte buffer
         print("\n[Phase 3] Sending completion signal to sel=4...")
-        completion = bytes([0x01, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00])
+        completion = struct.pack("<II", phase3_cmd, 0)
         xu.set_cur(XU6_UNIT, 4, completion)
         print(f"  Sent: {completion.hex()}")
 
         print("  Polling sel=5 for burn status...")
-        first_zero = True
+        zero_retries = 10  # DLL retries 10 times at 100ms when status=0x00
         for attempt in range(200):  # max ~6 seconds
             time.sleep(0.03)  # 30ms between polls
             status = xu.get_cur(XU6_UNIT, 5, 8)
             status_byte = status[0]
 
             if status_byte == 0x82:
-                print(f"\n  BURN ERROR: Device reported error 0x82")
-                print(f"  Full status: {status.hex()}")
-                return 1
-            elif status_byte == 0x00 and first_zero:
-                # First zero response — wait 1 second (10 × 100ms) then retry
-                first_zero = False
-                print("  Status: 0x00 (processing), waiting 1s...")
-                time.sleep(1.0)
-            elif status_byte != 0x00:
-                print(f"  Status: 0x{status_byte:02x} — burn complete!")
+                # 0x82 = burn complete (confirmed via DLL disassembly)
+                print(f"  Status: 0x82 — burn complete!")
                 break
+            elif status_byte == 0x00:
+                # 0x00 = still processing — DLL waits 100ms × 10 retries
+                if zero_retries > 0:
+                    zero_retries -= 1
+                    time.sleep(0.1)  # 100ms per DLL
+                else:
+                    print("  Status: 0x00 persists — still processing...")
+            else:
+                # 0x81 or other = intermediate state, keep polling
+                print(f"  Status: 0x{status_byte:02x} (intermediate, waiting for 0x82)...")
         else:
-            print("  WARNING: Polling timed out (status never changed from 0x00)")
-            print("  The firmware may still be burning. Check device status.")
+            print("  WARNING: Polling timed out (never reached 0x82)")
+            return False
 
-        print("\n=== Flash complete! ===")
-        print("The device should reboot with new firmware.")
-        print("If the camera doesn't appear, power-cycle it (unplug and replug).")
-        return 0
+        # Windows updater sleeps 1s after burn completes before closing
+        print("  Waiting 1s for flash controller to commit...")
+        time.sleep(1.0)
+        return True
 
     except OSError as e:
-        print(f"\nERROR during flash: {e}")
-        print("The device may be in an inconsistent state.")
-        print("If the camera doesn't respond, use ROM boot recovery:")
-        print("  python3 kiyo-flash.py enter-romboot")
-        return 1
+        print(f"\n  ERROR during {label} flash: {e}")
+        return False
     finally:
         xu.close()
+
+
+def _send_dev_reset(usb_path, intf):
+    """Send full ResetToRomBoot sequence via a fresh USB connection.
+
+    The Windows updater uses a two-step reset:
+      1. DevReset: 0x16 to XU6 sel=4 (8 bytes) — prepare for reset
+      2. 500ms sleep
+      3. Mode reset: [0xFF, 0x03] to XU6 sel=14 (16 bytes) — trigger reboot
+
+    Without step 3, the device acknowledges the reset but never actually
+    reboots, so firmware written to RAM is never committed to SPI NAND.
+    """
+    XU6_UNIT = 6
+    print("\n[DevReset] Opening fresh USB connection for reset...")
+    xu = RawUsbXu(usb_path, intf)
+    try:
+        # Step 1: DevReset command
+        reset_cmd = bytes([0x16] + [0x00] * 7)
+        xu.set_cur(XU6_UNIT, 4, reset_cmd)
+        print(f"  Step 1: Sent DevReset {reset_cmd.hex()}")
+
+        # Step 2: Wait 500ms (matches Windows updater timing)
+        time.sleep(0.5)
+
+        # Step 3: Mode reset to trigger actual reboot
+        mode_reset = bytes([0xFF, 0x03] + [0x00] * 14)
+        xu.set_cur(XU6_UNIT, 14, mode_reset)
+        print(f"  Step 3: Sent mode reset {mode_reset.hex()}")
+        print("  Device should reboot now.")
+    except OSError as e:
+        # Device may disconnect immediately during reset — that's expected
+        print(f"  Reset sent (device may have disconnected: {e})")
+    finally:
+        xu.close()
+
+
+def _wait_for_kiyo(timeout=15):
+    """Wait for Kiyo Pro to re-enumerate after reset. Returns (path, intf) or (None, None)."""
+    print(f"\n  Waiting up to {timeout}s for device to re-enumerate...")
+    for i in range(timeout):
+        time.sleep(1.0)
+        usb_path, intf = find_kiyo_usb_path()
+        if usb_path:
+            print(f"  Device found at {usb_path} after {i+1}s")
+            return usb_path, intf
+        print(f"  Waiting... ({i+1}/{timeout})")
+    print("  Device did not re-enumerate within timeout.")
+    return None, None
+
+
+def cmd_flash_normal(args):
+    """Flash firmware via normal-mode UVC Extension Unit protocol.
+
+    Protocol reverse-engineered from AitUVCExtApi.dll AITAPI_UpdateFW_842x
+    and AITDLL.dll UpdateDeviceFlash/DevReset, plus the ProbablyXS
+    decompiled C# source (KiyoProCustomerFWU).
+
+    The complete update sequence for the Kiyo Pro (UpdateIQFile=1):
+
+    Stage 1 — Flash main firmware:
+      Phase 1: SET_CUR sel=4 [0x30001 header + fw_len] → GET_CUR sel=5 ack
+      Phase 2: GET_CUR sel=3 handshake → sleep 300ms → loop SET_CUR sel=3
+      Phase 3: SET_CUR sel=4 completion → poll GET_CUR sel=5 → sleep 1s
+
+    DevReset #1 — Fresh USB connection, SET_CUR sel=4 [0x16, 0, ...]
+
+    Stage 2 — Flash IQ file (if --iqfile provided):
+      Same Phase 1-3 as Stage 1, with the IQ calibration data
+
+    DevReset #2 — Fresh USB connection again
+    """
+    print("=== Normal-Mode Firmware Flash ===")
+    print()
+
+    # Validate firmware file
+    if not os.path.isfile(args.firmware):
+        print(f"ERROR: Firmware file not found: {args.firmware}")
+        return 1
+
+    with open(args.firmware, 'rb') as f:
+        fw_data = f.read()
+    print(f"Firmware: {args.firmware} ({len(fw_data)} bytes)")
+
+    # Load IQ file if provided
+    iq_data = None
+    if args.iqfile:
+        if not os.path.isfile(args.iqfile):
+            print(f"ERROR: IQ file not found: {args.iqfile}")
+            return 1
+        with open(args.iqfile, 'rb') as f:
+            iq_data = f.read()
+        print(f"IQ file:  {args.iqfile} ({len(iq_data)} bytes)")
+
+    # Find the raw USB device
+    usb_path, intf = find_kiyo_usb_path()
+    if not usb_path:
+        print("ERROR: Razer Kiyo Pro (1532:0e05) not found on USB bus.")
+        return 1
+    print(f"USB device: {usb_path}")
+    print()
+
+    if not args.force:
+        print("WARNING: This will flash new firmware to the camera.")
+        print("A bad flash can brick the device (recoverable via ROM boot mode).")
+        print("Make sure you have a backup of the original firmware.")
+        if iq_data:
+            print(f"Will also flash IQ calibration data ({len(iq_data)} bytes).")
+        else:
+            print("NOTE: No --iqfile specified. The Kiyo Pro normally requires an")
+            print("IQ file update (UpdateIQFile=1 in resources). The firmware update")
+            print("may not persist without it. Use --iqfile iqfile.lfs for the full")
+            print("update sequence.")
+        print()
+        try:
+            confirm = input("Continue? [y/N] ").strip().lower()
+            if confirm != 'y':
+                print("Aborted.")
+                return
+        except (EOFError, KeyboardInterrupt):
+            print("\nAborted.")
+            return
+
+    # === Stage 1: Flash main firmware ===
+    print("=" * 50)
+    print("STAGE 1: Flashing main firmware")
+    print("=" * 50)
+
+    if not _flash_image(usb_path, intf, fw_data, label="firmware",
+                        phase1_cmd=0x30001):
+        print("\nERROR: Firmware flash failed.")
+        return 1
+
+    # DevReset #1 — fresh USB connection
+    _send_dev_reset(usb_path, intf)
+
+    # === Stage 2: Flash IQ file (if provided) ===
+    if iq_data:
+        print()
+        print("=" * 50)
+        print("STAGE 2: Flashing IQ calibration data")
+        print("=" * 50)
+
+        # Wait for device to re-enumerate after first DevReset
+        usb_path, intf = _wait_for_kiyo(timeout=15)
+        if not usb_path:
+            print("ERROR: Device did not re-enumerate after DevReset.")
+            print("Try unplugging and replugging, then flash the IQ file separately.")
+            return 1
+
+        if not _flash_image(usb_path, intf, iq_data, label="IQ calibration",
+                            phase1_cmd=0x5030001):
+            print("\nERROR: IQ file flash failed.")
+            return 1
+
+        # DevReset #2 — fresh USB connection
+        _send_dev_reset(usb_path, intf)
+
+    print("\n=== Flash complete! ===")
+    print("Wait for the camera to re-enumerate (5-10 seconds).")
+    print("If it doesn't appear, unplug and replug the USB cable.")
+    if iq_data:
+        print("Both firmware and IQ calibration data were flashed.")
+    return 0
 
 
 def cmd_flash(args):
@@ -961,7 +1088,7 @@ def main():
 Examples:
   %(prog)s probe                    Check device state
   %(prog)s enter-romboot            Try to enter ROM boot mode
-  %(prog)s flash-normal --firmware patched-fwimage.bin
+  %(prog)s flash-normal --firmware patched-fwimage.bin --iqfile iqfile.lfs
                                     Flash via UVC XU (normal mode, no ROM boot)
   %(prog)s flash --updater updater.bin --firmware fwimage.bin
                                     Flash via ROM boot mode (for bricked devices)
@@ -980,6 +1107,8 @@ Examples:
         help='Flash firmware via normal-mode UVC XU protocol (no ROM boot)')
     flash_normal_p.add_argument('--firmware', required=True,
         help='Firmware image to flash (e.g., fwimage.bin)')
+    flash_normal_p.add_argument('--iqfile',
+        help='IQ calibration file (iqfile.lfs) — required for Kiyo Pro')
     flash_normal_p.add_argument('--force', '-f', action='store_true',
         help='Skip confirmation prompt')
 
