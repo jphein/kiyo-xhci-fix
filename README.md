@@ -203,8 +203,8 @@ bash kernel-patches/install-watchdog.sh
 | `kernel-patches/capture-crash.sh` | dmesg capture script for crash reproduction |
 | `kernel-patches/michal-xhci-test.patch` | Michal Pecio's xhci test patch (max_esit_payload clamp + short packet retry) |
 | `kernel-patches/crash-evidence/` | Kernel logs from real crash events |
-| `firmware-analysis/README.md` | Firmware analysis — UVC XU protocol, ROM boot, SCSI flash protocol |
-| `firmware-analysis/kiyo-flash.py` | Linux firmware tool — probe, enter ROM boot, flash, u-boot shell |
+| `firmware-analysis/README.md` | Firmware analysis — UVC XU protocol, normal-mode flash, ROM boot, SCSI protocol |
+| `firmware-analysis/kiyo-flash.py` | Linux firmware tool — normal-mode flash, ROM boot, probe, u-boot shell |
 
 ## Hardware
 
@@ -222,7 +222,7 @@ The camera's firmware (Sigmastar SAV630D, built by AIT) has a **USB descriptor s
 
 The bug byte is at offset `0x1F570A` in the raw firmware image (`fwimage.bin`) and at offset `0xa1845d` in the .NET ResourceSet (`DeviceUpdater.resources`).
 
-A Linux firmware tool ([`firmware-analysis/kiyo-flash.py`](firmware-analysis/kiyo-flash.py)) can enter the device's ROM boot mode via reverse-engineered UVC Extension Unit commands and flash corrected firmware via the Sigmastar SCSI protocol. See [`firmware-analysis/README.md`](firmware-analysis/README.md) for the full protocol documentation.
+A Linux firmware tool ([`firmware-analysis/kiyo-flash.py`](firmware-analysis/kiyo-flash.py)) can flash corrected firmware via the reverse-engineered UVC Extension Unit protocol — the same protocol used by the official Windows updater. The tool sends firmware in 32-byte chunks through XU6 selector 3, using raw USB control transfers to bypass the Linux UVC driver's descriptor validation (sel=3 is marked GET-only but the device accepts SET_CUR). ROM boot mode recovery via SCSI is also implemented as a fallback. See [`firmware-analysis/README.md`](firmware-analysis/README.md) for the full protocol documentation.
 
 ## Upstream Status
 

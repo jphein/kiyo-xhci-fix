@@ -310,40 +310,191 @@ def cmd_probe(args):
     os.close(fd)
 
 
-def uvc_xu_set_cur(video_fd, unit, selector, data):
-    """Send UVC SET_CUR to an Extension Unit control.
+def uvc_xu_query(video_fd, unit, selector, query, data):
+    """Send a UVC query to an Extension Unit control.
 
     Uses the UVCIOC_CTRL_QUERY ioctl defined in linux/uvcvideo.h:
 
         struct uvc_xu_control_query {
             __u8  unit;
             __u8  selector;
-            __u8  query;      // UVC_SET_CUR = 0x01
+            __u8  query;      // UVC_SET_CUR=0x01, UVC_GET_CUR=0x81
             __u16 size;
             __u8 *data;
         };
 
-    Packed as: BBBHp (unit, selector, query, size, data_pointer)
+    For SET_CUR, data is sent to device. For GET_CUR, data buffer is filled.
     """
-    UVC_SET_CUR = 0x01
     UVCIOC_CTRL_QUERY = 0xc0107521  # _IOWR('u', 0x21, 16) on x86_64
 
     data_buf = (ctypes.c_ubyte * len(data))(*data)
     data_ptr = ctypes.cast(data_buf, ctypes.c_void_p).value
 
-    # struct uvc_xu_control_query {
-    #     __u8 unit;        // offset 0
-    #     __u8 selector;    // offset 1
-    #     __u8 query;       // offset 2
-    #     /* pad 1 */       // offset 3
-    #     __u16 size;       // offset 4
-    #     /* pad 2 */       // offset 6
-    #     __u8 *data;       // offset 8 (8-byte aligned pointer on x86_64)
-    # };  // total: 16 bytes
-    query_buf = struct.pack("@BBBxH2xP", unit, selector, UVC_SET_CUR,
+    # struct uvc_xu_control_query on x86_64: total 16 bytes
+    #   __u8 unit;        // offset 0
+    #   __u8 selector;    // offset 1
+    #   __u8 query;       // offset 2
+    #   /* pad 1 */       // offset 3
+    #   __u16 size;       // offset 4
+    #   /* pad 2 */       // offset 6
+    #   __u8 *data;       // offset 8 (8-byte aligned pointer)
+    query_buf = struct.pack("@BBBxH2xP", unit, selector, query,
                             len(data), data_ptr)
 
     fcntl.ioctl(video_fd, UVCIOC_CTRL_QUERY, query_buf)
+    return bytes(data_buf)
+
+
+def uvc_xu_set_cur(video_fd, unit, selector, data):
+    """Send UVC SET_CUR to an Extension Unit control."""
+    uvc_xu_query(video_fd, unit, selector, 0x01, data)
+
+
+def uvc_xu_get_cur(video_fd, unit, selector, size):
+    """Send UVC GET_CUR to an Extension Unit control. Returns response bytes."""
+    return uvc_xu_query(video_fd, unit, selector, 0x81, bytes(size))
+
+
+# --- Raw USB control transfers (bypass uvcvideo driver) ---
+# Used when UVC descriptor marks a selector as GET-only but we need SET_CUR.
+# The Windows driver ignores descriptor capabilities; Linux enforces them.
+
+# USBDEVFS ioctl numbers (x86_64)
+USBDEVFS_CONTROL = 0xc0185500       # _IOWR('U', 0, 24)
+USBDEVFS_CLAIMINTERFACE = 0x8004550f   # _IOR('U', 15, 4)
+USBDEVFS_RELEASEINTERFACE = 0x80045510  # _IOR('U', 16, 4)
+USBDEVFS_DISCONNECT = 0x80045516    # _IOR('U', 22, 4)
+USBDEVFS_CONNECT = 0x80045517       # _IOR('U', 23, 4)
+
+# UVC class request constants
+UVC_SET_CUR = 0x01
+UVC_GET_CUR = 0x81
+
+
+def find_kiyo_usb_path():
+    """Find /dev/bus/usb/BBB/DDD and interface number for Razer Kiyo Pro.
+
+    Returns (usb_dev_path, interface_num) or (None, None).
+    """
+    for dev_dir in sorted(glob.glob("/sys/bus/usb/devices/[0-9]*-[0-9]*")):
+        try:
+            vid = open(os.path.join(dev_dir, "idVendor")).read().strip()
+            pid = open(os.path.join(dev_dir, "idProduct")).read().strip()
+            if vid == "1532" and pid == "0e05":
+                busnum = int(open(os.path.join(dev_dir, "busnum")).read().strip())
+                devnum = int(open(os.path.join(dev_dir, "devnum")).read().strip())
+                usb_path = f"/dev/bus/usb/{busnum:03d}/{devnum:03d}"
+                # UVC Video Control interface is typically interface 0
+                return usb_path, 0
+        except (OSError, ValueError):
+            pass
+    return None, None
+
+
+def usb_raw_control(usb_fd, request_type, request, value, index, data,
+                    timeout_ms=5000):
+    """Send a raw USB control transfer via USBDEVFS_CONTROL ioctl.
+
+    For device-to-host (request_type & 0x80): returns response bytes.
+    For host-to-device: sends data, returns None.
+    """
+    is_read = bool(request_type & 0x80)
+    length = len(data)
+
+    if is_read:
+        data_buf = (ctypes.c_ubyte * length)()
+    else:
+        data_buf = (ctypes.c_ubyte * length)(*data)
+
+    data_ptr = ctypes.cast(data_buf, ctypes.c_void_p).value
+
+    # struct usbdevfs_ctrltransfer on x86_64 (24 bytes):
+    #   __u8  bRequestType;   // offset 0
+    #   __u8  bRequest;       // offset 1
+    #   __u16 wValue;         // offset 2
+    #   __u16 wIndex;         // offset 4
+    #   __u16 wLength;        // offset 6
+    #   __u32 timeout;        // offset 8
+    #   /* pad 4 bytes */     // offset 12
+    #   void *data;           // offset 16
+    ctrl_buf = struct.pack("@BBHHHIP", request_type, request, value, index,
+                           length, timeout_ms, data_ptr)
+
+    fcntl.ioctl(usb_fd, USBDEVFS_CONTROL, ctrl_buf)
+
+    if is_read:
+        return bytes(data_buf)
+    return None
+
+
+class RawUsbXu:
+    """Raw USB access to UVC Extension Unit, bypassing uvcvideo driver.
+
+    Detaches the kernel driver, claims the interface, and sends UVC class
+    requests directly. Reattaches the driver on close.
+    """
+
+    def __init__(self, usb_path, interface_num):
+        self.usb_fd = os.open(usb_path, os.O_RDWR)
+        self.interface = interface_num
+        self.detached = False
+
+        # Detach kernel driver (uvcvideo) from the VC interface
+        try:
+            intf_buf = struct.pack("@I", self.interface)
+            fcntl.ioctl(self.usb_fd, USBDEVFS_DISCONNECT, intf_buf)
+            self.detached = True
+        except OSError as e:
+            # ENODATA = no driver attached, that's fine
+            if e.errno != 61:  # ENODATA
+                raise
+
+        # Claim the interface
+        intf_buf = struct.pack("@I", self.interface)
+        fcntl.ioctl(self.usb_fd, USBDEVFS_CLAIMINTERFACE, intf_buf)
+
+    def set_cur(self, unit, selector, data):
+        """UVC SET_CUR via raw USB control transfer."""
+        usb_raw_control(
+            self.usb_fd,
+            request_type=0x21,  # host-to-device, class, interface
+            request=UVC_SET_CUR,
+            value=selector << 8,
+            index=(unit << 8) | self.interface,
+            data=data
+        )
+
+    def get_cur(self, unit, selector, size):
+        """UVC GET_CUR via raw USB control transfer. Returns response bytes."""
+        return usb_raw_control(
+            self.usb_fd,
+            request_type=0xA1,  # device-to-host, class, interface
+            request=UVC_GET_CUR,
+            value=selector << 8,
+            index=(unit << 8) | self.interface,
+            data=bytes(size)
+        )
+
+    def close(self):
+        """Release interface and reattach kernel driver."""
+        try:
+            intf_buf = struct.pack("@I", self.interface)
+            fcntl.ioctl(self.usb_fd, USBDEVFS_RELEASEINTERFACE, intf_buf)
+        except OSError:
+            pass
+        if self.detached:
+            try:
+                intf_buf = struct.pack("@I", self.interface)
+                fcntl.ioctl(self.usb_fd, USBDEVFS_CONNECT, intf_buf)
+            except OSError:
+                pass
+        os.close(self.usb_fd)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.close()
 
 
 def find_kiyo_video_dev():
@@ -483,6 +634,166 @@ def cmd_enter_romboot(args):
     print("Check 'lsusb' and 'dmesg' for clues.")
     print("If the device is still in normal mode, the command may need adjustment.")
     return 1
+
+
+def cmd_flash_normal(args):
+    """Flash firmware via normal-mode UVC Extension Unit protocol.
+
+    Protocol reverse-engineered from AitUVCExtApi.dll AITAPI_UpdateFW_842x:
+
+    Phase 1 — Size handshake:
+      1. SET_CUR XU6 sel=4 (8 bytes): firmware size as LE u32, rest zero
+      2. GET_CUR XU6 sel=5 (8 bytes): check byte[0]==0 (ready)
+
+    Phase 2 — Data transfer:
+      3. GET_CUR XU6 sel=3 (32 bytes): initial handshake read
+      4. Sleep 300ms
+      5. Loop SET_CUR XU6 sel=3 (32 bytes): send firmware in 32-byte chunks
+
+    Phase 3 — Completion:
+      6. SET_CUR XU6 sel=4 (8 bytes): [0x01, 0x01, 0x03, 0x00, ...]
+      7. Poll GET_CUR XU6 sel=5 (8 bytes) every 30ms until done
+
+    Uses raw USB control transfers (bypassing uvcvideo driver) because
+    sel=3 is marked GET-only in the UVC descriptor, but the firmware
+    accepts SET_CUR on it. The Windows driver ignores this restriction.
+    """
+    XU6_UNIT = 6
+
+    print("=== Normal-Mode Firmware Flash ===")
+    print()
+
+    # Validate firmware file
+    if not os.path.isfile(args.firmware):
+        print(f"ERROR: Firmware file not found: {args.firmware}")
+        return 1
+
+    with open(args.firmware, 'rb') as f:
+        fw_data = f.read()
+    fw_len = len(fw_data)
+    print(f"Firmware: {args.firmware} ({fw_len} bytes)")
+
+    # Find the raw USB device
+    usb_path, intf = find_kiyo_usb_path()
+    if not usb_path:
+        print("ERROR: Razer Kiyo Pro (1532:0e05) not found on USB bus.")
+        return 1
+    print(f"USB device: {usb_path}")
+    print()
+
+    if not args.force:
+        print("WARNING: This will flash new firmware to the camera.")
+        print("A bad flash can brick the device (recoverable via ROM boot mode).")
+        print("Make sure you have a backup of the original firmware.")
+        print()
+        try:
+            confirm = input("Continue? [y/N] ").strip().lower()
+            if confirm != 'y':
+                print("Aborted.")
+                return
+        except (EOFError, KeyboardInterrupt):
+            print("\nAborted.")
+            return
+
+    try:
+        xu = RawUsbXu(usb_path, intf)
+    except OSError as e:
+        print(f"ERROR: Cannot open USB device: {e}")
+        print("Try: sudo python3 kiyo-flash.py flash-normal --firmware <file>")
+        return 1
+
+    try:
+        # Phase 1: Size handshake
+        print("[Phase 1] Sending firmware size to sel=4...")
+        size_data = struct.pack("<I", fw_len) + bytes(4)  # LE u32 + 4 zero bytes
+        xu.set_cur(XU6_UNIT, 4, size_data)
+        print(f"  Sent size: {fw_len} bytes ({size_data.hex()})")
+
+        print("  Reading ack from sel=5...")
+        ack = xu.get_cur(XU6_UNIT, 5, 8)
+        print(f"  Ack: {ack.hex()}")
+        if ack[0] != 0x00:
+            print(f"  ERROR: Device not ready (byte[0]=0x{ack[0]:02x}, expected 0x00)")
+            return 1
+        print("  Device ready for data.")
+
+        # Phase 2: Data transfer
+        print(f"\n[Phase 2] Transferring firmware ({fw_len} bytes in 32-byte chunks)...")
+        print("  Reading initial handshake from sel=3...")
+        handshake = xu.get_cur(XU6_UNIT, 3, 32)
+        print(f"  Handshake: {handshake[:8].hex()}...")
+
+        print("  Sleeping 300ms...")
+        time.sleep(0.3)
+
+        offset = 0
+        total_chunks = (fw_len + 31) // 32
+        start_time = time.time()
+        while offset < fw_len:
+            chunk_size = min(32, fw_len - offset)
+            # Zero-padded 32-byte buffer (matches DLL behavior)
+            chunk = bytearray(32)
+            chunk[:chunk_size] = fw_data[offset:offset + chunk_size]
+
+            xu.set_cur(XU6_UNIT, 3, bytes(chunk))
+            offset += chunk_size
+
+            # Progress display
+            pct = offset * 100 // fw_len
+            chunk_num = offset // 32
+            elapsed = time.time() - start_time
+            rate = offset / elapsed if elapsed > 0 else 0
+            eta = (fw_len - offset) / rate if rate > 0 else 0
+            print(f"\r  Sending: {offset}/{fw_len} bytes ({pct}%) "
+                  f"[{chunk_num}/{total_chunks} chunks, "
+                  f"{rate/1024:.1f} KB/s, ETA {eta:.0f}s]",
+                  end="", flush=True)
+
+        elapsed = time.time() - start_time
+        print(f"\n  Transfer complete in {elapsed:.1f}s")
+
+        # Phase 3: Completion
+        print("\n[Phase 3] Sending completion signal to sel=4...")
+        completion = bytes([0x01, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00])
+        xu.set_cur(XU6_UNIT, 4, completion)
+        print(f"  Sent: {completion.hex()}")
+
+        print("  Polling sel=5 for burn status...")
+        first_zero = True
+        for attempt in range(200):  # max ~6 seconds
+            time.sleep(0.03)  # 30ms between polls
+            status = xu.get_cur(XU6_UNIT, 5, 8)
+            status_byte = status[0]
+
+            if status_byte == 0x82:
+                print(f"\n  BURN ERROR: Device reported error 0x82")
+                print(f"  Full status: {status.hex()}")
+                return 1
+            elif status_byte == 0x00 and first_zero:
+                # First zero response — wait 1 second (10 × 100ms) then retry
+                first_zero = False
+                print("  Status: 0x00 (processing), waiting 1s...")
+                time.sleep(1.0)
+            elif status_byte != 0x00:
+                print(f"  Status: 0x{status_byte:02x} — burn complete!")
+                break
+        else:
+            print("  WARNING: Polling timed out (status never changed from 0x00)")
+            print("  The firmware may still be burning. Check device status.")
+
+        print("\n=== Flash complete! ===")
+        print("The device should reboot with new firmware.")
+        print("If the camera doesn't appear, power-cycle it (unplug and replug).")
+        return 0
+
+    except OSError as e:
+        print(f"\nERROR during flash: {e}")
+        print("The device may be in an inconsistent state.")
+        print("If the camera doesn't respond, use ROM boot recovery:")
+        print("  python3 kiyo-flash.py enter-romboot")
+        return 1
+    finally:
+        xu.close()
 
 
 def cmd_flash(args):
@@ -650,7 +961,10 @@ def main():
 Examples:
   %(prog)s probe                    Check device state
   %(prog)s enter-romboot            Try to enter ROM boot mode
+  %(prog)s flash-normal --firmware patched-fwimage.bin
+                                    Flash via UVC XU (normal mode, no ROM boot)
   %(prog)s flash --updater updater.bin --firmware fwimage.bin
+                                    Flash via ROM boot mode (for bricked devices)
   %(prog)s uboot-shell              Interactive u-boot console
   %(prog)s dump-flash -o backup.bin Dump SPI flash (requires u-boot state)
         """)
@@ -662,7 +976,14 @@ Examples:
     romboot_p.add_argument('--force', '-f', action='store_true',
                           help='Skip confirmation prompt')
 
-    flash_p = sub.add_parser('flash', help='Flash firmware image')
+    flash_normal_p = sub.add_parser('flash-normal',
+        help='Flash firmware via normal-mode UVC XU protocol (no ROM boot)')
+    flash_normal_p.add_argument('--firmware', required=True,
+        help='Firmware image to flash (e.g., fwimage.bin)')
+    flash_normal_p.add_argument('--force', '-f', action='store_true',
+        help='Skip confirmation prompt')
+
+    flash_p = sub.add_parser('flash', help='Flash firmware via ROM boot mode')
     flash_p.add_argument('--updater', help='Updater firmware (updater.bin)')
     flash_p.add_argument('--firmware', required=True, help='Main firmware image')
 
@@ -681,6 +1002,7 @@ Examples:
     commands = {
         'probe': cmd_probe,
         'enter-romboot': cmd_enter_romboot,
+        'flash-normal': cmd_flash_normal,
         'flash': cmd_flash,
         'uboot-shell': cmd_uboot_shell,
         'dump-flash': cmd_dump_flash,

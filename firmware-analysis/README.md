@@ -33,14 +33,42 @@ The camera has two UVC Extension Units on interface 0:
 ### XU6 Known Selectors
 
 Reverse-engineered from `AitUVCExtApi.dll` (radare2 disassembly of exported
-functions and the core KsProperty wrapper `fcn.1000a270`):
+functions and the core KsProperty wrappers `fcn.1000a270` (SET_CUR, flag
+`0x10000002`) and `fcn.1000a500` (GET_CUR, flag `0x10000001`)):
 
 | Selector | Direction | Size | Purpose |
 |----------|-----------|------|---------|
 | 1 | SET_CUR | 8 | Command channel (send commands to firmware) |
 | 2 | GET_CUR | 8 | Response channel (read firmware replies) |
-| 4 | SET_CUR | 8 | System commands (ROM boot, etc.) |
+| 3 | SET+GET* | 32 | Firmware data transfer (32-byte chunks) |
+| 4 | SET+GET | 8 | System commands (ROM boot, fw size, completion) |
+| 5 | GET_CUR | 8 | Status register (fw update ack, burn progress) |
+| 10 | GET_CUR | 32 | ISP codename — returns ASCII "PYTHON_V2B" |
 | 14 | SET_CUR | 16 | Mode/resolution reset |
+
+\* Sel=3 is marked **GET-only** in the UVC descriptor but the DLL sends
+SET_CUR to it during firmware updates. The Windows UVC minidriver ignores
+descriptor capabilities. On Linux, raw USB control transfers (bypassing
+uvcvideo) are required for SET_CUR on sel=3.
+
+### XU6 Sel=5 Status Register
+
+Sel=5 is the firmware's status/acknowledgment register (8 bytes, GET_CUR):
+
+| Context | Byte[0] | Meaning |
+|---------|---------|---------|
+| After sel=4 size write | `0x00` | Ready for data transfer |
+| After sel=4 size write | non-zero | Error — device not ready |
+| During burn (sel=5 poll) | `0x00` | Still burning (first time: wait 1s) |
+| During burn (sel=5 poll) | `0x82` | Burn error (fatal) |
+| During burn (sel=5 poll) | non-zero, ≠0x82 | Burn complete (success) |
+| Idle state | `0x80` | Idle (observed in hardware testing) |
+| After sel=4 command | `0x00` | Command acknowledged/processing |
+
+Observed in hardware testing: sel=5 reads `0x80...` in idle state. After
+writing to sel=4, it changes to `0x00...` briefly before returning to
+`0x80...`. This confirms the camera processes sel=4 data even if the
+command doesn't trigger a visible state change.
 
 ### Firmware Version Query
 
@@ -83,6 +111,79 @@ The new device presents as SCSI mass storage with vendor ID "GCREADER".
 **Linux implementation:** Use `UVCIOC_CTRL_QUERY` ioctl on `/dev/videoN`
 with `unit=6, selector=4|14, query=UVC_SET_CUR (0x01)`. See `kiyo-flash.py`
 `cmd_enter_romboot()` for the implementation.
+
+### Normal-Mode Firmware Update Protocol
+
+Reverse-engineered from `AITAPI_UpdateFW_842x` (VA `0x10003dd0`) and
+`AITAPI_WriteFWData` (VA `0x10004850`) in `AitUVCExtApi.dll`. The call chain:
+
+```
+C# UpdateDevFW(handle, fwdata, len)
+  → AITDLL.dll UpdateDeviceFlash(handle, fwdata, len)     @ 0x1005f7fa
+    → AitUVCExtApi.dll AITAPI_UpdateFW_842x(ctx, data, len, cb, NULL, 0)  @ 0x10003dd0
+      → AITAPI_WriteFWData(ctx, data, len, cb, NULL)      @ 0x10004850
+```
+
+All transfers target XU6 GUID `{23e49ed0-1178-4f31-ae52-d2fb8a8d3b48}`.
+
+**Phase 1 — Size handshake:**
+
+1. **SET_CUR XU6 sel=4** (8 bytes): firmware size as little-endian u32
+   ```
+   data[0..3] = fw_length as LE u32
+   data[4..7] = 0x00
+   ```
+   DLL RVA: `0x10003e78` → `fcn.1000a270` (SET_CUR wrapper)
+
+2. **GET_CUR XU6 sel=5** (8 bytes): read acknowledgment
+   ```
+   byte[0] == 0x00 → device ready for data
+   byte[0] != 0x00 → error ("Firmware burning error")
+   ```
+   DLL RVA: `0x10003e9c` → `fcn.1000a500` (GET_CUR wrapper)
+
+**Phase 2 — Data transfer (sel=3, 32-byte chunks):**
+
+3. **GET_CUR XU6 sel=3** (32 bytes): initial handshake read
+   DLL RVA: `0x100048db` → `fcn.1000a500`
+
+4. **Sleep 300ms** (`Sleep(0x12c)` at `0x100048e0`)
+
+5. **Loop: SET_CUR XU6 sel=3** (32 bytes): send firmware data
+   ```
+   - Zero-pad a 32-byte buffer
+   - Copy min(remaining, 32) bytes from firmware
+   - SET_CUR XU6 sel=3 with the 32-byte buffer
+   - If HRESULT < 0 → "Send data error" (MessageBox)
+   - For a 2,065,648-byte firmware: 64,552 USB control transfers
+   ```
+   DLL RVA: `0x10004941` → `fcn.1000a270` (SET_CUR wrapper)
+
+**Phase 3 — Completion:**
+
+6. **SET_CUR XU6 sel=4** (8 bytes): completion signal
+   ```
+   data = [0x01, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00]
+   ```
+   Byte[3] = completion flag passed from caller (AITDLL passes 0x00).
+   DLL RVA: `0x10003ee8` → `fcn.1000a270`
+
+7. **Poll GET_CUR XU6 sel=5** (8 bytes) every 30ms:
+   ```
+   byte[0] == 0x82 → "Firmware burning error" (fatal)
+   byte[0] == 0x00 → first time only: sleep 100ms × 10, then retry
+   byte[0] != 0x00 → success, flash complete
+   ```
+   DLL RVA: `0x10003f23` → `fcn.1000a500` (in a loop with `Sleep(30)`)
+
+**Key constraint:** Sel=3 is marked GET-only in the UVC descriptor. The
+Windows UVC minidriver ignores this and sends SET_CUR anyway. On Linux,
+`kiyo-flash.py` uses raw USB control transfers via `USBDEVFS_CONTROL`
+ioctl on `/dev/bus/usb/BBB/DDD`, detaching uvcvideo first to claim the
+interface.
+
+**Estimated flash time:** 64,552 chunks × ~1ms per USB control transfer
+≈ 65 seconds for the data phase. Plus handshake + burn time.
 
 ## Location in Firmware Binary
 
@@ -206,16 +307,23 @@ Full source at https://github.com/ProbablyXS/razer-kiyo-pro-firmware-updater-fix
 
 **CRC16 validation:** `Common.CRC16(byte[])` computes checksum for data integrity.
 
-**Flash sequence:**
+**Flash sequence (normal mode — what the official updater uses):**
 1. Extract firmware sectors from ResourceSet to temp files
 2. Open device via `AITOpenDev(0x1532, 0x0E05)`
 3. Read firmware file into byte array
 4. Call `UpdateDeviceFlash(handle, fwdata, len)` — returns 1 on success
+   (internally: sel=4 size → sel=5 ack → sel=3 data loop → sel=4 done → sel=5 poll)
 5. Poll `GetDevUpdateProgress()` for progress percentage
 6. Issue `DevReset()` after completion
 7. If IQ file update needed: repeat steps 2-6 for IQ firmware
 8. Verify new firmware version matches target
 9. Delete temp files (`fwimage`, `updater.bin`, `iqfile.lfs`)
+
+**ROM boot fallback** (only if device is bricked / `AITOpenDev()` fails):
+1. `ResetToRomBoot()` → device re-enumerates as 114D:8200
+2. `AITOpenROMDev()` → open bootloader device
+3. `LoadUpdaterv3FW()` → load updater into RAM
+4. `LoadDevFWAtROMBoot()` → flash firmware from bootloader mode
 
 ### Linux Flash Tool (kiyo-flash.py)
 
@@ -228,7 +336,10 @@ sudo python3 kiyo-flash.py probe
 # Enter ROM boot mode (sends UVC XU commands to camera)
 sudo python3 kiyo-flash.py enter-romboot
 
-# Flash firmware (device must be in ROM boot / GCREADER mode)
+# Flash firmware via normal mode (recommended — no ROM boot needed)
+sudo python3 kiyo-flash.py flash-normal --firmware patched-fwimage.bin
+
+# Flash firmware via ROM boot mode (for bricked devices)
 sudo python3 kiyo-flash.py flash --updater updater.bin --firmware fwimage.bin
 
 # Interactive u-boot shell (if device reaches u-boot state)
@@ -239,15 +350,26 @@ sudo python3 kiyo-flash.py dump-flash -o backup.bin
 ```
 
 **Implementation:**
-- ROM boot entry: `UVCIOC_CTRL_QUERY` ioctl sending XU6 commands
-- SCSI communication: `SG_IO` ioctl with vendor command `0xE8`
-- Data transfer: chunked via `DOWNLOAD_KEEP`/`DOWNLOAD_END` subcodes
-- Integrity: MD5 verification via `UFU_LOADINFO` subcode
-- Shell access: `UFU_RUN_CMD` subcode executes u-boot command strings
+- **Normal-mode flash** (`flash-normal`): Raw USB control transfers via
+  `USBDEVFS_CONTROL` ioctl, detaches uvcvideo driver, sends 32-byte chunks
+  through XU6 sel=3. Protocol: sel=4 (size) → sel=5 (ack) → sel=3 (data
+  loop) → sel=4 (completion) → sel=5 (poll).
+- **ROM boot entry** (`enter-romboot`): `UVCIOC_CTRL_QUERY` ioctl sending
+  XU6 commands
+- **SCSI flash** (`flash`): `SG_IO` ioctl with vendor command `0xE8`,
+  chunked via `DOWNLOAD_KEEP`/`DOWNLOAD_END` subcodes
+- **Integrity:** MD5 verification via `UFU_LOADINFO` subcode
+- **Shell access:** `UFU_RUN_CMD` subcode executes u-boot command strings
 
-**Status:** ROM boot entry (UVC XU commands) is implemented but **untested**.
-SCSI protocol commands are implemented based on DongshanPI/SigmaStar-USBDownloadTool
-and OpenIPC/u-boot-sigmastar source code.
+**Status:**
+- Normal-mode flash (`flash-normal`): Implemented, **untested on hardware**.
+  Protocol fully reverse-engineered from DLL disassembly.
+- ROM boot entry (`enter-romboot`): Implemented, tested — commands are
+  accepted but camera doesn't transition to ROM boot (may need different
+  opcode for this firmware version). The normal update path (`flash-normal`)
+  doesn't require ROM boot.
+- SCSI protocol (`flash`): Implemented based on DongshanPI/SigmaStar-USBDownloadTool
+  and OpenIPC/u-boot-sigmastar source code, untested.
 
 **Risk:** ROM boot mode (114D:8200) provides a recovery path — the mask ROM
 in the SoC presents a USB boot interface regardless of flash contents. Per
