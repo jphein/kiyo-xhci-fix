@@ -236,4 +236,4 @@ See [`firmware-analysis/README.md`](firmware-analysis/README.md) for exact byte 
 
 ## License
 
-MIT
+GPL-3.0-or-later
