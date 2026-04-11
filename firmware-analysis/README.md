@@ -439,9 +439,32 @@ sudo python3 kiyo-flash.py dump-flash -o backup.bin
 - SCSI protocol (`flash`): Implemented based on DongshanPI/SigmaStar-USBDownloadTool
   and OpenIPC/u-boot-sigmastar source code. Untested — requires ROM boot
   mode which is currently inaccessible.
-- **Remaining options:** Hardware ROM boot (ground boot pin on PCB), Windows
-  VM with USB passthrough (to verify if official updater succeeds), or accept
-  kernel patches as the fix.
+- **Remaining options and unexplored leads:**
+  1. **Windows VM with USB passthrough** — run the official Razer updater
+     against the real device to confirm whether the USB flash path works at
+     all. win11 KVM VM is available with USB passthrough configured. This
+     would definitively answer whether our protocol is wrong or the device
+     rejects all USB flash attempts.
+  2. **Hardware ROM boot** — open the camera, ground the Sigmastar SAV630D
+     boot pin to force mask ROM boot at power-on, then flash via SCSI path.
+  3. **Alternative DLL command codes** — only `AITAPI_UpdateFW_842x`
+     (`0x00030001`) was tested. The DLL exports other flash functions with
+     different Phase 1 command codes that may target different flash banks:
+     - `AITAPI_UpdateFlash` uses `0x00000001` — possibly a raw flash write
+     - `AITUVCEXT_UpdateFW_with_progressEx` uses `0x01000001` — unknown variant
+     - `AITUVCEXT_UpdateFW_Vision` uses a 10-second fixed timeout instead
+       of polling — may be the correct path for vision/camera SoCs
+  4. **Trace `AITDLL.dll UpdateDeviceFlash`** — the .NET app calls through
+     `AITDLL.dll` (VA `0x1005f7fa`) before reaching `AitUVCExtApi.dll`.
+     AITDLL may have pre/post steps (version checks, flash unlock commands,
+     bank selection) that we haven't analyzed. This is a separate DLL from
+     AitUVCExtApi and may contain the missing piece.
+  5. **Version/same-firmware check** — the device might reject writes when
+     the incoming firmware matches the running version. We're flashing
+     v1.5.0.1 over v1.5.0.1 (with one byte changed). A version header
+     check could silently skip the NAND write.
+  6. **Accept kernel patches** — patches 2-3 (CTRL_THROTTLE + device quirks)
+     mitigate the bug at the kernel level and are already under review upstream.
 
 **Risk:** ROM boot mode (114D:8200) provides a recovery path — the mask ROM
 in the SoC presents a USB boot interface regardless of flash contents. Per
