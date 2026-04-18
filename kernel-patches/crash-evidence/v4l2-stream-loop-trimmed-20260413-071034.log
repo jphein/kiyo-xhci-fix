@@ -1,0 +1,59 @@
+[Mon Apr 13 07:10:34 2026] ------------[ cut here ]------------
+[Mon Apr 13 07:10:34 2026] WARNING: CPU: 6 PID: 4134792 at drivers/media/common/videobuf2/videobuf2-core.c:957 vb2_core_reqbufs+0x1e6/0x540 [videobuf2_common]
+[Mon Apr 13 07:10:34 2026] Modules linked in: xt_comment xt_recent tls 8021q garp mrp r8153_ecm cdc_ether usbnet r8152 mii vhost_net vhost vhost_iotlb tap nf_conntrack_netlink xfrm_user xfrm_algo br_netfilter overlay xt_connmark xt_mark snd_seq_dummy snd_hrtimer rfcomm cmac algif_hash algif_skcipher af_alg xt_CHECKSUM xt_MASQUERADE nft_masq nft_chain_nat nf_nat bridge stp llc bnep sunrpc binfmt_misc ip6t_REJECT nf_reject_ipv6 xt_hl ip6t_rt ipt_REJECT nf_reject_ipv4 xt_LOG nf_log_syslog nft_limit xt_limit xt_addrtype snd_sof_pci_intel_cnl snd_sof_intel_hda_generic soundwire_intel snd_sof_intel_hda_sdw_bpt snd_sof_intel_hda_common snd_soc_hdac_hda snd_sof_intel_hda_mlink snd_sof_intel_hda soundwire_cadence snd_sof_pci snd_sof_xtensa_dsp snd_sof snd_sof_utils snd_soc_acpi_intel_match snd_soc_acpi_intel_sdca_quirks intel_rapl_msr soundwire_generic_allocation snd_hda_codec_alc662 snd_soc_acpi intel_rapl_common snd_hda_codec_realtek_lib soundwire_bus intel_uncore_frequency snd_hda_codec_generic intel_uncore_frequency_common
+[Mon Apr 13 07:10:34 2026]  snd_hda_codec_nvhdmi cmdlinepart snd_soc_sdca snd_hda_codec_hdmi crc8 spi_nor snd_soc_avs mei_hdcp ee1004 mei_pxp snd_soc_hda_codec snd_hda_intel snd_hda_ext_core mtd intel_tcc_cooling x86_pkg_temp_thermal xt_tcpudp snd_hda_codec intel_powerclamp xt_conntrack snd_usb_audio snd_hda_core coretemp iwlmvm snd_intel_dspcfg nf_conntrack snd_usbmidi_lib snd_intel_sdw_acpi nf_defrag_ipv6 nf_defrag_ipv4 polyval_clmulni mac80211 uvcvideo(OE) btusb nft_compat ghash_clmulni_intel aesni_intel kvm_intel videobuf2_vmalloc btrtl snd_soc_core snd_seq_midi rapl uvc snd_hwdep libarc4 nf_tables iwlwifi kvm snd_seq_midi_event videobuf2_memops snd_ump snd_compress i2c_i801 videobuf2_v4l2 btintel i2c_smbus spi_intel_pci ac97_bus irqbypass intel_cstate cfg80211 snd_rawmidi wmi_bmof spi_intel i2c_mux mxm_wmi snd_pcm_dmaengine videobuf2_common btbcm snd_pcm btmtk videodev snd_seq snd_seq_device mei_me nls_iso8859_1 mc snd_timer mei bluetooth snd soundcore i2c_nvidia_gpu cdc_acm i2c_ccgx_ucsi intel_pch_thermal intel_pmc_core
+[Mon Apr 13 07:10:34 2026]  pmt_telemetry pmt_discovery pmt_class acpi_pad intel_pmc_ssram_telemetry acpi_tad intel_vsec input_leds joydev mac_hid sch_fq_codel ntsync msr parport_pc ppdev lp parport efi_pstore nfnetlink dmi_sysfs ip_tables x_tables autofs4 btrfs blake2b_generic raid10 raid456 async_raid6_recov async_memcpy async_pq async_xor async_tx xor raid6_pq raid0 linear lz4_compress nvidia_uvm(PO) uas usb_storage hid_generic usbhid hid raid1 nvidia_drm(PO) nvidia_modeset(PO) nvme nvidia(PO) nvme_core r8169 realtek nvme_keyring video nvme_auth drm_ttm_helper ahci ttm libahci wmi
+[Mon Apr 13 07:10:34 2026] CPU: 6 UID: 1000 PID: 4134792 Comm: v4l2-ctl Tainted: P        W  OE       6.17.0-20-generic #20~24.04.1-Ubuntu PREEMPT(voluntary) 
+[Mon Apr 13 07:10:34 2026] Tainted: [P]=PROPRIETARY_MODULE, [W]=WARN, [O]=OOT_MODULE, [E]=UNSIGNED_MODULE
+[Mon Apr 13 07:10:34 2026] Hardware name: Micro-Star International Co., Ltd. Z390 Gaming Trident X Plus (MS-B926)/MPG Z390I GAMING EDGE AC (MS-7C04), BIOS B.30 07/03/201
+[Mon Apr 13 07:10:34 2026] RIP: 0010:vb2_core_reqbufs+0x1e6/0x540 [videobuf2_common]
+[Mon Apr 13 07:10:34 2026] Code: c8 85 c9 75 12 e9 ca 02 00 00 48 83 c3 01 48 39 c3 0f 84 1f 01 00 00 89 de 83 fb 07 0f 87 33 03 00 00 41 8b 34 9b 85 f6 75 e0 <0f> 0b b8 ea ff ff ff 4c 89 e7 89 45 9c e8 e8 f2 59 c5 4c 89 e7 41
+[Mon Apr 13 07:10:34 2026] RSP: 0018:ffffcf54a313b880 EFLAGS: 00010246
+[Mon Apr 13 07:10:34 2026] RAX: 0000000000000001 RBX: 0000000000000000 RCX: 0000000000000001
+[Mon Apr 13 07:10:34 2026] RDX: 0000000000000000 RSI: 0000000000000000 RDI: 0000000000000000
+[Mon Apr 13 07:10:34 2026] RBP: ffffcf54a313b900 R08: ffff8be5396e85d8 R09: 0000000000000000
+[Mon Apr 13 07:10:34 2026] R10: 0000000000000000 R11: ffffcf54a313b8b0 R12: ffff8be5396e8618
+[Mon Apr 13 07:10:34 2026] R13: ffffcf54a313ba70 R14: ffff8be5396e8570 R15: ffff8be5396e85d8
+[Mon Apr 13 07:10:34 2026] FS:  0000719e8bcd32c0(0000) GS:ffff8becbf962000(0000) knlGS:0000000000000000
+[Mon Apr 13 07:10:34 2026] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[Mon Apr 13 07:10:34 2026] CR2: 00007ffc249cff68 CR3: 00000001c0956004 CR4: 00000000003726f0
+[Mon Apr 13 07:10:34 2026] Call Trace:
+[Mon Apr 13 07:10:34 2026]  <TASK>
+[Mon Apr 13 07:10:34 2026]  ? update_load_avg+0x8b/0x410
+[Mon Apr 13 07:10:34 2026]  vb2_ioctl_reqbufs+0xc8/0xf0 [videobuf2_v4l2]
+[Mon Apr 13 07:10:34 2026]  v4l_reqbufs+0x6f/0x90 [videodev]
+[Mon Apr 13 07:10:34 2026]  __video_do_ioctl+0x3ef/0x5c0 [videodev]
+[Mon Apr 13 07:10:34 2026]  ? __pfx___video_do_ioctl+0x10/0x10 [videodev]
+[Mon Apr 13 07:10:34 2026]  video_usercopy+0x29e/0x770 [videodev]
+[Mon Apr 13 07:10:34 2026]  video_ioctl2+0x15/0x30 [videodev]
+[Mon Apr 13 07:10:34 2026]  uvc_v4l2_unlocked_ioctl+0x144/0x190 [uvcvideo]
+[Mon Apr 13 07:10:34 2026]  v4l2_ioctl+0x69/0xb0 [videodev]
+[Mon Apr 13 07:10:34 2026]  __x64_sys_ioctl+0xa2/0x100
+[Mon Apr 13 07:10:34 2026]  x64_sys_call+0x1226/0x2680
+[Mon Apr 13 07:10:34 2026]  do_syscall_64+0x80/0xa40
+[Mon Apr 13 07:10:34 2026]  ? video_ioctl2+0x15/0x30 [videodev]
+[Mon Apr 13 07:10:34 2026]  ? uvc_v4l2_unlocked_ioctl+0x144/0x190 [uvcvideo]
+[Mon Apr 13 07:10:34 2026]  ? v4l2_ioctl+0x69/0xb0 [videodev]
+[Mon Apr 13 07:10:34 2026]  ? __x64_sys_ioctl+0xa2/0x100
+[Mon Apr 13 07:10:34 2026]  ? arch_exit_to_user_mode_prepare.isra.0+0xd/0xe0
+[Mon Apr 13 07:10:34 2026]  ? do_syscall_64+0xb6/0xa40
+[Mon Apr 13 07:10:34 2026]  ? rpm_suspend+0x5c1/0x5d0
+[Mon Apr 13 07:10:34 2026]  ? __flush_work+0x65/0xe0
+[Mon Apr 13 07:10:34 2026]  ? rpm_idle+0x1d7/0x2b0
+[Mon Apr 13 07:10:34 2026]  ? __pm_runtime_idle+0x4b/0xf0
+[Mon Apr 13 07:10:34 2026]  ? __rseq_handle_notify_resume+0xb3/0x1a0
+[Mon Apr 13 07:10:34 2026]  ? v4l2_ioctl+0x69/0xb0 [videodev]
+[Mon Apr 13 07:10:34 2026]  ? arch_exit_to_user_mode_prepare.isra.0+0xc2/0xe0
+[Mon Apr 13 07:10:34 2026]  ? do_syscall_64+0xb6/0xa40
+[Mon Apr 13 07:10:34 2026]  ? exc_page_fault+0x90/0x1b0
+[Mon Apr 13 07:10:34 2026]  entry_SYSCALL_64_after_hwframe+0x76/0x7e
+[Mon Apr 13 07:10:34 2026] RIP: 0033:0x719e8b724e1d
+[Mon Apr 13 07:10:34 2026] Code: 04 25 28 00 00 00 48 89 45 c8 31 c0 48 8d 45 10 c7 45 b0 10 00 00 00 48 89 45 b8 48 8d 45 d0 48 89 45 c0 b8 10 00 00 00 0f 05 <89> c2 3d 00 f0 ff ff 77 1a 48 8b 45 c8 64 48 2b 04 25 28 00 00 00
+[Mon Apr 13 07:10:34 2026] RSP: 002b:00007ffc249cfde0 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+[Mon Apr 13 07:10:34 2026] RAX: ffffffffffffffda RBX: 00007ffc249d2620 RCX: 0000719e8b724e1d
+[Mon Apr 13 07:10:34 2026] RDX: 00007ffc249cff20 RSI: 00000000c0145608 RDI: 0000000000000003
+[Mon Apr 13 07:10:34 2026] RBP: 00007ffc249cfe30 R08: 00007ffc249d2220 R09: 00000000ffffffff
+[Mon Apr 13 07:10:34 2026] R10: 0000000000000001 R11: 0000000000000246 R12: 00007ffc249d46b0
+[Mon Apr 13 07:10:34 2026] R13: 0000000080845663 R14: 00007ffc249d46b0 R15: 0000000000000000
+[Mon Apr 13 07:10:34 2026]  </TASK>
+[Mon Apr 13 07:10:34 2026] ---[ end trace 0000000000000000 ]---

@@ -4,3 +4,5 @@
 !kernel-patches/uvcvideo-patched.ko
 kernel-patches/reply-*.txt
 /tmp/
+__pycache__/
+*.pyc
