@@ -1,0 +1,19 @@
+[Unit]
+Description=Kiyo Pro xHCI test matrix queue processor
+After=multi-user.target network-online.target
+Wants=network-online.target
+ConditionPathExists=!/tmp/kiyo-matrix-pause
+
+[Service]
+Type=oneshot
+User=jp
+Group=jp
+WorkingDirectory=/home/jp/Projects/kiyo-xhci-fix/kernel-patches/matrix
+ExecStartPre=/bin/sleep 20
+ExecStart=/bin/bash /home/jp/Projects/kiyo-xhci-fix/kernel-patches/matrix/queue.sh
+StandardOutput=append:/home/jp/Projects/kiyo-xhci-fix/kernel-patches/matrix/results/queue.log
+StandardError=append:/home/jp/Projects/kiyo-xhci-fix/kernel-patches/matrix/results/queue.log
+TimeoutStartSec=1h
+
+[Install]
+WantedBy=multi-user.target
