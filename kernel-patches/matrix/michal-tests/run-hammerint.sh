@@ -53,13 +53,40 @@ discover_kiyos() {
 unbind_path() {
     local p="$1"
     [ -d "/sys/bus/usb/devices/$p" ] || return 0
+    # Skip if already unbound (no driver symlink)
+    [ -L "/sys/bus/usb/devices/$p/driver" ] || return 0
     echo "$p" | sudo tee /sys/bus/usb/drivers/usb/unbind >/dev/null 2>&1
 }
 
+# Bind a USB device path AND restore its configuration. Two gotchas:
+#   1. Checking only the device dir's existence isn't enough — the device
+#      can stay enumerated but unbound from the usb driver, in which case
+#      we need to bind it.
+#   2. After bind, the kernel does NOT auto-restore bConfigurationValue to
+#      its prior value. Devices come back at config 0 with no interfaces.
+#      libusb_claim_interface(0) then fails with errno=113 (detach failed)
+#      because there's literally no interface to claim. Force config 1.
 bind_path() {
     local p="$1"
-    [ -d "/sys/bus/usb/devices/$p" ] && return 0   # already bound
-    echo "$p" | sudo tee /sys/bus/usb/drivers/usb/bind >/dev/null 2>&1
+    local devdir="/sys/bus/usb/devices/$p"
+    [ -d "$devdir" ] || return 0   # device unplugged — nothing to do
+
+    # Bind if missing the driver symlink
+    if [ ! -L "$devdir/driver" ]; then
+        echo "$p" | sudo tee /sys/bus/usb/drivers/usb/bind >/dev/null 2>&1
+        sleep 1
+    fi
+
+    # Restore configuration if device came back unconfigured
+    local cfg_file="$devdir/bConfigurationValue"
+    if [ -f "$cfg_file" ]; then
+        local cfg
+        cfg=$(cat "$cfg_file" 2>/dev/null)
+        if [ -z "$cfg" ] || [ "$cfg" = "0" ]; then
+            echo 1 | sudo tee "$cfg_file" >/dev/null 2>&1
+            sleep 1
+        fi
+    fi
 }
 
 # --- Pre-flight ----------------------------------------------------------
