@@ -6,3 +6,7 @@ kernel-patches/reply-*.txt
 /tmp/
 __pycache__/
 *.pyc
+
+# Michal's hammerint reproducer — keep source, ignore build artifact + results
+kernel-patches/matrix/michal-tests/hammerint
+kernel-patches/matrix/michal-tests/results/
