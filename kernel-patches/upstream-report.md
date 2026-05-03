@@ -334,6 +334,87 @@ The Razer Kiyo Pro is not currently in the UVC device table (`uvc_ids[]`)
 or the USB core quirks table (`usb_quirk_list[]`). It matches only the
 generic UVC interface class entries.
 
+## Third-Party Reproduction Evidence
+
+The trigger (firmware lockup on rapid UVC control transfers) and cascade
+(xHCI HC death) reproduce across multiple operating systems and host
+controller silicons. This is consistent with a **device firmware bug**
+that the proposed kernel patches mitigate; it is **not** a Linux xHCI
+driver issue specific to one platform.
+
+### Cross-OS reproduction (same v4l2-ctl trigger)
+
+A user report on the Razer Insider forum (2024-09-08) documents the
+identical failure mode reproducing on **Linux (Raspberry Pi, ARM),
+Windows, and macOS** with this exact reproducer:
+
+```
+v4l2-ctl --set-ctrl=focus_automatic_continuous=0   # OK
+v4l2-ctl --set-ctrl=focus_absolute=255             # OK
+v4l2-ctl --set-ctrl=focus_absolute=0               # camera dies
+```
+
+Error: `Failed to set UVC probe control : -32 (exp. 26)`. After the
+third command, the camera fully disconnects from USB on all three
+OSes. Firmware update did not resolve. (The `-32` is the same EPIPE
+shape Linux sees in stress-test logs above.)
+
+Source: https://insider.razer.com/razer-support-45/razer-kiyo-crashing-after-changing-focus-settings-with-v4l2-ctl-under-linux-67440
+
+### Cross-controller reproduction (multiple xHCI silicons)
+
+On Razer Insider's multi-user thread "Assistance with Kiyo Pro
+freezing/crashing usb inputs" (2023–2025), Windows users report:
+
+> "the entire USB input system on my PC will crash, meaning I have
+> no mouse or keyboard input"
+
+with controllers auto-rebooting within seconds and the camera
+remaining frozen until physically unplugged — the same shape Linux
+sees, Windows-side. Triggers reported: white balance / focus / HDR
+setting changes; OBS, Teams, Meet, Zoom, ClickMeeting, GoToMeeting.
+
+A Level1Techs thread on the predecessor Razer Kiyo (same firmware
+family) documents the format-renegotiation trigger across **Fresco
+Logic, VIA VL800, and Renesas uPD720202** xHCI silicons:
+
+> "the only format it can reliably bitstream is the FIRST datastream
+> format it receives"
+
+— directly corroborating Michal Pecio's bandwidth-renegotiation
+hypothesis (firmware fills `wBytesPerInterval` correctly on the
+first format negotiation, mishandles re-negotiation).
+
+Source: https://forum.level1techs.com/t/pci-e-usb-3-0-controller-loses-uvc-webcam-upon-changing-image-format/128780
+
+### Functional equivalent on Windows
+
+Two Razer Insider threads (both 2024) report the same workaround:
+uninstall Razer Synapse + uninstall Razer's Windows camera driver,
+reboot, let Windows pick the device up with its default UVC driver.
+Stability returns; reinstalling Synapse restores the freezing.
+
+This is the functional equivalent of `UVC_QUIRK_CTRL_THROTTLE`:
+removing the software that issues rapid UVC control bursts allows
+the firmware to keep up. External validation that throttling
+control transfers is the right intervention shape.
+
+Sources:
+- https://insider.razer.com/razer-support-45/fixed-my-razer-kiyo-pro-camera-74720
+- https://insider.razer.com/razer-support-45/my-fix-for-razer-kiyo-pro-camera-74721
+
+### What this means for scope
+
+The proposed patch series mitigates the **trigger** (rapid SET_CUR
+overflow → firmware lockup → endpoint stall) at the kernel-side
+choke point. The downstream **cascade** (stop-endpoint timeout →
+HC death) is a separate concern that also reproduces across silicon
+vendors with varying severity (ASMedia catastrophic, Intel tolerant
+per `kernel-patches/test-methodology.md` Stream-mmap loop test
+2026-05-03 + hammerint test 2026-04-29). The cascade path is
+properly Mathias Nyman / xHCI subsystem territory; this series does
+not attempt to address it.
+
 ## Related Work
 
 - Ubuntu Bug #2061177: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/2061177
@@ -345,6 +426,11 @@ generic UVC interface class entries.
   preventing autosuspend-related firmware instability
 - Elgato Cam Link 4K reset-on-EPROTO (uvc_video.c:2216) — related but
   different approach: issues `usb_reset_device()` on streaming errors
+- Michal Pecio's `max_esit_payload` xhci-side patch (2026-04, v5 2/3
+  thread) — addresses bandwidth-allocation symptom of the same
+  firmware spec violation (EP5 IN `wBytesPerInterval=8` /
+  `wMaxPacketSize=64`) at the xHCI driver level. Complementary to
+  this patch series.
 
 ## Files Changed
 

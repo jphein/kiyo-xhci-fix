@@ -177,6 +177,56 @@ corrects this at the driver level. The different outcomes between Test 1 and
 Test 2 may be due to different test conditions (stream teardown vs active
 streaming when firmware lockup occurs).
 
+## Stream-mmap loop test (2026-05-03)
+
+Run via `kernel-patches/matrix/michal-tests/run-streamloop.sh` with
+test-mode watchdog supervision. Conditions: kernel 6.17.0-20-generic
+vanilla (booted into the `Kiyo VANILLA (no fixes)` GRUB entry), no
+`usbcore.quirks` cmdline parameter, stock uvcvideo (no DKMS module),
+two Razer Kiyo Pro units on Intel xHCI 0000:00:14.0 ports 2-1 and 2-2.
+
+Per-iteration v4l2-ctl invocation:
+`--set-fmt-video=width=1920,height=1080,pixelformat=MJPG --set-parm=30 --stream-mmap --stream-count=1`.
+Each iteration is a fresh open → format negotiation (4 control
+transfers: VS_PROBE_CONTROL probe/commit + VS_FRAME_CONTROL set-fps)
+→ isoc frame capture → close. 300s per Kiyo, sequential (off-target
+Kiyo unbound for the duration of each cell).
+
+| Cell | Device | Iters | dmesg.post | Stream-loop | Watchdog |
+|------|--------|-------|------------|-------------|----------|
+| 2-1 | `/dev/video0` | 134 | clean | `PASS: clean` | `no_death_in_window` |
+| 2-2 | `/dev/video2` | 92 | clean | `PASS: clean` | `no_death_in_window` |
+
+No `xhci_hc_died`, no `event condition 198`, no `Command timeout` /
+`Stop Endpoint timeout` on either Kiyo. Pure stream-mmap teardown
+on Intel does not reproduce HC death within the 5-minute window per
+Kiyo, even with a stock kernel + stock uvcvideo + no quirks (Test 1
+spec from Michal Pecio's 2026-04-13 walk-through).
+
+Combined with hammerint on Intel (2026-04-29, 60s × 2 Kiyos clean
+with NO_LPM active), two independent reproducer styles agree that
+Intel xHCI tolerates the Kiyo firmware bug where ASMedia dies. The
+intervention CTRL_THROTTLE makes operates on the **trigger** path
+(rapid SET_CUR overflow); the Intel xHCI's resilience is on the
+**cascade** path (stop-endpoint timeout escalation to HC death).
+Both paths are real; Test 1 + Test B together confirm the trigger-
+vs-cascade split.
+
+Forensics: `kernel-patches/matrix/michal-tests/results/streamloop-20260503T221219Z/`.
+
+### Note on stream-loop.sh format-must-be-set bug
+
+An earlier revision of `stream-loop.sh` did not set the pixel format
+on each v4l2-ctl invocation. Without an explicit `--set-fmt-video`,
+the Kiyo Pro driver returns `VIDIOC_REQBUFS = -EINVAL` and the loop
+spins on REQBUFS failures (~233 failures/sec) instead of streaming.
+The script's verdict-grep on `dmesg.post` still ran, but no actual
+streaming was being measured — equivalent to the
+`v4l2-stream-loop-trimmed-20260413-071034.log` shape (`vb2_core_reqbufs+0x1e6/0x540`
+WARN). Fixed 2026-05-03 by adding `--set-fmt-video=width=$WIDTH,height=$HEIGHT,pixelformat=$PIXFMT --set-parm=$FPS`
+to every invocation; format/fps overridable via `WIDTH`, `HEIGHT`,
+`PIXFMT`, `FPS` env vars (defaults 1920x1080 MJPG @ 30fps).
+
 ## Conclusions for Upstream Report
 
 1. **Power management quirks alone are insufficient.** The crash can be

@@ -18,6 +18,8 @@ The kernel's built-in xHCI error recovery makes it worse: it detects the fault, 
 
 **Affected:** Linux 6.8+ (tested on Ubuntu 24.04), Intel xHCI controllers, Razer Kiyo Pro firmware 1.5.0.1 (bcdDevice 8.21).
 
+**Confirmed cross-platform (firmware bug, not Linux-specific):** The same v4l2-ctl trigger reproduces on Linux + Raspberry Pi (ARM) + Windows + macOS, and across Intel / ASMedia / Fresco Logic / VIA / Renesas xHCI silicons with varying severity (ASMedia catastrophic, Intel tolerant per stream-mmap and hammerint tests). On Windows, uninstalling Razer Synapse — which removes the software issuing rapid UVC control bursts — restores stability, validating the throttling intervention shape from the kernel side. See [`kernel-patches/upstream-report.md` § Third-Party Reproduction Evidence](kernel-patches/upstream-report.md#third-party-reproduction-evidence) for sources.
+
 ## The Fix
 
 Three kernel patches, all necessary:
@@ -239,10 +241,12 @@ A Linux firmware tool ([`firmware-analysis/kiyo-flash.py`](firmware-analysis/kiy
 ### Key Upstream Discussion
 
 - **Mathias Nyman (Intel xHCI maintainer):** Dual-URB cancellation on control EP leaves dequeue on no-op TRB, violating xHCI spec 4.8.3. Disabling LPM reduces control transfers, lowering the dual-cancel risk.
-- **Michal Pecio:** Identified wBytesPerInterval=8 as a spec violation; xHCI driver's max_esit_payload derived from it. His test patch (clamp max_esit_payload + short packet retry) allowed HC to survive firmware lockup. Latest (2026-04-11): asked Mathias about Intel vendor-defined error code 198 from Test 2 logs — ball is with Mathias, no action needed from JP.
+- **Michal Pecio:** Identified wBytesPerInterval=8 as a spec violation; xHCI driver's max_esit_payload derived from it. His test patch (clamp max_esit_payload + short packet retry) allowed HC to survive firmware lockup. 2026-04-27: shared `hammerint.c` standalone reproducer (libusb interrupt-EP cancel hammering) and asked for stream-mmap loop test on stock kernel + stock uvcvideo + no quirks. Concluded "Looks like a HW bug."
 - **Test results (2026-04-10):** Two crash reproduction tests on kernel 6.17.0-xhci-test with Michal's xhci patch:
   - **Test 1** (all fixes + Michal's patch): HC DIED — 437 repeated cancel/resubmit on EP5 IN → ~994K spurious SHORT_PACKET events → control URB timeouts → hc_died
   - **Test 2** (Michal's patch only, no JP patches): HC SURVIVED — firmware locked at round ~23 but host controller handled errors gracefully
+- **Test results (2026-04-29 hammerint):** Intel xHCI 0000:00:14.0 (NO_LPM active) survived 60s × 2 Kiyos clean — ~12,000 submit/cancel cycles each on EP 0x85 IN with zero `xhci_hc_died` and zero event-198. Confirms Intel xHCI tolerates the dual-cancel pattern that catastrophically kills ASMedia.
+- **Test results (2026-05-03 stream-mmap loop, Michal's Test 1):** Two-Kiyo run on Intel xHCI vanilla kernel + stock uvcvideo + **no** quirks (booted into the `Kiyo VANILLA (no fixes)` GRUB entry), 300s real MJPG 1920x1080 @ 30fps streaming each, with test-mode watchdog supervision. Both Kiyos `verdict: no_death_in_window` + `PASS: clean`, dmesg.post empty of fatal patterns. Pure stream-mmap teardown without control-rate stress does **not** reproduce HC death on Intel — confirms CTRL_THROTTLE targets the actual trigger path (rapid SET_CUR overflow), not a generic streaming concern. Forensics: [`kernel-patches/matrix/michal-tests/results/streamloop-20260503T221219Z/`](kernel-patches/matrix/michal-tests/results/streamloop-20260503T221219Z/).
 
 ## License
 
