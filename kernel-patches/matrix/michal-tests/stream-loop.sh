@@ -8,6 +8,17 @@ set -u
 DEVICE="${DEVICE:-/dev/video0}"
 DURATION_SEC="${DURATION_SEC:-600}"
 LOG_DIR="${LOG_DIR:-$(dirname "$0")/results}"
+# Format must be set explicitly on every v4l2-ctl invocation. Without it the
+# Kiyo Pro driver returns VIDIOC_REQBUFS = -EINVAL and the loop spins on
+# REQBUFS failures instead of actually streaming. MJPG 1920x1080 @ 30fps
+# matches the typical Twitch/Zoom use case and exercises the firmware's
+# hardware-accelerated MJPEG path — same hot path Michal's hammerint found
+# firmware-locking on.
+WIDTH="${WIDTH:-1920}"
+HEIGHT="${HEIGHT:-1080}"
+PIXFMT="${PIXFMT:-MJPG}"
+FPS="${FPS:-30}"
+SET_FMT="--set-fmt-video=width=$WIDTH,height=$HEIGHT,pixelformat=$PIXFMT --set-parm=$FPS"
 
 mkdir -p "$LOG_DIR"
 TS="$(date -u +%Y%m%dT%H%M%SZ)"
@@ -28,8 +39,9 @@ fi
 
 dmesg --since '1 second ago' > "$DMESG_PRE" 2>/dev/null || dmesg -t > "$DMESG_PRE"
 
+echo "=== Streaming config: $WIDTH x $HEIGHT $PIXFMT @ ${FPS}fps ===" | tee -a "$LOG"
 echo "=== Warm-up: open and close the device once ===" | tee -a "$LOG"
-v4l2-ctl -d "$DEVICE" --stream-mmap --stream-count=10 --stream-to=/dev/null 2>&1 | tee -a "$LOG"
+v4l2-ctl -d "$DEVICE" $SET_FMT --stream-mmap --stream-count=10 --stream-to=/dev/null 2>&1 | tee -a "$LOG"
 sleep 2
 
 echo | tee -a "$LOG"
@@ -43,7 +55,7 @@ while true; do
         echo "Reached duration cap ${DURATION_SEC}s after $ITER iters" | tee -a "$LOG"
         break
     fi
-    if ! v4l2-ctl -d "$DEVICE" --stream-mmap --stream-count=1 --stream-to=/dev/null \
+    if ! v4l2-ctl -d "$DEVICE" $SET_FMT --stream-mmap --stream-count=1 --stream-to=/dev/null \
             >>"$LOG" 2>&1; then
         echo "iter $ITER: v4l2-ctl failed (rc=$?)" | tee -a "$LOG"
         if ! [[ -e "$DEVICE" ]]; then
