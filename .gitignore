@@ -1,5 +1,6 @@
 *.log
 !kernel-patches/crash-evidence/*.log
+!kernel-patches/crash-evidence/**/*.log
 *.ko
 !kernel-patches/uvcvideo-patched.ko
 kernel-patches/reply-*.txt
