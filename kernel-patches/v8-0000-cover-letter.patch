@@ -103,12 +103,21 @@ Test results:
     timeout described above, in addition to the uniform 100ms.
 
 * test-probe-commit-cycle.sh (new, mimics WebRTC stream restart):
-  - methodology: open camera, set format, brief stream, close,
-    repeat with rotating formats to force fresh probe/commit pairs
-    every iteration. Discriminates rate-only hypothesis from
-    sequence-dependent hypothesis by sweeping intervals.
-  - results: [pending validation in a follow-up real-world call,
-    see "Verification status" below]
+  - methodology: open camera, set format, stream 3 frames, close,
+    rotate to next format (1080p MJPG / 720p MJPG / 480p MJPG /
+    720p YUYV / 480p YUYV -- the ladder Chromium WebRTC actually
+    negotiates). Each cycle forces fresh probe/commit pair on the
+    wire. Designed to discriminate rate-only from sequence-
+    dependent hypothesis by interval sweep.
+  - 200 cycles, INTERVAL_MS=0 (zero pacing between cycles, worst
+    case for sequence-dependent failure), v8.1 throttle active:
+    200/200 successful, 0 v4l2-ctl errors, 0 kernel failure
+    markers. Wire capture via usbmon recorded 808 PROBE_CONTROL
+    SET_CURs + 200 COMMIT_CONTROL SET_CURs landed on the bus,
+    every one completed without the -110 timeout that produced
+    the 50ms-uniform-throttle crashes earlier the same day.
+  - Evidence under: crash-evidence/2026-05-13-v8.1-validation/
+    in the linked repository (RESULTS.md + usbmon capture).
 
 * Michal Pecio's hammerint (libusb submit/cancel on EP 0x85 IN), Intel
   Cannon Lake, 60s x 2 Kiyos:
