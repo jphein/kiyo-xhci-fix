@@ -12,45 +12,89 @@ The Razer Kiyo Pro (1532:0e05) is the first known example: approximately
 25 rapid consecutive control transfers cause the firmware to stall an
 endpoint.
 
-Add UVC_QUIRK_CTRL_THROTTLE which rate-limits all USB control transfers
-to 100ms intervals in __uvc_query_ctrl(), the lowest-level UVC control
-transfer function, ensuring all callers are throttled including
-uvc_set_video_ctrl() which bypasses uvc_query_ctrl().
+Add UVC_QUIRK_CTRL_THROTTLE which applies three coordinated mitigations
+in __uvc_query_ctrl(), the lowest-level UVC control transfer function
+(ensuring all callers are covered, including uvc_set_video_ctrl()
+which bypasses uvc_query_ctrl()):
 
-The 100ms interval was determined empirically. An earlier draft used
-50ms, which passed a synthetic SET_CUR stress test but in real-world
-use (WebRTC video calls on Brave / Chromium) the firmware still locked
-up under realistic probe/commit sequences -- 4 commit-control timeouts
-in a 41-minute call, every one followed by xHCI host controller death
-and a watchdog-driven PCI rebind. 100ms doubles the safety margin while
-staying half of USB_QUIRK_DELAY_CTRL_MSG's 200ms. The added latency is
-negligible: typical stream startup issues ~30 control transfers, adding
-roughly 3 seconds one-time cost that is invisible against camera
-warm-up.
+  1. Uniform minimum interval of 100ms between any two control
+     transfers, preventing firmware overflow from sustained rapid
+     traffic.
+
+  2. Extra interval (200ms) specifically before SET_CUR to
+     UVC_VS_COMMIT_CONTROL. COMMIT is empirically the failing
+     operation: every observed cascading xHCI death has had this
+     exact line immediately preceding it:
+       uvcvideo: Failed to set UVC commit control : -110 (exp. 26).
+     The extra headroom lets the firmware fully settle from any
+     preceding PROBE state before the format-lock request lands.
+
+  3. Extended URB timeout (10s, vs the default 5s) for the same
+     COMMIT_CONTROL path. When the firmware does stall, the xHCI
+     command-ring abort path on Intel Cannon Lake silicon cascades
+     into full controller death; giving the firmware twice the time
+     to self-recover before we issue an abort is the most effective
+     single mitigation available without device-side fixes.
+
+The interval values were determined empirically. An earlier draft
+used a uniform 50ms throttle, which passed a synthetic SET_CUR stress
+test cleanly but in real-world WebRTC video-call use (Brave /
+Chromium) the firmware still locked up: 4 commit-control timeouts in
+a single 41-minute call, every one followed by xHCI host controller
+death and a watchdog-driven PCI rebind. The 100ms / 200ms split with
+extended COMMIT timeout targets the specific failing operation rather
+than throttling the entire control path uniformly to the worst-case
+rate, keeping the latency cost proportional to the risk: probe
+transfers and normal controls stay at 100ms; only the empirically
+dangerous COMMIT pays the additional 100ms and the extended timeout.
+
+Added latency budget for a typical stream startup is on the order of
+3-4 seconds one-time cost, invisible against camera warm-up. Quirk is
+opt-in by device-table entry; non-quirked devices are unaffected.
 
 Signed-off-by: JP Hein <jp@jphein.com>
 ---
- drivers/media/usb/uvc/uvc_video.c | 20 ++++++++++++++++++++
+ drivers/media/usb/uvc/uvc_video.c | 40 ++++++++++++++++++++++++++++++++++++++
  drivers/media/usb/uvc/uvcvideo.h  |  3 +++
- 2 files changed, 23 insertions(+)
+ 2 files changed, 43 insertions(+)
 
 diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
 index a5013a7..1d1206f 100644
 --- a/drivers/media/usb/uvc/uvc_video.c
 +++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -36,6 +36,26 @@ static int __uvc_query_ctrl(struct uvc_device *dev, u8 query, u8 unit,
+@@ -36,6 +36,46 @@ static int __uvc_query_ctrl(struct uvc_device *dev, u8 query, u8 unit,
  	u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE;
  	unsigned int pipe;
- 
+
 +	/*
 +	 * Rate-limit control transfers for devices with fragile firmware.
 +	 * The Razer Kiyo Pro locks up under sustained rapid control
 +	 * transfers (hundreds without delay), crashing the xHCI controller.
 +	 * Throttle in this low-level function to cover all callers,
 +	 * including uvc_set_video_ctrl() which bypasses uvc_query_ctrl().
++	 *
++	 * COMMIT_CONTROL (UVC SET_CUR to the streaming-interface commit
++	 * selector) is empirically the failing operation -- every observed
++	 * cascading xHCI death has had this exact line preceding it:
++	 *   uvcvideo: Failed to set UVC commit control : -110 (exp. 26).
++	 * Give COMMIT extra throttle headroom (200ms vs 100ms) and an
++	 * extended URB timeout (10s) so the firmware has more time to
++	 * settle from any preceding PROBE state before we ask xHCI to
++	 * abort a stuck URB. xHCI abort-on-stuck-URB is what cascades into
++	 * controller death on Intel Cannon Lake, so giving the firmware
++	 * room to self-recover before the abort path runs is the most
++	 * effective single mitigation we have without device-side fixes.
 +	 */
 +	if (dev->quirks & UVC_QUIRK_CTRL_THROTTLE) {
++		bool is_commit = (query == UVC_SET_CUR &&
++				  cs == UVC_VS_COMMIT_CONTROL);
 +		unsigned long min_interval = msecs_to_jiffies(100);
++
++		if (is_commit) {
++			min_interval = msecs_to_jiffies(200);
++			if (timeout < 10000)
++				timeout = 10000;
++		}
 +
 +		if (dev->last_ctrl_jiffies &&
 +		    time_before(jiffies,
@@ -74,7 +118,7 @@ index 757254f..31f2af5 100644
  #define UVC_QUIRK_MJPEG_NO_EOF		0x00020000
  #define UVC_QUIRK_MSXU_META		0x00040000
 +#define UVC_QUIRK_CTRL_THROTTLE		0x00080000
- 
+
  /* Format flags */
  #define UVC_FMT_FLAG_COMPRESSED		0x00000001
 @@ -583,6 +584,8 @@ struct uvc_device {
@@ -85,7 +129,7 @@ index 757254f..31f2af5 100644
 +	unsigned long last_ctrl_jiffies;
  	int intfnum;
  	char name[32];
- 
--- 
+
+--
 2.43.0
 

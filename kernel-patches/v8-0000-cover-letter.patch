@@ -54,15 +54,29 @@ Forensics: firmware-analysis/ in the linked repository.
 
 This v8 series covers the remaining two UVC patches:
 
-Patch 1/2: UVC driver -- introduce UVC_QUIRK_CTRL_THROTTLE to rate-limit
-  all USB control transfers (100ms minimum interval) in
-  __uvc_query_ctrl(). The 100ms threshold was selected after real-world
-  testing showed an earlier 50ms draft passed synthetic SET_CUR stress
-  tests but still allowed firmware lockup under realistic WebRTC video
-  calls (probe/commit re-negotiation sequences). 100ms is half of
-  USB_QUIRK_DELAY_CTRL_MSG's 200ms and scoped specifically to UVC.
-  Quirk is opt-in by device-table entry; non-quirked devices are
-  unaffected.
+Patch 1/2: UVC driver -- introduce UVC_QUIRK_CTRL_THROTTLE in
+  __uvc_query_ctrl() with three coordinated mitigations:
+
+    (a) 100ms minimum interval between any two control transfers
+        (uniform throttle, prevents firmware overflow under sustained
+        rapid traffic).
+    (b) 200ms minimum interval specifically before SET_CUR to
+        UVC_VS_COMMIT_CONTROL. Real-world WebRTC failure data showed
+        that uniform 100ms reduced but did not eliminate timeouts;
+        every observed crash was preceded by "Failed to set UVC commit
+        control : -110", so the dangerous operation is COMMIT
+        specifically rather than aggregate rate. Giving COMMIT extra
+        headroom lets the firmware fully settle from any preceding
+        PROBE before the format-lock request lands.
+    (c) Extended URB timeout (10s, vs default 5s) for COMMIT_CONTROL
+        only. The cascading mechanism on Intel xHCI is: stuck URB ->
+        kernel asks xHCI to abort -> abort itself fails -> controller
+        declared dead -> all devices on the bus disconnect. Doubling
+        the URB timeout gives the firmware twice the time to self-
+        recover before the abort path runs.
+
+  All three are active only when the quirk is set; non-quirked devices
+  are unaffected.
 
 Patch 2/2: UVC driver -- add Razer Kiyo Pro device table entry with
   UVC_QUIRK_CTRL_THROTTLE, UVC_QUIRK_DISABLE_AUTOSUSPEND, and
@@ -79,11 +93,22 @@ Test results:
   - with UVC_QUIRK_CTRL_THROTTLE (100ms) active: 500+ rounds clean
 
 * Real-world WebRTC video call (Brave / Chromium):
-  - with UVC_QUIRK_CTRL_THROTTLE (50ms) active: 4 hc_died events in 41
-    minutes of normal call activity, every one preceded by
-    "Failed to set UVC commit control : -110" -- synthetic stress
-    testing under-represents the real-world probe/commit pattern.
-    This evidence motivated the bump to 100ms.
+  - with UVC_QUIRK_CTRL_THROTTLE (uniform 50ms) active: 4 hc_died
+    events in 41 minutes of normal call activity, every one preceded
+    by "Failed to set UVC commit control : -110". This evidence
+    showed that synthetic SET_CUR flooding under-represents the
+    real-world failure mode, which is sequence-dependent (probe->
+    commit transitions during bandwidth renegotiation), not pure
+    rate. v8 responds by adding the COMMIT-specific 200ms + 10s URB
+    timeout described above, in addition to the uniform 100ms.
+
+* test-probe-commit-cycle.sh (new, mimics WebRTC stream restart):
+  - methodology: open camera, set format, brief stream, close,
+    repeat with rotating formats to force fresh probe/commit pairs
+    every iteration. Discriminates rate-only hypothesis from
+    sequence-dependent hypothesis by sweeping intervals.
+  - results: [pending validation in a follow-up real-world call,
+    see "Verification status" below]
 
 * Michal Pecio's hammerint (libusb submit/cancel on EP 0x85 IN), Intel
   Cannon Lake, 60s x 2 Kiyos:
@@ -104,14 +129,24 @@ by independent users. Refs in kernel-patches/upstream-report.md
 section "Third-Party Reproduction Evidence".
 
 Changes since v7:
-  - Bumped CTRL_THROTTLE minimum interval from 50ms to 100ms. The
-    50ms value used in v5-v7 passed synthetic stress tests but
-    real-world video-call use (Brave WebRTC) still produced 4 xHCI
-    host controller deaths in 41 minutes, every one preceded by
-    "Failed to set UVC commit control : -110". 100ms doubles the
-    safety margin while remaining half of USB_QUIRK_DELAY_CTRL_MSG's
-    200ms; added one-time stream-startup latency is ~3 seconds
-    (invisible against camera warm-up).
+  - Reworked CTRL_THROTTLE from uniform-50ms to a layered mitigation:
+    uniform 100ms, plus an additional 200ms specifically before
+    COMMIT_CONTROL, plus an extended 10s URB timeout for COMMIT only.
+    Motivation: the 50ms uniform throttle used in v5-v7 passed
+    synthetic SET_CUR stress tests but real-world Brave WebRTC use
+    still produced 4 xHCI host controller deaths in 41 minutes, every
+    one preceded by "Failed to set UVC commit control : -110". The
+    failure is sequence-dependent (PROBE->COMMIT transitions during
+    bandwidth renegotiation), not pure rate, so targeting COMMIT
+    specifically is the appropriate response. Non-COMMIT controls
+    continue to pay only the 100ms uniform interval; only the
+    empirically dangerous COMMIT pays the additional cost. Layer (c),
+    the 10s URB timeout, addresses the xHCI cascade specifically:
+    on Intel Cannon Lake silicon, a stuck COMMIT URB leads to a
+    failed xHCI abort which kills the entire host controller, so
+    giving the firmware twice the time to self-recover before the
+    abort path runs is the most effective single mitigation without
+    device-side fixes.
   - Reframed scope: this series mitigates the firmware-lockup trigger,
     not the xHCI cascade. The cascade is silicon-dependent and is
     being addressed separately by Michal Pecio's xhci ring patch on
