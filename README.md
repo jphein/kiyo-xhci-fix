@@ -27,7 +27,7 @@ Three kernel patches, all necessary:
 ### 1. Kernel Patches (upstream submissions)
 
 - **`0001`** — `USB_QUIRK_NO_LPM` for 1532:0e05 — disables Link Power Management to prevent firmware destabilization during power state transitions
-- **`0002`** — `UVC_QUIRK_CTRL_THROTTLE` — new UVC quirk that rate-limits all control transfers (50ms interval) in `__uvc_query_ctrl()`
+- **`0002`** — `UVC_QUIRK_CTRL_THROTTLE` — new UVC quirk that rate-limits all control transfers (100ms interval) in `__uvc_query_ctrl()`
 - **`0003`** — Razer Kiyo Pro device entry with `UVC_QUIRK_CTRL_THROTTLE | UVC_QUIRK_DISABLE_AUTOSUSPEND | UVC_QUIRK_NO_RESET_RESUME`, plus full `lsusb -v` in commit message documenting the wBytesPerInterval spec violation
 
 See [`kernel-patches/upstream-report.md`](kernel-patches/upstream-report.md) for the full bug analysis submitted to `linux-usb@vger.kernel.org`.
@@ -38,7 +38,7 @@ A systemd user service that monitors `journalctl -k` for xHCI fatal errors and p
 
 - **Level 1:** Rebind the Kiyo's USB port
 - **Level 2:** Full xHCI controller PCI unbind/bind
-- **Level 3:** Full xHCI driver reload (modprobe)
+- **Level 3:** Full xHCI driver reload (`modprobe -r xhci_pci xhci_pci_renesas` + reload). On Ubuntu HWE kernels where xhci is builtin to the kernel, L3 is automatically replaced with an extended L2 settle wait (modprobe is a no-op against builtin modules, and the kernel hub-driver's own port power-cycle is what does the actual rescue).
 
 If all levels fail, the watchdog **stops** — no retry loops, no death spirals. A wedged controller needs a reboot.
 
