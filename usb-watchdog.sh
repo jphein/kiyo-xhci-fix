@@ -136,6 +136,15 @@ health_check() {
     return 0
 }
 
+within_cooldown() {
+    # True if we're still inside the post-recovery cooldown window.
+    # Used by soft-WARNING branches to suppress stale matches that arrive in
+    # journalctl's pipe after a recovery has already succeeded.
+    local now
+    now=$(date +%s)
+    (( now - LAST_RECOVERY < COOLDOWN ))
+}
+
 # --- Test mode helpers (no-ops in normal mode) ---------------------------
 
 test_mode_init() {
@@ -523,26 +532,30 @@ journalctl -k -f --no-pager | while read -r line; do
             # Skip in test mode — this is expected noise during hammerint and
             # would cause spurious recoveries. We only act on hard HC death.
             [ "$MODE" = "test" ] && continue
+            # Suppress during cooldown — stale matches from a just-recovered crash.
+            within_cooldown && continue
             log "WARNING: USB device gone (-19) — checking health"
             sleep 2
-            health_check || recover
+            health_check || recover "USB device gone (-19) + health degraded"
             ;;
         *"device descriptor read"*"error -110"*|*"device not accepting address"*"error -110"*)
             # -110 = ETIMEDOUT, controller may be wedging.
             # Same skip rationale as -19 above.
             [ "$MODE" = "test" ] && continue
+            within_cooldown && continue
             log "WARNING: USB timeout (-110) — checking health"
             sleep 5
-            health_check || recover
+            health_check || recover "USB timeout (-110) + health degraded"
             ;;
         *"uvcvideo"*"error -71"*|*"uvcvideo"*"error -32"*)
             # UVC protocol/pipe errors — camera crashing.
             # Hammerint never goes through uvcvideo, so any uvcvideo line
             # during the test is unrelated noise.
             [ "$MODE" = "test" ] && continue
+            within_cooldown && continue
             log "WARNING: UVC error on camera — monitoring for cascade"
             sleep 5
-            health_check || recover
+            health_check || recover "uvcvideo cascade after -71/-32"
             ;;
         *"USB disconnect"*"$XHCI_PCI"*)
             # Mass disconnect event on our controller
