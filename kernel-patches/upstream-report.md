@@ -259,20 +259,44 @@ the most common real-world trigger.
 Introduces `UVC_QUIRK_CTRL_THROTTLE` (0x00080000) that rate-limits all
 UVC control transfers (not just SET_CUR) when the quirk is set.
 
-**Rate limiting:** Enforces a minimum 50ms interval between control
-transfers in `__uvc_query_ctrl()`. This limits the effective rate to
-20 control operations per second, which is sufficient for interactive use
-(slider adjustments, application control panels) while preventing the
-rapid-fire pattern that overwhelms the firmware.
+**Rate limiting (v8.1, 2026-05-13):** Three coordinated mitigations in
+`__uvc_query_ctrl()`, with the dangerous-operation case targeted
+specifically rather than throttling the whole control path to the
+worst-case rate:
+
+1. **Uniform 100ms** minimum interval between any two control transfers
+   — limits the effective rate to 10 control operations per second.
+   Prevents firmware overflow from sustained rapid traffic; sufficient
+   for interactive use (slider adjustments, application control panels).
+2. **Additional 200ms** before `SET_CUR` to `UVC_VS_COMMIT_CONTROL`.
+   COMMIT is empirically the failing operation — every observed
+   cascading xHCI death has had this exact line immediately preceding
+   it: `uvcvideo: Failed to set UVC commit control : -110 (exp. 26).`
+3. **Extended URB timeout (10s, vs default 5s)** for the same COMMIT
+   path. The cascade mechanism on Intel Cannon Lake is "stuck URB →
+   xHCI abort → silicon-level abort fails → HC died"; doubling the URB
+   timeout gives the firmware twice the time to self-recover before
+   the abort path runs.
 
 Implementation in `__uvc_query_ctrl()` (uvc_video.c):
 ```c
 if (dev->quirks & UVC_QUIRK_CTRL_THROTTLE) {
-    min_interval = msecs_to_jiffies(50);
+    bool is_commit = (query == UVC_SET_CUR &&
+                      cs == UVC_VS_COMMIT_CONTROL);
+    unsigned long min_interval = msecs_to_jiffies(100);
+
+    if (is_commit) {
+        min_interval = msecs_to_jiffies(200);
+        if (timeout < 10000)
+            timeout = 10000;
+    }
+
     if (dev->last_ctrl_jiffies &&
-        time_before(jiffies, dev->last_ctrl_jiffies + min_interval)) {
-        elapsed = dev->last_ctrl_jiffies + min_interval - jiffies;
-        msleep(jiffies_to_msecs(elapsed));
+        time_before(jiffies,
+                    dev->last_ctrl_jiffies + min_interval)) {
+        unsigned long wait = dev->last_ctrl_jiffies +
+                             min_interval - jiffies;
+        msleep(jiffies_to_msecs(wait));
     }
     dev->last_ctrl_jiffies = jiffies;
 }
@@ -284,6 +308,15 @@ A new `unsigned long last_ctrl_jiffies` field is added to
 > **Note:** Earlier versions (v1-v6) also suppressed error-code queries
 > after EPIPE. This was dropped in v7 per Ricardo Ribalda's review — the
 > throttle alone is sufficient to prevent the crash cascade.
+>
+> **v8.1 revision (2026-05-13):** v5-v7 used a uniform 50ms throttle.
+> Synthetic SET_CUR stress passed cleanly but a real Brave WebRTC video
+> call still produced 4 commit-control timeouts in 41 minutes — the
+> failure is sequence-dependent (PROBE→COMMIT under load), not pure
+> rate. v8.1 targets the specific failing operation rather than
+> broadening uniform throttle. Non-COMMIT controls continue to pay
+> only the 100ms uniform interval; only the empirically dangerous
+> COMMIT pays the additional cost.
 
 ### [PATCH 3/3] media: uvcvideo: add quirks for Razer Kiyo Pro webcam
 
@@ -301,19 +334,36 @@ documenting the wBytesPerInterval spec violation on EP5 IN.
 
 ## Test Results
 
-| Condition | Stress test rounds before crash |
-|-----------|--------------------------------|
-| No quirks (stock kernel) | ~25 |
-| NO_LPM only (sysfs) | ~25 |
-| DISABLE_AUTOSUSPEND only (sysfs) | ~25 |
-| avoid_reset_quirk only (sysfs) | ~25 |
-| All three combined (udev rule) | ~25 |
-| USB_QUIRK_DELAY_CTRL_MSG (200ms) | 500+ (no crash) |
-| UVC_QUIRK_CTRL_THROTTLE (50ms, patch 2) | 500+ (no crash) |
+| Condition | Result |
+|-----------|--------|
+| No quirks (stock kernel) | crash at ~25 rounds (synthetic stress) |
+| NO_LPM only (sysfs) | crash at ~25 rounds |
+| DISABLE_AUTOSUSPEND only (sysfs) | crash at ~25 rounds |
+| avoid_reset_quirk only (sysfs) | crash at ~25 rounds |
+| All three combined (udev rule) | crash at ~25 rounds |
+| `USB_QUIRK_DELAY_CTRL_MSG` (200ms) | 500+ rounds clean (synthetic) |
+| `UVC_QUIRK_CTRL_THROTTLE` (uniform 50ms, v5-v7) | 500+ rounds clean (synthetic) BUT 4 HC-died events in 41 min real-world WebRTC call |
+| `UVC_QUIRK_CTRL_THROTTLE` (uniform 100ms, v8 draft) | not separately field-tested — superseded by v8.1 the same day |
+| `UVC_QUIRK_CTRL_THROTTLE` (v8.1: 100ms uniform + 200ms COMMIT + 10s COMMIT URB timeout) | 200/200 probe→commit hot-restart cycles clean at zero interval (synthetic); real-call validation pending |
 
-The 50ms throttle (patch 2) prevents the crash while being 4x less
-conservative than `USB_QUIRK_DELAY_CTRL_MSG` and scoped specifically to
-UVC SET_CUR operations.
+**Why uniform 50ms appeared sufficient under synthetic stress but
+failed real-world WebRTC:** the existing stress reproducer
+(`stress-test-kiyo.sh`) hammers `SET_CUR` repeatedly on the same
+control selector. Real WebRTC instead does heterogeneous sequences
+— `GET_MIN → GET_MAX → SET_CUR(probe) → GET_CUR(probe) → SET_CUR(commit)`
+for every format renegotiation, often with hot-restart of the stream
+when bandwidth changes. The failing operation in every observed
+cascading crash is the `SET_CUR(commit)`, not the preceding probes.
+The 50ms uniform throttle gates rate but does not address the
+state-machine pressure of "commit-after-recent-probe" specifically.
+v8.1's layered approach (uniform throttle + COMMIT-specific extra
+delay + COMMIT-specific extended URB timeout) targets the actual
+failure axis. Crash evidence: `crash-evidence/2026-05-13-live-call/`
+(four crash logs from the motivating real-world call) and
+`crash-evidence/2026-05-13-v8.1-validation/` (200/200 clean validation
+run with the layered v8.1 quirk active, including 1.9 MB compressed
+usbmon capture documenting 808 PROBE + 200 COMMIT `SET_CUR`s
+completing without timeout).
 
 ## Impact
 

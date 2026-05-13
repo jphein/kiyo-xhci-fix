@@ -27,8 +27,13 @@ Three kernel patches, all necessary:
 ### 1. Kernel Patches (upstream submissions)
 
 - **`0001`** — `USB_QUIRK_NO_LPM` for 1532:0e05 — disables Link Power Management to prevent firmware destabilization during power state transitions
-- **`0002`** — `UVC_QUIRK_CTRL_THROTTLE` — new UVC quirk that rate-limits all control transfers (100ms interval) in `__uvc_query_ctrl()`
+- **`0002`** — `UVC_QUIRK_CTRL_THROTTLE` — new UVC quirk implementing three coordinated mitigations in `__uvc_query_ctrl()`:
+  - **Uniform 100ms** minimum interval between any two control transfers (prevents firmware overflow under sustained rapid traffic)
+  - **Additional 200ms** before `SET_CUR` to `UVC_VS_COMMIT_CONTROL` (the operation empirically responsible for every observed crash — `Failed to set UVC commit control : -110` precedes every `HC died`)
+  - **Extended 10s URB timeout** for that same `COMMIT_CONTROL` path (vs default 5s — gives the firmware twice the time to self-recover before the xHCI abort path runs, which is the cooperative half of the mitigation)
 - **`0003`** — Razer Kiyo Pro device entry with `UVC_QUIRK_CTRL_THROTTLE | UVC_QUIRK_DISABLE_AUTOSUSPEND | UVC_QUIRK_NO_RESET_RESUME`, plus full `lsusb -v` in commit message documenting the wBytesPerInterval spec violation
+
+The v5–v7 drafts used a uniform 50ms throttle; **v8.1 (2026-05-13)** revised this after a real-world WebRTC call produced 4 commit-control timeouts in 41 minutes despite the 50ms throttle being active. The synthetic SET_CUR stress test passed at 50ms but real-world probe→commit re-negotiation patterns did not, so v8.1 targets the specific failing operation (COMMIT) rather than broadening uniform throttle. See [`kernel-patches/v8-0000-cover-letter.patch`](kernel-patches/v8-0000-cover-letter.patch) and [`kernel-patches/crash-evidence/2026-05-13-v8.1-validation/RESULTS.md`](kernel-patches/crash-evidence/2026-05-13-v8.1-validation/RESULTS.md) for empirical reasoning.
 
 See [`kernel-patches/upstream-report.md`](kernel-patches/upstream-report.md) for the full bug analysis submitted to `linux-usb@vger.kernel.org`.
 
@@ -39,8 +44,11 @@ A systemd user service that monitors `journalctl -k` for xHCI fatal errors and p
 - **Level 1:** Rebind the Kiyo's USB port
 - **Level 2:** Full xHCI controller PCI unbind/bind
 - **Level 3:** Full xHCI driver reload (`modprobe -r xhci_pci xhci_pci_renesas` + reload). On Ubuntu HWE kernels where xhci is builtin to the kernel, L3 is automatically replaced with an extended L2 settle wait (modprobe is a no-op against builtin modules, and the kernel hub-driver's own port power-cycle is what does the actual rescue).
+- **Level 4:** Last-resort escalation. Bundles dmesg/lsusb/sysfs/watchdog state into an incident directory under `/tmp/usb-watchdog-incident-*/` and spawns a Ghostty window running Claude Code pointed at the bundle, so the AI can attempt novel recoveries (port power cycling, PCIe relink, device-level reset) while the keyboard and mouse are still wedged. One-shot per boot via `/tmp/usb-watchdog-claude-called` sentinel — won't fire repeatedly into the same wedged controller.
 
 If all levels fail, the watchdog **stops** — no retry loops, no death spirals. A wedged controller needs a reboot.
+
+Behavioral details that surfaced from the 2026-05-13 live-call incident (four crashes in 41 minutes) are now corrected in the script: stale `HC died` matches arriving in the `journalctl -k` pipe after a successful recovery no longer log misleading FATAL/WARNING entries, and crash-dump capture uses `sudo -n dmesg` so kernel context isn't lost on systems with `kernel.dmesg_restrict=1`.
 
 ### 3. Quick Fix (no reboot, no patches)
 
@@ -159,16 +167,40 @@ To remove when upstream patches land: `sudo dkms remove uvcvideo-kiyo/1.0 --all`
 
 ## Testing
 
+### Reproducers
+
 ```bash
-# Reproduce the crash (WARNING: will kill all USB devices)
+# Synthetic SET_CUR flood reproducer — exercises the rate axis only
 bash kernel-patches/stress-test-kiyo.sh 50
+
+# Probe→commit hot-restart reproducer — mimics WebRTC bandwidth
+# renegotiation. Rotates through Chromium's actual format ladder
+# (480p/720p/1080p MJPG + YUYV) forcing fresh probe+commit pairs.
+# Discriminates rate-only hypothesis from sequence-dependent
+# hypothesis by sweeping INTERVAL_MS.
+CYCLES=200 INTERVAL_MS=0 ./kernel-patches/test-probe-commit-cycle.sh
+
+# Wire-level USB capture (binary, Wireshark-loadable as Linux USB capture)
+./kernel-patches/capture-usbmon.sh    # then run your call / test
+
+# Auto-detect video call + auto-manage capture. Polls /dev/video0 every
+# 3s; starts capture on a fresh holder, stops + classifies on release
+# (preserves compressed under kernel-patches/crash-evidence/auto-captures/
+# only if any kernel failure marker fired in the call window — otherwise
+# silently deletes, so clean calls don't leave 100 MB+ files around).
+./kernel-patches/call-watch.sh
 
 # Build and test the CTRL_THROTTLE patch in isolation
 sudo bash kernel-patches/build-uvc-module.sh
 sudo bash kernel-patches/test-ctrl-throttle.sh 50
 ```
 
-Crash evidence from real-world failures is in [`kernel-patches/crash-evidence/`](kernel-patches/crash-evidence/).
+### Validation evidence
+
+- [`kernel-patches/crash-evidence/`](kernel-patches/crash-evidence/) — kernel logs from real-world failure events
+- [`kernel-patches/crash-evidence/2026-05-13-live-call/`](kernel-patches/crash-evidence/2026-05-13-live-call/) — the four-crash live call that motivated v8.1
+- [`kernel-patches/crash-evidence/2026-05-13-v8.1-validation/`](kernel-patches/crash-evidence/2026-05-13-v8.1-validation/) — 200/200 clean run at zero-interval hot-restart with v8.1 active (RESULTS.md + 1.9 MB compressed usbmon capture; 808 PROBE + 200 COMMIT SET_CURs landed, all completed normally)
+- [`kernel-patches/crash-evidence/auto-captures/`](kernel-patches/crash-evidence/auto-captures/) — preserved automatically by `call-watch.sh` when a real call triggers a kernel failure
 
 ## Install
 
@@ -188,23 +220,28 @@ bash kernel-patches/install-watchdog.sh
 | `usb-watchdog-sudoers` | Targeted sudoers rules for watchdog |
 | `reset-camera.sh` | One-shot manual recovery script |
 | `fix-kiyo-pro.sh` | All-in-one fix installer (quirk + udev + WirePlumber) |
-| `kernel-patches/0000-cover-letter.txt` | Patch series cover letter |
-| `kernel-patches/*.patch` | Kernel patches for upstream submission |
-| `kernel-patches/send-patches.sh` | Sends patch series to linux-usb/linux-media via `git send-email` |
-| `kernel-patches/uvcvideo-patched.ko` | Pre-built patched uvcvideo module (6.8.0-106-generic) |
+| `kernel-patches/0000-cover-letter.txt` | Original cover letter from the first send (legacy reference) |
+| `kernel-patches/v8-0000-cover-letter.patch` | v8.1 cover letter for the next LKML send |
+| `kernel-patches/v8-0001-…CTRL_THROTTLE…patch` | v8.1 patch 1/2: layered CTRL_THROTTLE quirk |
+| `kernel-patches/v8-0002-…Razer-Kiyo-Pro…patch` | v8.1 patch 2/2: device-info table entry |
+| `kernel-patches/send-patches.sh` | Sends original 3-patch series via `git send-email` (historical) |
+| `kernel-patches/send-patches-v8.sh` | Sends the current v8 series — threads under the v3 root |
 | `kernel-patches/build-uvc-module.sh` | Builds patched uvcvideo module from kernel source |
 | `kernel-patches/apply-and-test.sh` | Applies patches to kernel tree and runs build |
 | `kernel-patches/test-ctrl-throttle.sh` | CTRL_THROTTLE isolation test (swaps module, removes LPM quirk) |
+| `kernel-patches/test-probe-commit-cycle.sh` | Probe→commit hot-restart reproducer mimicking WebRTC renegotiation |
 | `kernel-patches/test-quirks-locally.sh` | Local quirk validation without rebooting |
 | `kernel-patches/test-watchdog.sh` | Watchdog service test harness |
-| `kernel-patches/stress-test-kiyo.sh` | Crash reproducer / validation tool |
+| `kernel-patches/stress-test-kiyo.sh` | Rapid SET_CUR crash reproducer (rate-only stress) |
+| `kernel-patches/capture-usbmon.sh` | Wire-level USB capture helper (Wireshark-loadable) |
+| `kernel-patches/call-watch.sh` | Auto-detects video calls and manages usbmon capture; preserves only on crash |
 | `kernel-patches/install-watchdog.sh` | Installs watchdog systemd service |
 | `kernel-patches/upstream-report.md` | Full bug report for linux-usb mailing list |
 | `kernel-patches/test-methodology.md` | Test methodology and procedures |
-| `kernel-patches/research-*.md` | Root cause analysis notes |
+| `kernel-patches/research-*.md` | Root cause analysis notes (historical) |
 | `kernel-patches/capture-crash.sh` | dmesg capture script for crash reproduction |
 | `kernel-patches/michal-xhci-test.patch` | Michal Pecio's xhci test patch (max_esit_payload clamp + short packet retry) |
-| `kernel-patches/crash-evidence/` | Kernel logs from real crash events |
+| `kernel-patches/crash-evidence/` | Kernel logs from real crash events + v8.1 validation data |
 | `firmware-analysis/README.md` | Firmware analysis — UVC XU protocol, normal-mode flash, ROM boot, SCSI protocol |
 | `firmware-analysis/kiyo-flash.py` | Linux firmware tool — normal-mode flash, ROM boot, probe, u-boot shell |
 | `firmware-analysis/usbmon-capture.md` | USB protocol capture setup and analysis guide |
@@ -234,7 +271,7 @@ A Linux firmware tool ([`firmware-analysis/kiyo-flash.py`](firmware-analysis/kiy
 ## Upstream Status
 
 - **Patch 1** (`USB_QUIRK_NO_LPM`): **Merged** into `usb-linus` by Greg Kroah-Hartman. Backported to stable kernels 6.1, 6.6, 6.12, 6.18, and 6.19 as of 2026-04-09.
-- **Patches 2-3** (`UVC_QUIRK_CTRL_THROTTLE` + device entry): Submitted to linux-media, under review by Ricardo Ribalda. v7 sent 2026-04-09 — throttle-only (dropped error-code skip per Ricardo), full `lsusb -v` in commit message per Ricardo.
+- **Patches 2-3** (`UVC_QUIRK_CTRL_THROTTLE` + device entry): under review on linux-media. **v7 sent 2026-04-09**; **v8.1 staged 2026-05-13** but not yet sent — locally at [`kernel-patches/v8-000{0,1,2}-*.patch`](kernel-patches/) with [`send-patches-v8.sh`](kernel-patches/send-patches-v8.sh) as the launcher. v8.1 reworks the CTRL_THROTTLE quirk from uniform 50ms to layered (uniform 100ms + COMMIT-specific 200ms + COMMIT-specific 10s URB timeout) based on real-world WebRTC failure data. Awaiting one real-call validation pass before sending.
 - **Thread Message-ID:** `<20260331003806.212565-1-jp@jphein.com>`
 - **v7 Message-ID:** `<20260410002720.1033303-1-jp@jphein.com>`
 
@@ -247,6 +284,8 @@ A Linux firmware tool ([`firmware-analysis/kiyo-flash.py`](firmware-analysis/kiy
   - **Test 2** (Michal's patch only, no JP patches): HC SURVIVED — firmware locked at round ~23 but host controller handled errors gracefully
 - **Test results (2026-04-29 hammerint):** Intel xHCI 0000:00:14.0 (NO_LPM active) survived 60s × 2 Kiyos clean — ~12,000 submit/cancel cycles each on EP 0x85 IN with zero `xhci_hc_died` and zero event-198. Confirms Intel xHCI tolerates the dual-cancel pattern that catastrophically kills ASMedia.
 - **Test results (2026-05-03 stream-mmap loop, Michal's Test 1):** Two-Kiyo run on Intel xHCI vanilla kernel + stock uvcvideo + **no** quirks (booted into the `Kiyo VANILLA (no fixes)` GRUB entry), 300s real MJPG 1920x1080 @ 30fps streaming each, with test-mode watchdog supervision. Both Kiyos `verdict: no_death_in_window` + `PASS: clean`, dmesg.post empty of fatal patterns. Pure stream-mmap teardown without control-rate stress does **not** reproduce HC death on Intel — confirms CTRL_THROTTLE targets the actual trigger path (rapid SET_CUR overflow), not a generic streaming concern. Forensics: [`kernel-patches/matrix/michal-tests/results/streamloop-20260503T221219Z/`](kernel-patches/matrix/michal-tests/results/streamloop-20260503T221219Z/).
+- **Live-call evidence (2026-05-13 morning):** Real Brave WebRTC call on Intel Cannon Lake xHCI, 6.17.0-20-generic, DKMS `uvcvideo-kiyo` with `UVC_QUIRK_CTRL_THROTTLE` at uniform 50ms active. **Four** xHCI host controller deaths in 41 minutes (11:34, 11:37, 12:09, 12:15), every one preceded verbatim by `Failed to set UVC commit control : -110 (exp. 26)`. The 50ms throttle reduced but did not eliminate; the failure was sequence-dependent (PROBE→COMMIT under load), not pure rate. Watchdog recovered each crash in 6–33s. Crash logs: [`kernel-patches/crash-evidence/2026-05-13-live-call/`](kernel-patches/crash-evidence/2026-05-13-live-call/). This evidence motivated the v8.1 revision.
+- **v8.1 synthetic validation (2026-05-13 afternoon):** [`test-probe-commit-cycle.sh`](kernel-patches/test-probe-commit-cycle.sh) at `CYCLES=200 INTERVAL_MS=0` against v8.1 throttle live, with usbmon capture in parallel. **200/200 cycles successful, 0 v4l2-ctl errors, 0 kernel failure markers.** Wire capture confirmed 808 PROBE + 200 COMMIT `SET_CUR`s landed on the bus, all completing normally. Same hardware that crashed 4× in 41 min with uniform 50ms now passes ~60s of zero-interval probe→commit hot-restart cleanly with the layered v8.1 mitigation. Synthetic stress is necessary-but-not-sufficient; real-call validation pending. Forensics: [`kernel-patches/crash-evidence/2026-05-13-v8.1-validation/`](kernel-patches/crash-evidence/2026-05-13-v8.1-validation/).
 
 ## License
 

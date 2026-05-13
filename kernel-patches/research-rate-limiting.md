@@ -3,6 +3,20 @@
 **Date:** 2026-03-21
 **Context:** Razer Kiyo Pro (1532:0e05) crashes when rapid v4l2-ctl control changes are sent (~25 rounds before EPIPE -32 → xHCI controller death)
 
+> **Update 2026-05-13:** This document records the design thinking that
+> led to `UVC_QUIRK_CTRL_THROTTLE` with a uniform 50ms interval (v5-v7
+> of the patch series). Real-world WebRTC video-call use later showed
+> that uniform 50ms reduced but did not eliminate the crash — the
+> failure is sequence-dependent (PROBE→COMMIT under load), not pure
+> rate. The current shipping implementation is **v8.1**: uniform 100ms
+> *plus* 200ms specifically before `SET_CUR(UVC_VS_COMMIT_CONTROL)`
+> *plus* extended 10s URB timeout for that same COMMIT path. See
+> [`v8-0000-cover-letter.patch`](v8-0000-cover-letter.patch) and
+> [`crash-evidence/2026-05-13-v8.1-validation/RESULTS.md`](crash-evidence/2026-05-13-v8.1-validation/RESULTS.md)
+> for the empirical reasoning. The 50ms references in this document
+> are preserved as the historical-design record, not the current
+> implementation.
+
 ---
 
 ## 1. Existing Rate-Limiting / Throttling in UVC and V4L2 Subsystems
