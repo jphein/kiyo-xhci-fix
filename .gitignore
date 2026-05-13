@@ -2,7 +2,6 @@
 !kernel-patches/crash-evidence/*.log
 !kernel-patches/crash-evidence/**/*.log
 *.ko
-!kernel-patches/uvcvideo-patched.ko
 kernel-patches/reply-*.txt
 /tmp/
 __pycache__/
@@ -11,3 +10,6 @@ __pycache__/
 # Michal's hammerint reproducer — keep source, ignore build artifact + results
 kernel-patches/matrix/michal-tests/hammerint
 kernel-patches/matrix/michal-tests/results/
+
+# Matrix test runner queue / run-time state (test orchestrator scratch)
+kernel-patches/matrix/results/
