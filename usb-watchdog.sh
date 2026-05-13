@@ -18,6 +18,7 @@ LAST_RECOVERY=0
 RECOVERING=0         # re-entry guard
 CONSEC_FAILS=0       # consecutive failed recoveries
 GAVE_UP=0            # set to 1 after all levels fail — stops retrying
+XHCI_BUILTIN=0       # set to 1 at startup if xhci_pci is compiled into the kernel
 LOG_TAG="usb-watchdog"
 
 # Test mode (driven by run-hammerint.sh / matrix runner):
@@ -375,6 +376,9 @@ EOF
 }
 
 recover() {
+    # Trigger reason from caller (for log + test record). Empty if caller didn't pass one.
+    local trigger="${1:-unspecified}"
+
     # Prevent re-entry — recovery generates kernel messages that match our patterns
     if [ "$RECOVERING" -eq 1 ]; then
         return
@@ -383,7 +387,7 @@ recover() {
     local now
     now=$(date +%s)
     if (( now - LAST_RECOVERY < COOLDOWN )); then
-        return  # silent skip during cooldown — no log to avoid noise
+        return  # silent skip during cooldown — stale post-recovery matches land here
     fi
 
     if [ "$GAVE_UP" -eq 1 ]; then
@@ -392,6 +396,11 @@ recover() {
 
     RECOVERING=1
     LAST_RECOVERY=$now
+
+    # Log FATAL only after we've cleared cooldown/GAVE_UP — keeps the log honest
+    # when stale "HC died" lines arrive after a successful recovery.
+    log "FATAL: $trigger — initiating recovery"
+    test_mode_record_event "$trigger"
 
     # Save crash context
     dump_crash_log
@@ -429,17 +438,33 @@ recover() {
     fi
 
     # Level 3: Full xHCI driver reload (single attempt)
-    log "LEVEL 3: Full driver reload..."
-    sudo /sbin/modprobe -r xhci_pci xhci_pci_renesas 2>&1 | while read -r l; do log "modprobe-r: $l"; done
-    sleep 3
-    sudo /sbin/modprobe xhci_pci xhci_pci_renesas 2>&1 | while read -r l; do log "modprobe: $l"; done
-    sleep 12
+    # Only viable if xhci_pci is a loadable module. On Ubuntu HWE kernels it's
+    # builtin, so modprobe -r fails with "Module is builtin" and modprobe is a
+    # no-op — falsely reporting "LEVEL 3 OK" while the kernel's own hub-driver
+    # port power-cycle was actually doing the rescue. When builtin, give L2 more
+    # time to settle instead.
+    if [ "$XHCI_BUILTIN" -eq 1 ]; then
+        log "LEVEL 3 SKIPPED: xhci is builtin to kernel — extending L2 settle wait"
+        sleep 15
+        if health_check; then
+            log "LEVEL 2+ OK: All devices alive after extended settle wait"
+            LAST_RECOVERY=$(date +%s); RECOVERING=0; CONSEC_FAILS=0
+            test_mode_after_recover ok
+            return
+        fi
+    else
+        log "LEVEL 3: Full driver reload..."
+        sudo /sbin/modprobe -r xhci_pci xhci_pci_renesas 2>&1 | while read -r l; do log "modprobe-r: $l"; done
+        sleep 3
+        sudo /sbin/modprobe xhci_pci xhci_pci_renesas 2>&1 | while read -r l; do log "modprobe: $l"; done
+        sleep 12
 
-    if health_check; then
-        log "LEVEL 3 OK: All devices alive after driver reload"
-        LAST_RECOVERY=$(date +%s); RECOVERING=0; CONSEC_FAILS=0
-        test_mode_after_recover ok
-        return
+        if health_check; then
+            log "LEVEL 3 OK: All devices alive after driver reload"
+            LAST_RECOVERY=$(date +%s); RECOVERING=0; CONSEC_FAILS=0
+            test_mode_after_recover ok
+            return
+        fi
     fi
 
     # All levels exhausted — STOP, don't retry. Controller is wedged, needs reboot.
@@ -462,6 +487,14 @@ for name in "${!EXPECTED_DEVICES[@]}"; do
     log "  $name: ${EXPECTED_DEVICES[$name]}"
 done
 
+# Detect whether xhci is builtin (affects Level 3 recovery strategy).
+# `lsmod` only lists loadable modules. If neither xhci_pci nor xhci_hcd shows up
+# but the controller is clearly working, the driver is compiled in.
+if ! lsmod 2>/dev/null | grep -qE '^xhci_(pci|hcd)\b'; then
+    XHCI_BUILTIN=1
+    log "NOTE: xhci is builtin to this kernel — LEVEL 3 (modprobe reload) will be replaced with extended L2 settle wait"
+fi
+
 # Initial health check
 if health_check; then
     log "Initial health check PASSED — all expected devices present"
@@ -472,17 +505,18 @@ fi
 test_mode_init
 
 # Watch kernel log for fatal USB/xHCI error patterns
+#
+# The FATAL log line is emitted INSIDE recover() (after cooldown/GAVE_UP checks)
+# rather than here in the case branch, so we don't leave misleading "FATAL"
+# entries in the log when stale matching lines arrive in journalctl's pipe
+# after a recovery has already succeeded.
 journalctl -k -f --no-pager | while read -r line; do
     case "$line" in
         *"HC died"*|*"Host System Error"*|*"host system error"*)
-            log "FATAL: xHCI host controller died — initiating recovery"
-            test_mode_record_event "HC died/HSE"
-            recover
+            recover "xHCI host controller died (HC died/HSE)"
             ;;
         *"xHCI host not responding"*|*"xhci_hcd"*"not responding to stop"*)
-            log "FATAL: xHCI not responding — initiating recovery"
-            test_mode_record_event "xHCI not responding"
-            recover
+            recover "xHCI not responding"
             ;;
         *"Cannot set alt interface"*"ret = -19"*|*"usb_set_interface failed"*"-19"*)
             # -19 = ENODEV, device gone mid-transfer.
@@ -513,11 +547,7 @@ journalctl -k -f --no-pager | while read -r line; do
         *"USB disconnect"*"$XHCI_PCI"*)
             # Mass disconnect event on our controller
             sleep 2
-            health_check || {
-                log "FATAL: Mass USB disconnect — initiating recovery"
-                test_mode_record_event "mass disconnect"
-                recover
-            }
+            health_check || recover "mass USB disconnect on $XHCI_PCI"
             ;;
     esac
 done
