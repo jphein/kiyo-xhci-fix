@@ -100,7 +100,12 @@ dump_crash_log() {
         echo "Timestamp: $(date)"
         echo ""
         echo "=== Last 50 lines of dmesg ==="
-        dmesg | tail -50
+        # kernel.dmesg_restrict=1 (default on most modern distros) blocks
+        # unprivileged dmesg reads. Try sudo first (passwordless via the
+        # watchdog sudoers entry); fall back to bare dmesg if sudo fails.
+        # Without this, every crash log records "Operation not permitted"
+        # and we lose the entire kernel-side incident context.
+        sudo -n dmesg 2>/dev/null | tail -50 || dmesg 2>&1 | tail -50
         echo ""
         echo "=== USB devices ==="
         lsusb 2>/dev/null || echo "(lsusb not available)"
