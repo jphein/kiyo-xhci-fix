@@ -32,7 +32,9 @@ find_kiyo() {
 
 # Map a root bus-port "B-P" to its hub-port "disable" attribute.
 port_disable_path() {
-    local bp="$1" bus="${bp%%-*}" port="${bp#*-}"
+    local bp="$1"
+    local bus="${bp%%-*}"
+    local port="${bp#*-}"
     echo "/sys/bus/usb/devices/${bus}-0:1.0/usb${bus}-port${port}/disable"
 }
 
@@ -44,13 +46,15 @@ fi
 
 echo "Kiyo absent (firmware locked). Software port-cycle on root port $KIYO_ROOTPORT ..."
 DIS=$(port_disable_path "$KIYO_ROOTPORT")
-if [ -w "$DIS" ]; then
+# The disable attr is root-owned (writes go through sudo tee), so test for
+# existence, not user-writability — a `[ -w ]` check is always false for $USER.
+if [ -e "$DIS" ]; then
     echo 1 | sudo tee "$DIS" >/dev/null && echo "  port disabled  ($DIS)"
     sleep 3
     echo 0 | sudo tee "$DIS" >/dev/null && echo "  port re-enabled"
     sleep 6
 else
-    echo "  WARN: $DIS not writable — cannot toggle this port"
+    echo "  WARN: $DIS not found — wrong port? (override with KIYO_ROOTPORT=<bus>-<port>)"
 fi
 
 if node=$(find_kiyo); then
