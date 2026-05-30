@@ -344,7 +344,7 @@ documenting the wBytesPerInterval spec violation on EP5 IN.
 | `USB_QUIRK_DELAY_CTRL_MSG` (200ms) | 500+ rounds clean (synthetic) |
 | `UVC_QUIRK_CTRL_THROTTLE` (uniform 50ms, v5-v7) | 500+ rounds clean (synthetic) BUT 4 HC-died events in 41 min real-world WebRTC call |
 | `UVC_QUIRK_CTRL_THROTTLE` (uniform 100ms, v8 draft) | not separately field-tested — superseded by v8.1 the same day |
-| `UVC_QUIRK_CTRL_THROTTLE` (v8.1: 100ms uniform + 200ms COMMIT + 10s COMMIT URB timeout) | 200/200 probe→commit hot-restart cycles clean at zero interval (synthetic); real-call validation pending |
+| `UVC_QUIRK_CTRL_THROTTLE` (v8.1: 100ms uniform + 200ms COMMIT + 10s COMMIT URB timeout) | 200/200 probe→commit hot-restart cycles clean at zero interval (synthetic) — **but FAILED real-world 2026-05-30: `commit control -110` → HC-died cascade recurred ×2 with the throttle active.** v9 needed; see `crash-evidence/2026-05-30-v8.1-realworld-failure/` |
 
 **Why uniform 50ms appeared sufficient under synthetic stress but
 failed real-world WebRTC:** the existing stress reproducer
@@ -364,6 +364,21 @@ failure axis. Crash evidence: `crash-evidence/2026-05-13-live-call/`
 run with the layered v8.1 quirk active, including 1.9 MB compressed
 usbmon capture documenting 808 PROBE + 200 COMMIT `SET_CUR`s
 completing without timeout).
+
+**Real-world failure (2026-05-30) — the synthetic run did not hold.**
+With the layered v8.1 quirk active during organic desktop use, the Kiyo
+Pro still produced `Failed to set UVC commit control : -110 (exp. 26)`
+→ `HC died` **twice** in close succession (10:42:53 and 10:43:41 PDT).
+This is the real-world validation the 200/200 synthetic run could not
+substitute for, and it fails: the 100ms/200ms/10s layering reduces but
+does not eliminate the cascade under real WebRTC-style irregular
+re-negotiation. v9 candidates: COMMIT interval 300ms; a
+probe-just-completed rate-spike guard; and usbmon-grounded analysis of
+whether the command-ring abort path is still reached despite the 10s
+COMMIT URB timeout. Evidence:
+`crash-evidence/2026-05-30-v8.1-realworld-failure/INCIDENT.md` (no
+usbmon for this incident — the recovery watchdog was deadlocked, since
+fixed).
 
 ## Impact
 
