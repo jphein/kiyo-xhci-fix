@@ -220,6 +220,7 @@ bash kernel-patches/install-watchdog.sh
 | `usb-watchdog.service` | systemd user service unit |
 | `usb-watchdog-sudoers` | Targeted sudoers rules for watchdog |
 | `reset-camera.sh` | One-shot manual recovery script |
+| `revive-kiyo.sh` | Revive a firmware-locked Kiyo via software USB port-cycle (no physical replug) — EXPERIMENTAL (2026-05-30) |
 | `fix-kiyo-pro.sh` | All-in-one fix installer (quirk + udev + WirePlumber) |
 | `kernel-patches/0000-cover-letter.txt` | Original cover letter from the first send (legacy reference) |
 | `kernel-patches/v8-0000-cover-letter.patch` | v8.1 cover letter for the next LKML send |
