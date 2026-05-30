@@ -1,6 +1,23 @@
 #!/bin/bash
 # Build a patched uvcvideo module with CTRL_THROTTLE quirk
 # Extracts UVC source from installed kernel source, applies patch, builds module
+#
+# ⚠️ DEPRECATED / STALE (flagged 2026-05-30) — DO NOT USE as-is:
+#   - Extracts from /usr/src/linux-source-6.8.0, but the running kernel is
+#     6.17.x. The 6.8 UVC source will not match and may miscompile or produce
+#     a wrong-ABI module.
+#   - Applies an OLD uniform-50ms throttle, NOT the validated v8.1
+#     (100ms uniform + 200ms COMMIT + 10s COMMIT URB timeout).
+#
+#   Use the DKMS package instead (this is what actually ships v8.1):
+#     sudo dkms build   uvcvideo-kiyo/1.0 -k $(uname -r)
+#     sudo dkms install uvcvideo-kiyo/1.0 -k $(uname -r) --force
+#     sudo modprobe -r uvcvideo && sudo modprobe uvcvideo
+#   Source of truth: /usr/src/uvcvideo-kiyo-1.0 (+ v8-0001/0002 patches).
+#
+#   NOTE (2026-05-30): even v8.1 fails real-world — see
+#   crash-evidence/2026-05-30-v8.1-realworld-failure/. v9 is moving to an
+#   xHCI-side fix; rebuilding a uvcvideo throttle is likely the wrong lever.
 set -euo pipefail
 
 KVER=$(uname -r)
