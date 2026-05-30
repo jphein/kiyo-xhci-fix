@@ -549,7 +549,11 @@ open_feed() {
 open_feed
 
 while true; do
-    if read -r -t "$POLL_INTERVAL" -u 3 line; then
+    # Capture read's exit code DIRECTLY — `rc=$?` after the `fi` would read the
+    # `if` statement's status (0 when the condition is false with no else),
+    # misclassifying every timeout as EOF and respawning journalctl on a loop.
+    if read -r -t "$POLL_INTERVAL" -u 3 line; then rc=0; else rc=$?; fi
+    if [ "$rc" -eq 0 ]; then
         poll_degraded=0   # a line arrived → feed is alive
         case "$line" in
             *"HC died"*|*"Host System Error"*|*"host system error"*)
@@ -597,7 +601,6 @@ while true; do
         continue
     fi
 
-    rc=$?
     if [ "$rc" -gt 128 ]; then
         # read timed out: feed quiet for POLL_INTERVAL. journalctl is still
         # running — this is the deadlock safety net. Poll health directly.
