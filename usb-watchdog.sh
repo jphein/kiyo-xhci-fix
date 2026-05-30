@@ -518,54 +518,106 @@ fi
 
 test_mode_init
 
-# Watch kernel log for fatal USB/xHCI error patterns
+# Watch kernel log for fatal USB/xHCI error patterns.
 #
 # The FATAL log line is emitted INSIDE recover() (after cooldown/GAVE_UP checks)
 # rather than here in the case branch, so we don't leave misleading "FATAL"
-# entries in the log when stale matching lines arrive in journalctl's pipe
-# after a recovery has already succeeded.
-journalctl -k -f --no-pager | while read -r line; do
-    case "$line" in
-        *"HC died"*|*"Host System Error"*|*"host system error"*)
-            recover "xHCI host controller died (HC died/HSE)"
-            ;;
-        *"xHCI host not responding"*|*"xhci_hcd"*"not responding to stop"*)
-            recover "xHCI not responding"
-            ;;
-        *"Cannot set alt interface"*"ret = -19"*|*"usb_set_interface failed"*"-19"*)
-            # -19 = ENODEV, device gone mid-transfer.
-            # Skip in test mode — this is expected noise during hammerint and
-            # would cause spurious recoveries. We only act on hard HC death.
-            [ "$MODE" = "test" ] && continue
-            # Suppress during cooldown — stale matches from a just-recovered crash.
-            within_cooldown && continue
-            log "WARNING: USB device gone (-19) — checking health"
-            sleep 2
-            health_check || recover "USB device gone (-19) + health degraded"
-            ;;
-        *"device descriptor read"*"error -110"*|*"device not accepting address"*"error -110"*)
-            # -110 = ETIMEDOUT, controller may be wedging.
-            # Same skip rationale as -19 above.
-            [ "$MODE" = "test" ] && continue
-            within_cooldown && continue
-            log "WARNING: USB timeout (-110) — checking health"
-            sleep 5
-            health_check || recover "USB timeout (-110) + health degraded"
-            ;;
-        *"uvcvideo"*"error -71"*|*"uvcvideo"*"error -32"*)
-            # UVC protocol/pipe errors — camera crashing.
-            # Hammerint never goes through uvcvideo, so any uvcvideo line
-            # during the test is unrelated noise.
-            [ "$MODE" = "test" ] && continue
-            within_cooldown && continue
-            log "WARNING: UVC error on camera — monitoring for cascade"
-            sleep 5
-            health_check || recover "uvcvideo cascade after -71/-32"
-            ;;
-        *"USB disconnect"*"$XHCI_PCI"*)
-            # Mass disconnect event on our controller
-            sleep 2
-            health_check || recover "mass USB disconnect on $XHCI_PCI"
-            ;;
-    esac
+# entries in the log when stale matching lines arrive after a recovery.
+#
+# ROBUSTNESS (2026-05-30): the detector must NEVER depend solely on the log
+# feed. The previous form — `journalctl -k -f | while read -r line` — blocked
+# forever on an empty pipe (`anon_pipe_read`) whenever the feed went silent
+# (journald hiccup, log rotation, or the kernel log going quiet as the HC
+# dies). The watchdog stayed "running" in `ps` but was deaf, and EVERY recovery
+# path lives behind that read, so a real HC death went unhandled for 19 min.
+# Two defenses, so neither failure mode can blind us again:
+#   1) `read -t $POLL_INTERVAL` — a quiet feed now wakes us on a fixed cadence
+#      to run an INDEPENDENT health poll (event-driven AND polling).
+#   2) Persistent FD via process substitution + EOF respawn — if journalctl
+#      EXITS (rc<=128) we reopen the feed instead of falling off the end of the
+#      script and dying. A read timeout (rc>128) leaves journalctl running.
+# A 2-poll debounce keeps an intentional device unplug from forcing a rebind.
+POLL_INTERVAL="${WATCHDOG_POLL_INTERVAL:-15}"
+poll_degraded=0
+
+open_feed() {
+    # (Re)open the kernel-log follow on FD 3. Closing+reopening makes the old
+    # journalctl see EOF on its next write and exit.
+    exec 3<&- 2>/dev/null
+    exec 3< <(journalctl -k -f --no-pager 2>/dev/null)
+}
+open_feed
+
+while true; do
+    if read -r -t "$POLL_INTERVAL" -u 3 line; then
+        poll_degraded=0   # a line arrived → feed is alive
+        case "$line" in
+            *"HC died"*|*"Host System Error"*|*"host system error"*)
+                recover "xHCI host controller died (HC died/HSE)"
+                ;;
+            *"xHCI host not responding"*|*"xhci_hcd"*"not responding to stop"*)
+                recover "xHCI not responding"
+                ;;
+            *"Cannot set alt interface"*"ret = -19"*|*"usb_set_interface failed"*"-19"*)
+                # -19 = ENODEV, device gone mid-transfer.
+                # Skip in test mode — this is expected noise during hammerint and
+                # would cause spurious recoveries. We only act on hard HC death.
+                [ "$MODE" = "test" ] && continue
+                # Suppress during cooldown — stale matches from a just-recovered crash.
+                within_cooldown && continue
+                log "WARNING: USB device gone (-19) — checking health"
+                sleep 2
+                health_check || recover "USB device gone (-19) + health degraded"
+                ;;
+            *"device descriptor read"*"error -110"*|*"device not accepting address"*"error -110"*)
+                # -110 = ETIMEDOUT, controller may be wedging.
+                # Same skip rationale as -19 above.
+                [ "$MODE" = "test" ] && continue
+                within_cooldown && continue
+                log "WARNING: USB timeout (-110) — checking health"
+                sleep 5
+                health_check || recover "USB timeout (-110) + health degraded"
+                ;;
+            *"uvcvideo"*"error -71"*|*"uvcvideo"*"error -32"*)
+                # UVC protocol/pipe errors — camera crashing.
+                # Hammerint never goes through uvcvideo, so any uvcvideo line
+                # during the test is unrelated noise.
+                [ "$MODE" = "test" ] && continue
+                within_cooldown && continue
+                log "WARNING: UVC error on camera — monitoring for cascade"
+                sleep 5
+                health_check || recover "uvcvideo cascade after -71/-32"
+                ;;
+            *"USB disconnect"*"$XHCI_PCI"*)
+                # Mass disconnect event on our controller
+                sleep 2
+                health_check || recover "mass USB disconnect on $XHCI_PCI"
+                ;;
+        esac
+        continue
+    fi
+
+    rc=$?
+    if [ "$rc" -gt 128 ]; then
+        # read timed out: feed quiet for POLL_INTERVAL. journalctl is still
+        # running — this is the deadlock safety net. Poll health directly.
+        [ "$MODE" = "test" ] && continue
+        within_cooldown && continue
+        if health_check; then
+            poll_degraded=0
+        else
+            poll_degraded=$((poll_degraded + 1))
+            log "POLL: health degraded ($poll_degraded/2) — log feed silent ${POLL_INTERVAL}s"
+            if [ "$poll_degraded" -ge 2 ]; then
+                recover "periodic poll: expected devices missing + feed silent (deadlock-safe path)"
+                poll_degraded=0
+            fi
+        fi
+        continue
+    fi
+
+    # rc <= 128 → EOF: journalctl exited. Respawn the feed rather than die.
+    log "WARNING: kernel log feed ended (rc=$rc) — restarting journalctl follow"
+    sleep 2
+    open_feed
 done
