@@ -20,6 +20,23 @@
 
 **Interval: EP#82 timeout → HC death = 831 seconds (~14 minutes)**
 
+## Root Cause of EP#82 Activity: Google Meet
+
+Google Meet (Brave browser, via `getUserMedia`) held `/dev/video0` open from the
+previous session. The browser reacquired the camera on resume and continued submitting
+ISO URBs continuously. The camera was not in an active call at crash time — the Meet
+tab was open with camera permission held. ~29 minutes of continuous ISO streaming
+post-resume drove the COMP_SHORT_PACKET flood to threshold.
+
+**Reproducer (deterministic):**
+1. Open Google Meet (camera permission granted, stream active)
+2. Suspend → resume
+3. Leave Meet tab open, camera idle (~30 min)
+4. Watch for `usb 2-3: timeout: still N active urbs on EP #82`
+
+No active call needed. The stream being held open is sufficient. This is the exact
+scenario to run on the xhci-test kernel.
+
 ## Key Differences from 2026-05-30 Crashes
 
 | | 2026-05-30 (call during work) | 2026-06-06 (resume crash) |
