@@ -17,9 +17,29 @@ set -u
 
 KIYO_VID=1532
 KIYO_PID=0e05
-# The bus-port the Kiyo sits on — it must be on its own root port (see the
-# hub-isolation finding). Override with KIYO_ROOTPORT=<bus>-<port> if it moves.
-KIYO_ROOTPORT="${KIYO_ROOTPORT:-2-1}"
+
+# Derive the root port the Kiyo last occupied from kernel messages.
+# Matches lines like "uvcvideo 2-3:1.1: ..." and "usb 2-3: timeout: still N active urbs".
+# Falls back to sysfs scan (device present), then to the env override or hardcoded default.
+_derive_kiyo_port() {
+    # Try uvcvideo log lines first — most specific.
+    # journalctl -k is used (not dmesg) since dmesg requires CAP_SYSLOG on this system.
+    local p
+    p=$(journalctl -k --no-pager 2>/dev/null | grep -oP 'uvcvideo \K[0-9]+-[0-9]+(?=:[0-9]+\.[0-9]+)' | tail -1)
+    [ -n "$p" ] && { echo "$p"; return; }
+    # Fall back to generic usb timeout lines
+    p=$(journalctl -k --no-pager 2>/dev/null | grep -oP 'usb \K[0-9]+-[0-9]+(?=: timeout:)' | tail -1)
+    [ -n "$p" ] && { echo "$p"; return; }
+    # Fall back to sysfs (works when device is still present — rare case for this script)
+    for d in /sys/bus/usb/devices/*/; do
+        [ "$(cat "$d/idVendor"  2>/dev/null)" = "$KIYO_VID" ] && \
+        [ "$(cat "$d/idProduct" 2>/dev/null)" = "$KIYO_PID" ] && { basename "$d"; return; }
+    done
+    echo "${KIYO_ROOTPORT_FALLBACK:-2-3}"
+}
+
+# Override with KIYO_ROOTPORT=<bus>-<port> to skip auto-detection.
+KIYO_ROOTPORT="${KIYO_ROOTPORT:-$(_derive_kiyo_port)}"
 
 find_kiyo() {
     local d
