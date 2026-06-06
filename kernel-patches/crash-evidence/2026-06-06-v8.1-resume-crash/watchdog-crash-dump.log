@@ -1,0 +1,68 @@
+=== USB Watchdog Crash Dump ===
+Timestamp: Sat Jun  6 10:17:59 AM PDT 2026
+
+=== Last 50 lines of dmesg ===
+[41268.700065] random: crng reseeded on system resumption
+[41268.715454] PM: suspend exit
+[41272.104494] r8169 0000:05:00.0 enp5s0: Link is Up - 1Gbps/Full - flow control rx/tx
+[41275.691941] audit: type=1400 audit(1780762869.505:225): apparmor="DENIED" operation="capable" class="cap" profile="/usr/sbin/cupsd" pid=2454161 comm="cupsd" capability=12  capname="net_admin"
+[41275.956852] rfkill: input handler disabled
+[41275.995715] r8169 0000:05:00.0 enp5s0: Link is Down
+[41276.027682] Generic FE-GE Realtek PHY r8169-0-500:00: attached PHY driver (mii_bus:phy_addr=r8169-0-500:00, irq=MAC)
+[41276.185819] r8169 0000:05:00.0 enp5s0: Link is Down
+[41279.942840] r8169 0000:05:00.0 enp5s0: Link is Up - 1Gbps/Full - flow control rx/tx
+[41283.928112] systemd-journald[551]: Time jumped backwards, rotating.
+[42719.113995] usb 2-4: USB disconnect, device number 4
+[42719.291230] usb 2-4: new SuperSpeed USB device number 5 using xhci_hcd
+[42719.330353] usb 2-4: New USB device found, idVendor=2109, idProduct=0817, bcdDevice=90.14
+[42719.330357] usb 2-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[42719.330359] usb 2-4: Product: USB3.0 Hub             
+[42719.330360] usb 2-4: Manufacturer: VIA Labs, Inc.         
+[42719.330361] usb 2-4: SerialNumber: 000000000
+[42719.333641] hub 2-4:1.0: USB hub found
+[42719.333859] hub 2-4:1.0: 4 ports detected
+[42792.953211] input: StadiaJJXW-cc2b as /devices/virtual/misc/uhid/0005:18D1:9400.0009/input/input28
+[42792.957554] hid-generic 0005:18D1:9400.0009: input,hidraw8: BLUETOOTH HID v1.00 Gamepad [StadiaJJXW-cc2b] on 94:e6:f7:28:31:28
+[42793.019239] input: StadiaJJXW-cc2b as /devices/virtual/misc/uhid/0005:18D1:9400.0009/input/input29
+[42793.019336] stadia 0005:18D1:9400.0009: input,hidraw8: BLUETOOTH HID v1.00 Gamepad [StadiaJJXW-cc2b] on 94:e6:f7:28:31:28
+[42793.019341] stadia 0005:18D1:9400.0009: Force Feedback for Google Stadia controller
+[43110.442272] usb 2-4: USB disconnect, device number 5
+[43110.618238] usb 2-4: new SuperSpeed USB device number 6 using xhci_hcd
+[43110.657663] usb 2-4: New USB device found, idVendor=2109, idProduct=0817, bcdDevice=90.14
+[43110.657668] usb 2-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[43110.657670] usb 2-4: Product: USB3.0 Hub             
+[43110.657671] usb 2-4: Manufacturer: VIA Labs, Inc.         
+[43110.657672] usb 2-4: SerialNumber: 000000000
+[43110.659674] hub 2-4:1.0: USB hub found
+[43110.659897] hub 2-4:1.0: 4 ports detected
+[43855.105866] usb 2-3: timeout: still 12 active urbs on EP #82
+[43859.177317] uvcvideo 2-3:1.1: Failed to set UVC commit control : -32 (exp. 26).
+[43859.276291] usb 2-4: reset SuperSpeed USB device number 6 using xhci_hcd
+[44686.223278] xhci_hcd 0000:00:14.0: xHCI host not responding to stop endpoint command
+[44686.223284] xhci_hcd 0000:00:14.0: xHCI host controller not responding, assume dead
+[44686.223308] xhci_hcd 0000:00:14.0: HC died; cleaning up
+[44686.223337] uvcvideo 2-3:1.1: Failed to set UVC commit control : -110 (exp. 26).
+[44686.223354] usb 1-1: USB disconnect, device number 2
+[44686.223414] usb 2-1: USB disconnect, device number 2
+[44686.226164] usb 1-2: USB disconnect, device number 4
+[44686.226259] usb 2-3: USB disconnect, device number 3
+[44686.226633] usb 1-4: USB disconnect, device number 5
+[44686.226636] usb 1-4.1: USB disconnect, device number 7
+[44686.240805] usb 2-4: USB disconnect, device number 6
+[44686.344174] usb 1-4.2: USB disconnect, device number 9
+[44686.427669] usb 1-4.3: USB disconnect, device number 11
+[44686.518401] usb 1-4.4: USB disconnect, device number 13
+
+=== USB devices ===
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 010: ID 1462:b926 Micro Star International MYSTIC LIGHT 
+Bus 001 Device 012: ID 8087:0029 Intel Corp. AX200 Bluetooth
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+
+=== HID devices in sysfs ===
+
+=== Expected device check ===
+  Logitech receiver (046d:c548): MISSING
+  Dygma keyboard (1209:2201): MISSING
