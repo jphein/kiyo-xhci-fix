@@ -1,101 +1,134 @@
 # 2026-06-06 v8.1 Resume Crash Analysis
 
-**Date**: Saturday 2026-06-06 ~10:04–10:18 PDT  
-**Kernel**: 6.17.0-35-generic  
-**Module**: uvcvideo-kiyo/1.0 DKMS (srcversion 7FCA6457401AD6917E659B7) — v8.1 CTRL_THROTTLE active  
-**Kiyo port**: 2-3 (moved from 2-1 after suspend/resume — confirmed by post-crash watchdog crash dump)  
+> **Revision note (2026-06-07, Opus re-audit):** the first draft of this file
+> (Sonnet) contained three errors now corrected below: (a) resume→timeout was
+> ~43 min, not "29 min"; (b) the `-110` at HC-death time is a cleanup artifact,
+> not a "second commit stall"; (c) the endpoint that hung (EP2, iso) has *correct*
+> descriptors — it is **not** an instance of the EP5 `wBytesPerInterval` bug.
+> Claims are now tagged **[observed]** vs **[hypothesis]**.
+
+**Date**: Saturday 2026-06-06 ~09:35 resume → 10:17:59 HC death PDT
+**Kernel**: 6.17.0-35-generic
+**Module**: uvcvideo-kiyo/1.0 DKMS (srcversion 7FCA6457401AD6917E659B7) — v8.1 CTRL_THROTTLE active
+**Kiyo port**: 2-3 (was 2-1 in earlier sessions — physical move; confirmed live)
 **Watchdog action**: Level 2 xHCI rebind at 10:17:59, successfully recovered
+**Capture limitation**: watchdog grabbed `dmesg | tail -50` at HC-death time only.
+No usbmon. The 827 s before death is **opaque** — nothing was logged in that window.
 
-## Crash Timeline
+## Crash Timeline [observed]
 
-| Kernel time | Event |
-|---|---|
-| ~41268s | System resume from suspend (PM: suspend exit) |
-| 43855.106 | `usb 2-3: timeout: still 12 active urbs on EP #82` |
-| 43859.177 | `uvcvideo 2-3:1.1: Failed to set UVC commit control : -32 (exp. 26)` |
-| ~44686 (inferred) | Second COMMIT stall (not directly logged) |
-| 44686.223 | `xhci_hcd 0000:00:14.0: xHCI host not responding to stop endpoint command` |
-| 44686.223 | `HC died; cleaning up` |
-| 44686.223 | `uvcvideo 2-3:1.1: Failed to set UVC commit control : -110 (exp. 26)` ← post-mortem |
-
-**Interval: EP#82 timeout → HC death = 831 seconds (~14 minutes)**
-
-## Root Cause of EP#82 Activity: Google Meet
-
-Google Meet (Brave browser, via `getUserMedia`) held `/dev/video0` open from the
-previous session. The browser reacquired the camera on resume and continued submitting
-ISO URBs continuously. The camera was not in an active call at crash time — the Meet
-tab was open with camera permission held. ~29 minutes of continuous ISO streaming
-post-resume drove the COMP_SHORT_PACKET flood to threshold.
-
-**Reproducer (deterministic):**
-1. Open Google Meet (camera permission granted, stream active)
-2. Suspend → resume
-3. Leave Meet tab open, camera idle (~30 min)
-4. Watch for `usb 2-3: timeout: still N active urbs on EP #82`
-
-No active call needed. The stream being held open is sufficient. This is the exact
-scenario to run on the xhci-test kernel.
-
-## Key Differences from 2026-05-30 Crashes
-
-| | 2026-05-30 (call during work) | 2026-06-06 (resume crash) |
+| Kernel monotonic | Δ | Event |
 |---|---|---|
-| First signal | COMMIT -110 stall | EP#82 URB timeout (video data) |
-| COMMIT error code | -110 (ETIMEDOUT) | -32 (EPIPE / STALL) first |
-| Interval to HC death | ~7.17s (measured via usbmon) | ~831s (14 min, second stall killed it) |
-| usbmon captured | Yes (raw 136MB) | No (watchdog captured post-mortem only) |
-| Context | Active WebRTC call | Post-resume, likely camera not in active use |
+| 41268.700 | — | `PM: suspend exit` (resume) |
+| 42719 / 43110 | +24 / +31 min | VIA Labs hub (2-4) disconnect+re-enumerate ×2 |
+| 43855.106 | +43.1 min from resume | `usb 2-3: timeout: still 12 active urbs on EP #82` |
+| 43859.177 | +4.07 s | `uvcvideo 2-3:1.1: Failed to set UVC commit control : -32` (EPIPE/STALL) |
+| 43859.276 | +0.10 s | `usb 2-4: reset SuperSpeed USB device number 6` (VIA hub) |
+| *(43859 → 44686)* | **827 s of kernel silence — no usbmon, contents unknown** | |
+| 44686.223278 | — | `xhci_hcd 0000:00:14.0: xHCI host not responding to stop endpoint command` |
+| 44686.223308 | — | `HC died; cleaning up` |
+| 44686.223337 | — | `Failed to set UVC commit control : -110` ← **logged *after* "HC died"; this is the cleanup flushing a pending URB, not a fresh commit** |
 
-## EP #82 = EP2 IN (Isochronous video data stream)
+**Observed interval EP#82 timeout → HC death = 827 s (13.8 min).**
 
-Endpoint address 0x82: direction IN, endpoint number 2. For the Kiyo Pro this is the
-isochronous bulk video data stream. "12 active URBs" timed out on this endpoint before
-the commit stall — the video stream stopped first.
+## What the trailing `-110` actually is [corrected]
 
-**Significance**: The 2026-05-30 crashes appeared to be COMMIT-triggered (control
-endpoint failure). This crash shows video data endpoint failure FIRST. Two distinct
-trigger paths:
-1. Direct COMMIT control stall (2026-05-30 pattern, well-spaced commits still fail)
-2. Video stream URB flood/timeout → firmware confused → control endpoint fails (today)
+The earlier draft read the `-110` as "a second COMMIT stall at 44686 that killed
+the HC." That inverts cause and effect. The `-110` line (.223337) is timestamped
+**after** `HC died; cleaning up` (.223308). When the HC dies, xhci error-completes
+every in-flight URB; a commit-control URB that had been submitted earlier and was
+hanging gets flushed with `-110` as part of that cleanup. The dead controller
+causes the `-110`; the `-110` did not cause the death.
 
-Path 2 maps directly to Michal Pecio's SHORT_PACKET hypothesis: the Kiyo's
-wBytesPerInterval=8 vs wMaxPacketSize=64 mismatch causes COMP_SHORT_PACKET errors on
-every video frame, flooding the xHCI event ring. The ring congestion can starve the
-control endpoint, producing the STALL (-32) → eventual timeout (-110) → HC death cascade.
+What actually preceded the death: at ~44681 (≈5 s before, the xHCI command
+timeout) *something* issued a **stop-endpoint command**. The wedged controller
+didn't answer → command-ring abort → `xhci_hc_died()`. The most likely trigger of
+that stop-endpoint is the cancellation/teardown of the iso URBs that had been
+stuck on EP#82 since 43855 — **but with no usbmon this is [hypothesis], not
+[observed].**
 
-## The -32 EPIPE (STALL) vs -110 ETIMEDOUT
+## Camera was held open by Google Meet [confirmed by JP]
 
-- **-32 EPIPE** (STALL): the firmware returned a USB STALL PID, or the host cancelled
-  the transfer. Less severe than -110; the endpoint may self-recover.
-- **-110 ETIMEDOUT** (ETIMEDOUT): the stop-endpoint command to xHCI timed out. This is the
-  point of no return — the hardware command ring is stuck.
+Google Meet (Brave, `getUserMedia`) held `/dev/video0` from before suspend; the
+browser reacquired the stream on resume. No active call — just the tab holding
+camera permission. Elapsed resume→EP#82-timeout was **~43 min** (upper bound on
+streaming duration; we don't know exactly when Meet re-grabbed the stream).
 
-The -32 at 43859 may have been a transient stall that the firmware partially recovered
-from. The HC death at 44686 (831s later) was likely a second commit stall that fully
-locked the command ring.
+**Deterministic reproducer to attempt:**
+1. Join/open Google Meet, camera on (stream live).
+2. Suspend → resume.
+3. Leave the Meet tab open, camera held, otherwise idle.
+4. Watch for `usb 2-N: timeout: still N active urbs on EP #82`.
 
-## Implications for v9 / Pecio Reply
+This needs to be re-confirmed as deterministic — we have it once. Run it on stock
+first (does it reproduce?), then on xhci-test.
 
-1. **v8.1 CTRL_THROTTLE is not sufficient for the resume path** — this crash happened
-   post-resume before any WebRTC call started, so commit rate is not the trigger here.
+## Endpoint facts [observed, from lsusb -vv + SS companion descriptors]
 
-2. **The xHCI-side fix (Michal's clamp + SHORT_PACKET retry) addresses Path 2** — the
-   COMP_SHORT_PACKET flood is the upstream cause of the video-stream URB timeout and
-   the firmware confusion that follows.
+| EP | Type | wMaxPacketSize | wBytesPerInterval | Mismatch? |
+|---|---|---|---|---|
+| 0x85 (EP5 IN) | Interrupt | 64 | **8** | **YES — Michal's bug** (8 < 64) |
+| 0x81 (EP1 IN) | Isochronous | 1024 | 3072 / 33792 | no |
+| **0x82 (EP2 IN)** | **Isochronous** | 196/68/100/132 | 196/68/100/132 | **no — all correct** |
 
-3. **For the Pecio reply**: include this as evidence that the failure mode is broader
-   than COMMIT rate — Path 2 (video stream disruption → control failure) exists and is
-   triggered by the wBytesPerInterval bug. Michal's patch addresses the root cause.
+**The endpoint that hung (EP2, iso) has correct descriptors.** It is *not* an
+instance of the EP5 `wBytesPerInterval` mismatch. This is the key correction: the
+06-06 hang cannot be attributed directly to the descriptor bug Michal identified.
 
-4. **usbmon capture needed for Path 2**: a replay of this scenario (resume → let camera
-   idle → check for EP#82 timeouts) with usbmon running would quantify the SHORT_PACKET
-   flood rate. Run on the xhci-test kernel to compare.
+## Relationship to Michal Pecio's patch [hypothesis — to be tested, not asserted]
 
-## Action Items
+Michal's test patch has two parts:
+1. `xhci-mem.c`: clamp `max_esit_payload = max_packet` when `interval &&
+   max_esit_payload < max_packet`. This corrects **EP5** (interrupt) bandwidth
+   bookkeeping. It does not change EP2 (whose values are already consistent).
+2. `xhci-ring.c`: retry on `COMP_SHORT_PACKET` in **`process_bulk_intr_td`** —
+   the bulk/interrupt TD path. **This does not run for isochronous transfers.**
 
-- [ ] Re-run xhci-test kernel (Michal's patch) after a resume, let idle, check if
-      EP#82 URB timeouts appear
-- [ ] Capture usbmon during a resume cycle on stock kernel to see SHORT_PACKET count
-- [ ] Update Pecio reply draft (v5) with this new evidence (Path 2 failure mode,
-      post-resume idle crash, -32 EPIPE signal preceding HC death)
+So neither part *obviously* touches the iso EP2 path that hung on 06-06. Two
+possibilities the xhci-test run must distinguish:
+
+- **(A) Shared root via ring pressure:** EP5's underallocation produces a
+  `COMP_SHORT_PACKET` flood that congests the shared event/command ring, and that
+  congestion is what eventually wedges EP2 and ep0. If so, fixing EP5 (part 1)
+  could prevent the EP2 hang indirectly. *Plausible but unproven — we have no
+  EP5 short-packet evidence in this crash (no usbmon).*
+- **(B) Independent iso-side fault:** the EP2/firmware lock is a separate issue
+  that Michal's patch won't address.
+
+The xhci-test re-run is the experiment that decides between (A) and (B). Until
+then, do **not** tell Michal his patch "is the fix" for this crash.
+
+## Why v8.1's mitigations are structurally blind to this [observed]
+
+- The first commit failure was **`-32` EPIPE = an immediate device STALL**, not a
+  timeout. v8.1 raised the COMMIT *URB timeout* to 10 s — but you cannot wait
+  longer for a response that already came back as STALL. The timeout extension is
+  inapplicable to a STALL by construction.
+- The crash occurred with **no UVC control activity driving it** (camera idle at
+  the OS level). The CTRL_THROTTLE inter-commit interval governs control-transfer
+  *rate*; there was no rate to throttle here. Throttling is the wrong layer for
+  this failure.
+
+## Relationship to 2026-05-30 [observed where noted]
+
+| | 2026-05-30 (active call) | 2026-06-06 (resume, Meet idle) |
+|---|---|---|
+| First logged symptom | COMMIT stall | EP#82 iso URB timeout |
+| First commit error code | -110 | -32 (EPIPE) then -110 at death |
+| EP#82-timeout→death | n/a (usbmon: ~7.17 s submit→death) | 827 s (opaque) |
+| usbmon | yes (~136 MB) | no |
+
+These may be **two presentations of one root cause** (sustained streaming
+destabilises firmware/host; control-commit stall is a visible symptom) rather than
+two mechanistically distinct paths. The earlier "Path 1 / Path 2" labelling
+over-committed to two-distinct-mechanisms; treat that as a working hypothesis.
+
+## Action items
+
+- [ ] **Reproduce on stock first**: confirm the Meet-resume-idle sequence reliably
+      produces the EP#82 timeout. One occurrence ≠ deterministic yet.
+- [ ] Capture **usbmon** during that stock reproduction — specifically to see
+      whether EP5 `COMP_SHORT_PACKET` events are in fact flooding (tests theory A).
+- [ ] Re-run on **6.17.0-xhci-test** (Michal's patch) with usbmon: does the EP#82
+      hang disappear? Decides A vs B.
+- [ ] Only after the above: finalise the Pecio reply (currently `reply-to-pecio-v6.txt`).
