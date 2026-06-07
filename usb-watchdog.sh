@@ -4,9 +4,17 @@
 # Runs as a user service with targeted sudoers rules.
 #
 # Recovery levels:
+#   0 — EARLY INTERVENTION: gentle Kiyo-only port cycle on a PRE-CASCADE
+#       precursor (stuck URBs / UVC commit stall), while HID is still alive.
 #   1 — Rebind the specific USB port (Kiyo camera)
 #   2 — Full xHCI controller rebind (PCI unbind/bind)
 #   3 — Full xHCI driver reload (modprobe -r / modprobe)
+#
+# Level 0 rationale (crash-evidence/2026-06-06-v8.1-resume-crash/): the Kiyo's
+# firmware-lock precursors ("timeout: still N active urbs on EP", "Failed to set
+# UVC commit control : -32") preceded "HC died" by ~14 minutes. Acting on the
+# precursor lets us cycle just the camera instead of waiting for the full-bus
+# cascade that takes the keyboard and mouse down with it.
 #
 # Install: ~/Projects/kiyo-xhci-fix/kernel-patches/install-watchdog.sh
 
@@ -20,6 +28,15 @@ CONSEC_FAILS=0       # consecutive failed recoveries
 GAVE_UP=0            # set to 1 after all levels fail — stops retrying
 XHCI_BUILTIN=0       # set to 1 at startup if xhci_pci is compiled into the kernel
 LOG_TAG="usb-watchdog"
+
+# --- Level 0 (early intervention) config ---------------------------------
+# Independent of the full-recovery cooldown so a gentle pre-cascade cycle can
+# never suppress the hard "HC died" path. Set WATCHDOG_EARLY_INTERVENTION=0 to
+# disable (e.g. if a precursor turns out to fire benignly on normal call-end).
+EARLY_ENABLED="${WATCHDOG_EARLY_INTERVENTION:-1}"
+EARLY_COOLDOWN="${WATCHDOG_EARLY_COOLDOWN:-30}"  # min seconds between gentle cycles
+EARLY_LAST=0         # last early-intervention time (separate from LAST_RECOVERY)
+EARLY_COUNT=0        # gentle cycles fired this run (datapoint: cascades possibly averted)
 
 # Test mode (driven by run-hammerint.sh / matrix runner):
 #   WATCHDOG_MODE=test enables forensics capture + clean exit semantics.
@@ -389,6 +406,64 @@ EOF
     log "LEVEL 4: Claude session spawned (incident=$inc). Watchdog will not retry until reboot."
 }
 
+early_intervene() {
+    # Level 0 — gentle, pre-cascade Kiyo-only port cycle. Triggered by the
+    # documented precursors to the firmware-lock -> xHCI cascade BEFORE the host
+    # controller dies (see header + crash-evidence/2026-06-06).
+    #
+    # Safety invariants that make this low-risk to run on a live precursor:
+    #   - Touches ONLY the Kiyo. The keyboard/mouse (the EXPECTED_DEVICES that
+    #     health_check guards) are never cycled, so health stays green and the
+    #     -19/-110/uvcvideo "|| recover" branches won't escalate during it.
+    #   - Has its OWN cooldown (EARLY_LAST/EARLY_COOLDOWN) and NEVER writes
+    #     LAST_RECOVERY/GAVE_UP/RECOVERING — so it cannot delay or suppress the
+    #     hard "HC died" recovery if the cascade proceeds anyway.
+    #   - Respects the full-recovery cooldown (within_cooldown): right after a
+    #     real recovery, journalctl replays the crash's precursor lines; we must
+    #     not cycle the Kiyo on those stale matches.
+    #
+    # Intentional tradeoff: a precursor that fires mid-call blips the camera for
+    # a few seconds. That is far cheaper than the alternative — the whole USB bus
+    # (keyboard + mouse) dying ~14 minutes later.
+    local trigger="${1:-precursor}"
+
+    [ "$EARLY_ENABLED" = "1" ] || return
+    [ "$MODE" = "test" ] && return
+    [ "$RECOVERING" -eq 1 ] && return
+    [ "$GAVE_UP" -eq 1 ] && return
+    within_cooldown && return   # just recovered — ignore stale replayed precursors
+
+    local now
+    now=$(date +%s)
+    if (( now - EARLY_LAST < EARLY_COOLDOWN )); then
+        return  # rate-limit gentle cycles independently of full recovery
+    fi
+
+    local port
+    port=$(find_kiyo_port)
+    if [ -z "$port" ]; then
+        # Kiyo already gone — cascade may be underway. Nothing to cycle, and we
+        # deliberately DON'T arm EARLY_LAST, so the hard paths stay free to act.
+        log "EARLY: precursor ($trigger) but Kiyo absent — deferring to recovery paths"
+        return
+    fi
+
+    EARLY_LAST=$now
+    EARLY_COUNT=$((EARLY_COUNT + 1))
+    log "EARLY #$EARLY_COUNT: $trigger — cycling Kiyo port $port (pre-cascade; HID untouched)"
+
+    echo "$port" | sudo tee /sys/bus/usb/drivers/usb/unbind >/dev/null 2>&1
+    sleep 2
+    echo "$port" | sudo tee /sys/bus/usb/drivers/usb/bind >/dev/null 2>&1
+    sleep 3
+
+    if find_kiyo_port >/dev/null; then
+        log "EARLY #$EARLY_COUNT OK: Kiyo re-enumerated after gentle cycle — cascade hopefully averted"
+    else
+        log "EARLY #$EARLY_COUNT: Kiyo did not return after cycle — watching for cascade (HC-died path still armed)"
+    fi
+}
+
 recover() {
     # Trigger reason from caller (for log + test record). Empty if caller didn't pass one.
     local trigger="${1:-unspecified}"
@@ -561,6 +636,23 @@ while true; do
                 ;;
             *"xHCI host not responding"*|*"xhci_hcd"*"not responding to stop"*)
                 recover "xHCI not responding"
+                ;;
+            *"timeout"*"active urbs on EP"*)
+                # LEVEL 0 PRECURSOR — earliest signal. In the 2026-06-06 crash,
+                # "usb 2-3: timeout: still 12 active urbs on EP #82" (iso video
+                # endpoint) fired ~4s before the UVC commit stall and ~14 min
+                # before HC died. Cycle the Kiyo now, while HID is still alive.
+                [ "$MODE" = "test" ] && continue
+                early_intervene "stuck URBs on endpoint"
+                ;;
+            *"Failed to set UVC commit control"*)
+                # LEVEL 0 PRECURSOR — UVC commit-control stall (-32/-110/-108).
+                # NOTE: the older "*uvcvideo*error -32*" branch below never
+                # matched this — the kernel prints "...commit control : -32",
+                # NOT "error -32" (this gap let the 06-06 precursor slip past).
+                # A healthy camera never fails this, so one occurrence is enough.
+                [ "$MODE" = "test" ] && continue
+                early_intervene "UVC commit-control stall"
                 ;;
             *"Cannot set alt interface"*"ret = -19"*|*"usb_set_interface failed"*"-19"*)
                 # -19 = ENODEV, device gone mid-transfer.
