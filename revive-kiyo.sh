@@ -58,10 +58,38 @@ port_disable_path() {
     echo "/sys/bus/usb/devices/${bus}-0:1.0/usb${bus}-port${port}/disable"
 }
 
+kiyo_speed() { cat "/sys/bus/usb/devices/$1/speed" 2>/dev/null; }
+
+# A link cycle can strand the Kiyo on its USB2 pins: observed 2026-06-10, the
+# SS-port cycle came back as 1-3 @480 (with benign -71 descriptor noise from
+# the failed SS training). Cycling the port the device CURRENTLY occupies —
+# the HS-side one — makes it retrain SuperSpeed.
+retrain_superspeed() {
+    local node="$1" dis
+    dis=$(port_disable_path "$node")
+    [ -e "$dis" ] || { echo "  WARN: no disable attr at $dis — replug to restore SuperSpeed"; return 1; }
+    echo "  Kiyo at $node speed=$(kiyo_speed "$node") (USB2 fallback) — cycling HS-side port to retrain SS..."
+    echo 1 | sudo tee "$dis" >/dev/null
+    sleep 3
+    echo 0 | sudo tee "$dis" >/dev/null
+    sleep 6
+}
+
 if node=$(find_kiyo); then
-    echo "Kiyo already present at $node — nothing to revive."
-    ls /dev/video* 2>/dev/null
-    exit 0
+    if [ "$(kiyo_speed "$node")" = "5000" ]; then
+        echo "Kiyo already present at $node (SuperSpeed) — nothing to revive."
+        ls /dev/video* 2>/dev/null
+        exit 0
+    fi
+    # Present but degraded — a prior cycle/recovery left it at USB2.
+    retrain_superspeed "$node"
+    if node=$(find_kiyo) && [ "$(kiyo_speed "$node")" = "5000" ]; then
+        echo "SUCCESS: Kiyo retrained to SuperSpeed at $node."
+        ls /dev/video* 2>/dev/null
+        exit 0
+    fi
+    echo "Kiyo present but not SuperSpeed — physically replug it."
+    exit 1
 fi
 
 echo "Kiyo absent (firmware locked). Software port-cycle on root port $KIYO_ROOTPORT ..."
@@ -78,7 +106,15 @@ else
 fi
 
 if node=$(find_kiyo); then
-    echo "SUCCESS: Kiyo back at $node — no physical replug needed."
+    if [ "$(kiyo_speed "$node")" != "5000" ]; then
+        retrain_superspeed "$node"
+        node=$(find_kiyo) || { echo "Kiyo vanished during SS retrain — physically replug it."; exit 1; }
+    fi
+    if [ "$(kiyo_speed "$node")" = "5000" ]; then
+        echo "SUCCESS: Kiyo back at $node (SuperSpeed) — no physical replug needed."
+    else
+        echo "PARTIAL: Kiyo back at $node but speed=$(kiyo_speed "$node") (USB2) — works degraded; replug to restore SuperSpeed."
+    fi
     ls /dev/video* 2>/dev/null
     exit 0
 fi

@@ -58,7 +58,7 @@ stop_and_classify() {
 
     # Did anything bad fire in dmesg during the call window?
     crash_count=$(sudo -n dmesg --since "$CALL_START_LOCAL" 2>/dev/null \
-        | grep -cE "Failed to set UVC commit control|HC died|host controller not responding|Abort failed to stop" \
+        | grep -cE "timeout: still [0-9]+ active urbs|Failed to set UVC commit control|HC died|host controller not responding|Abort failed to stop" \
         || echo 0)
 
     if [ "$crash_count" -gt 0 ]; then
@@ -70,7 +70,7 @@ stop_and_classify() {
         echo "[$(date +%H:%M:%S)] CALL END — ${crash_count} CRASH EVENT(S) detected — preserved: $(basename ${final}.gz) (${human_size} raw)"
         echo "[$(date +%H:%M:%S)] dmesg failure tail:"
         sudo -n dmesg --since "$CALL_START_LOCAL" 2>/dev/null \
-            | grep -E "Failed to set UVC commit control|HC died|host controller not responding|Abort failed to stop|Found UVC 1.00 device Razer" \
+            | grep -E "timeout: still [0-9]+ active urbs|Failed to set UVC commit control|HC died|host controller not responding|Abort failed to stop|Found UVC 1.00 device Razer" \
             | tail -8 | sed "s/^/    /"
     else
         rm -f "$CAPTURE_FILE"

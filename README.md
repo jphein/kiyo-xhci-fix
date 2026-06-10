@@ -41,6 +41,7 @@ See [`kernel-patches/upstream-report.md`](kernel-patches/upstream-report.md) for
 
 A systemd user service that monitors `journalctl -k` for xHCI fatal errors and performs single-pass recovery:
 
+- **Level 0:** Early intervention (added 2026-06-07 from the 06-06 crash analysis). On a **pre-cascade precursor** (`timeout: still N active urbs on EP`, `Failed to set UVC commit control`) it gently cycles only the Kiyo's port while the keyboard/mouse are still alive — instead of waiting the observed ~14 minutes for `HC died` to take the whole bus down. Has its own 30s cooldown and can never delay or suppress the hard recovery levels. Disable with `WATCHDOG_EARLY_INTERVENTION=0`. Trade-off: a mid-call precursor blips the camera for a few seconds; far cheaper than losing every USB device.
 - **Level 1:** Rebind the Kiyo's USB port
 - **Level 2:** Full xHCI controller PCI unbind/bind
 - **Level 3:** Full xHCI driver reload (`modprobe -r xhci_pci xhci_pci_renesas` + reload). On Ubuntu HWE kernels where xhci is builtin to the kernel, L3 is automatically replaced with an extended L2 settle wait (modprobe is a no-op against builtin modules, and the kernel hub-driver's own port power-cycle is what does the actual rescue).
@@ -59,6 +60,18 @@ echo "1532:0e05:k" | sudo tee /sys/module/usbcore/parameters/quirks
 ```
 
 Note: The runtime quirk only applies to devices enumerated **after** it's set. This only addresses crash trigger #1 (LPM). For full protection against rapid control transfer crashes, the CTRL_THROTTLE patch (via DKMS) is also needed.
+
+### 4. Pre-call ritual (`pre-call.sh`)
+
+The cheapest mitigation found so far: start every call from a **freshly enumerated** camera.
+
+```bash
+./pre-call.sh    # run before joining; exit 0 = green light
+```
+
+Both real-world v8.1 failures (2026-05-30, 2026-06-06) involved long-lived camera state, while the first clean 61-minute real-world call (2026-06-10) started minutes after a fresh enumeration — consistent with accumulated firmware state being the underlying destabilizer. The script verifies the patched DKMS module and watchdog are live, port-cycles the camera (refusing if `/dev/video0` is held), fixes the **USB2-fallback trap** — a link cycle doesn't always retrain SuperSpeed, so check `speed=5000`, not just presence — and confirms no precursors fired during the dance. Evidence and the confound caveat: [`kernel-patches/crash-evidence/2026-06-10-v8.1-clean-call/RESULTS.md`](kernel-patches/crash-evidence/2026-06-10-v8.1-clean-call/RESULTS.md).
+
+> **Known-benign log line:** `Failed to set UVC probe control : -32 (exp. 26)` fires on *every* enumeration of this camera with the device healthy. It is a per-probe artifact, **not** a crash precursor — the dangerous sibling is `Failed to set UVC **commit** control`. Don't add the probe line to watchdog/capture trigger patterns.
 
 ## Full Install (recommended)
 
@@ -186,7 +199,8 @@ CYCLES=200 INTERVAL_MS=0 ./kernel-patches/test-probe-commit-cycle.sh
 # Auto-detect video call + auto-manage capture. Polls /dev/video0 every
 # 3s; starts capture on a fresh holder, stops + classifies on release
 # (preserves compressed under kernel-patches/crash-evidence/auto-captures/
-# only if any kernel failure marker fired in the call window — otherwise
+# only if a kernel failure marker — crash OR pre-cascade precursor like
+# "timeout: still N active urbs" — fired in the call window; otherwise
 # silently deletes, so clean calls don't leave 100 MB+ files around).
 ./kernel-patches/call-watch.sh
 
@@ -198,7 +212,9 @@ sudo bash kernel-patches/test-ctrl-throttle.sh 50
 ### Validation evidence
 
 - [`kernel-patches/crash-evidence/`](kernel-patches/crash-evidence/) — kernel logs from real-world failure events
-- [`kernel-patches/crash-evidence/2026-05-30-v8.1-realworld-failure/`](kernel-patches/crash-evidence/2026-05-30-v8.1-realworld-failure/) — **v8.1 real-world FAILURE** (2026-05-30): `commit control -110` → HC-died cascade ×2 during organic use with the throttle active (INCIDENT.md + dmesg) — the synthetic-vs-real gap; v9 trigger
+- [`kernel-patches/crash-evidence/2026-05-30-v8.1-realworld-failure/`](kernel-patches/crash-evidence/2026-05-30-v8.1-realworld-failure/) — **v8.1 real-world FAILURE** (2026-05-30): `commit control -110` → HC-died cascade ×2 during organic use with the throttle active (INCIDENT.md + dmesg) — the synthetic-vs-real gap
+- [`kernel-patches/crash-evidence/2026-06-06-v8.1-resume-crash/`](kernel-patches/crash-evidence/2026-06-06-v8.1-resume-crash/) — **second v8.1 real-world FAILURE** (2026-06-06): post-resume with Google Meet holding the camera (no active call) — EP#82 iso URB timeout → `-32` commit STALL 4s later → 827s of unlogged silence → HC died; watchdog Level-2 recovered. Opus-audited `analysis.md` (camera was *idle* → COMMIT rate is not the trigger → a more-aggressive-throttle v9 cannot help; pivoted the deliverable to data for the xHCI-side fix)
+- [`kernel-patches/crash-evidence/2026-06-10-v8.1-clean-call/`](kernel-patches/crash-evidence/2026-06-10-v8.1-clean-call/) — **first clean v8.1 real-world call** (2026-06-10): 61-min Brave/Meet call + post-call idle window, zero precursors — with a pre-call fresh-enumeration confound (RESULTS.md); origin of `pre-call.sh`
 - [`kernel-patches/crash-evidence/2026-05-13-live-call/`](kernel-patches/crash-evidence/2026-05-13-live-call/) — the four-crash live call that motivated v8.1
 - [`kernel-patches/crash-evidence/2026-05-13-v8.1-validation/`](kernel-patches/crash-evidence/2026-05-13-v8.1-validation/) — 200/200 clean run at zero-interval hot-restart with v8.1 active (RESULTS.md + 1.9 MB compressed usbmon capture; 808 PROBE + 200 COMMIT SET_CURs landed, all completed normally)
 - [`kernel-patches/crash-evidence/auto-captures/`](kernel-patches/crash-evidence/auto-captures/) — preserved automatically by `call-watch.sh` when a real call triggers a kernel failure
@@ -220,7 +236,8 @@ bash kernel-patches/install-watchdog.sh
 | `usb-watchdog.service` | systemd user service unit |
 | `usb-watchdog-sudoers` | Targeted sudoers rules for watchdog |
 | `reset-camera.sh` | One-shot manual recovery script |
-| `revive-kiyo.sh` | Revive a firmware-locked Kiyo via software USB port-cycle (no physical replug) — EXPERIMENTAL (2026-05-30) |
+| `revive-kiyo.sh` | Revive a firmware-locked Kiyo via software USB port-cycle (no physical replug); verifies SuperSpeed after revival and retrains on USB2 fallback — EXPERIMENTAL (2026-05-30) |
+| `pre-call.sh` | Pre-call stability ritual — fresh enumeration + SuperSpeed/module/watchdog verification (2026-06-10) |
 | `fix-kiyo-pro.sh` | All-in-one fix installer (quirk + udev + WirePlumber) |
 | `kernel-patches/0000-cover-letter.txt` | Original cover letter from the first send (legacy reference) |
 | `kernel-patches/v8-0000-cover-letter.patch` | v8.1 cover letter for the next LKML send |
@@ -236,7 +253,7 @@ bash kernel-patches/install-watchdog.sh
 | `kernel-patches/test-watchdog.sh` | Watchdog service test harness |
 | `kernel-patches/stress-test-kiyo.sh` | Rapid SET_CUR crash reproducer (rate-only stress) |
 | `kernel-patches/capture-usbmon.sh` | Wire-level USB capture helper (Wireshark-loadable) |
-| `kernel-patches/call-watch.sh` | Auto-detects video calls and manages usbmon capture; preserves only on crash |
+| `kernel-patches/call-watch.sh` | Auto-detects video calls and manages usbmon capture; preserves only on crash/precursor markers |
 | `kernel-patches/install-watchdog.sh` | Installs watchdog systemd service |
 | `kernel-patches/upstream-report.md` | Full bug report for linux-usb mailing list |
 | `kernel-patches/test-methodology.md` | Test methodology and procedures |
@@ -258,7 +275,7 @@ bash kernel-patches/install-watchdog.sh
 - **SPI flash:** Winbond W25N01GVZEIG (1Gbit SPI NAND)
 - **Camera module vendor:** AIT (Alpha Imaging Technology → MStar → SigmaStar → MediaTek lineage)
 - **Controller:** Intel Cannon Lake PCH xHCI (8086:a36d) at PCI 0000:00:14.0
-- **Kernel:** Tested on 6.8.0-106-generic, 6.17.0-19/20-generic (Ubuntu 24.04 + HWE), and custom 6.17.0-xhci-test (Michal Pecio's xhci patch)
+- **Kernel:** Tested on 6.8.0-106-generic, 6.17.0-19/20/29/35-generic (Ubuntu 24.04 + HWE), and custom 6.17.0-xhci-test (Michal Pecio's xhci patch)
 
 ## Firmware Root Cause
 
@@ -273,7 +290,7 @@ A Linux firmware tool ([`firmware-analysis/kiyo-flash.py`](firmware-analysis/kiy
 ## Upstream Status
 
 - **Patch 1** (`USB_QUIRK_NO_LPM`): **Merged** into `usb-linus` by Greg Kroah-Hartman. Backported to stable kernels 6.1, 6.6, 6.12, 6.18, and 6.19 as of 2026-04-09.
-- **Patches 2-3** (`UVC_QUIRK_CTRL_THROTTLE` + device entry): under review on linux-media. **v7 sent 2026-04-09**; **v8.1 staged 2026-05-13** but not yet sent — locally at [`kernel-patches/v8-000{0,1,2}-*.patch`](kernel-patches/) with [`send-patches-v8.sh`](kernel-patches/send-patches-v8.sh) as the launcher. v8.1 reworks the CTRL_THROTTLE quirk from uniform 50ms to layered (uniform 100ms + COMMIT-specific 200ms + COMMIT-specific 10s URB timeout) based on real-world WebRTC failure data. **Real-world validation FAILED 2026-05-30:** the `commit control -110` → `HC died` cascade recurred **twice** during organic desktop use with the v8.1 CTRL_THROTTLE module loaded — so **v8 must NOT be sent**; this is the v9 trigger. Evidence: [`kernel-patches/crash-evidence/2026-05-30-v8.1-realworld-failure/`](kernel-patches/crash-evidence/2026-05-30-v8.1-realworld-failure/INCIDENT.md).
+- **Patches 2-3** (`UVC_QUIRK_CTRL_THROTTLE` + device entry): under review on linux-media. **v7 sent 2026-04-09**; **v8.1 staged 2026-05-13** but not yet sent — locally at [`kernel-patches/v8-000{0,1,2}-*.patch`](kernel-patches/) with [`send-patches-v8.sh`](kernel-patches/send-patches-v8.sh) as the launcher. v8.1 reworks the CTRL_THROTTLE quirk from uniform 50ms to layered (uniform 100ms + COMMIT-specific 200ms + COMMIT-specific 10s URB timeout) based on real-world WebRTC failure data. **Real-world validation FAILED 2026-05-30** (and again **2026-06-06**): the cascade recurred during organic desktop use with the v8.1 CTRL_THROTTLE module loaded — so **v8 must NOT be sent**. The 2026-06-07 re-audit of the 06-06 crash (camera *idle* at failure time → control rate is not the trigger) killed the planned v9 "more throttle" iteration too: **CTRL_THROTTLE is the wrong layer for this failure**, and the deliverable has pivoted to evidence for the xHCI-side fix (stock repro + usbmon + `6.17.0-xhci-test` A/B, per [`kernel-patches/reply-to-pecio-v7.txt`](kernel-patches/reply-to-pecio-v7.txt)). Evidence: [`2026-05-30-v8.1-realworld-failure/`](kernel-patches/crash-evidence/2026-05-30-v8.1-realworld-failure/INCIDENT.md), [`2026-06-06-v8.1-resume-crash/`](kernel-patches/crash-evidence/2026-06-06-v8.1-resume-crash/analysis.md).
 - **Thread Message-ID:** `<20260331003806.212565-1-jp@jphein.com>`
 - **v7 Message-ID:** `<20260410002720.1033303-1-jp@jphein.com>`
 
@@ -289,6 +306,8 @@ A Linux firmware tool ([`firmware-analysis/kiyo-flash.py`](firmware-analysis/kiy
 - **Live-call evidence (2026-05-13 morning):** Real Brave WebRTC call on Intel Cannon Lake xHCI, 6.17.0-20-generic, DKMS `uvcvideo-kiyo` with `UVC_QUIRK_CTRL_THROTTLE` at uniform 50ms active. **Four** xHCI host controller deaths in 41 minutes (11:34, 11:37, 12:09, 12:15), every one preceded verbatim by `Failed to set UVC commit control : -110 (exp. 26)`. The 50ms throttle reduced but did not eliminate; the failure was sequence-dependent (PROBE→COMMIT under load), not pure rate. Watchdog recovered each crash in 6–33s. Crash logs: [`kernel-patches/crash-evidence/2026-05-13-live-call/`](kernel-patches/crash-evidence/2026-05-13-live-call/). This evidence motivated the v8.1 revision.
 - **v8.1 synthetic validation (2026-05-13 afternoon):** [`test-probe-commit-cycle.sh`](kernel-patches/test-probe-commit-cycle.sh) at `CYCLES=200 INTERVAL_MS=0` against v8.1 throttle live, with usbmon capture in parallel. **200/200 cycles successful, 0 v4l2-ctl errors, 0 kernel failure markers.** Wire capture confirmed 808 PROBE + 200 COMMIT `SET_CUR`s landed on the bus, all completing normally. Same hardware that crashed 4× in 41 min with uniform 50ms now passes ~60s of zero-interval probe→commit hot-restart cleanly with the layered v8.1 mitigation. Synthetic stress is necessary-but-not-sufficient; real-call validation pending. Forensics: [`kernel-patches/crash-evidence/2026-05-13-v8.1-validation/`](kernel-patches/crash-evidence/2026-05-13-v8.1-validation/).
 - **v8.1 real-world FAILURE (2026-05-30):** During organic desktop use the Kiyo Pro cascaded the Intel xHCI **twice** (10:42:53, 10:43:41 PDT), each `Failed to set UVC commit control : -110 (exp. 26)` → `HC died` — with a CTRL_THROTTLE build loaded (crash-time `uvcvideo` srcversion `EEC0336…` ≠ stock `7CD08F45…`). So the layered v8.1 throttle did **not** prevent the real-world cascade the synthetic 200/200 implied was fixed. Per the pre-registered rule (≥1 `commit control -110` ⇒ iterate), **v8 is withheld pending v9.** No usbmon for this incident (the recovery watchdog was deadlocked — since fixed). Post-mortem: [`kernel-patches/crash-evidence/2026-05-30-v8.1-realworld-failure/INCIDENT.md`](kernel-patches/crash-evidence/2026-05-30-v8.1-realworld-failure/INCIDENT.md).
+- **Second v8.1 real-world FAILURE + re-audit (2026-06-06 / 06-07):** Post-resume crash with Google Meet holding the camera open, no active call: `usb 2-3: timeout: still 12 active urbs on EP #82` (iso video EP) → `-32` commit STALL 4s later → **827s of unlogged silence** → `HC died`; watchdog Level-2 recovered. The re-audit corrected three overclaims from the first analysis draft: the hung iso EP2 has *correct* descriptors (the `wBytesPerInterval` bug is on EP5, a different endpoint, so this is **not** a direct instance of Michal's descriptor bug); the trailing `-110` is HC-died cleanup, not a second stall; resume→timeout was ~43 min. Because the camera was idle, COMMIT *rate* cannot be the trigger — both real-world failures are likely **two presentations of one root cause** (sustained streaming destabilizes firmware; the control-plane stall is a symptom). Analysis: [`kernel-patches/crash-evidence/2026-06-06-v8.1-resume-crash/analysis.md`](kernel-patches/crash-evidence/2026-06-06-v8.1-resume-crash/analysis.md). Three runs decide the open A-vs-B question (EP5 short-packet flood vs independent firmware lock): stock repro, usbmon of it, and the same on `6.17.0-xhci-test` — staged in [`reply-to-pecio-v7.txt`](kernel-patches/reply-to-pecio-v7.txt).
+- **First clean v8.1 real-world call (2026-06-10):** 61-minute Brave/Meet call plus the post-call idle window (where the 06-06 cascade had hit ~14 min in), zero precursors, zero watchdog interventions — **but** the camera was freshly re-enumerated minutes before the call, while both prior failures had long-lived camera state. The confound means this datapoint supports "fresh firmware state mitigates" at least as much as "v8.1 works"; it established the [`pre-call.sh`](pre-call.sh) ritual. Operational findings from the same session: a link-level SS-port cycle can strand the camera at USB2 (cycle the HS-side port to retrain; always verify `speed=5000`), and `Failed to set UVC probe control : -32` is a benign per-enumeration artifact, not a precursor. Evidence: [`kernel-patches/crash-evidence/2026-06-10-v8.1-clean-call/RESULTS.md`](kernel-patches/crash-evidence/2026-06-10-v8.1-clean-call/RESULTS.md).
 
 ## License
 

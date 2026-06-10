@@ -651,6 +651,10 @@ while true; do
                 # matched this — the kernel prints "...commit control : -32",
                 # NOT "error -32" (this gap let the 06-06 precursor slip past).
                 # A healthy camera never fails this, so one occurrence is enough.
+                # DO NOT widen this to "Failed to set UVC probe control": that
+                # line fires on EVERY enumeration of this camera (-32, exp. 26)
+                # with the device healthy — benign per-probe artifact, not a
+                # precursor (verified 2026-06-10 across three enumerations).
                 [ "$MODE" = "test" ] && continue
                 early_intervene "UVC commit-control stall"
                 ;;
