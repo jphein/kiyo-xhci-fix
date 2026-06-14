@@ -1,0 +1,138 @@
+[DRAFT v9 cover letter, written 2026-06-14 on current wire evidence. JP: review.
+ This RESTRUCTURES v8 — it drops the "CTRL_THROTTLE prevents the lockup" claim,
+ which the 2026-06-13 usbmon captures disprove. FORK resolved: keep a reduced
+ (uniform-only) CTRL_THROTTLE, framed honestly as a frequency-reducing mitigation
+ (the v8 COMMIT-specific 200ms delay + 10s URB timeout are dropped).
+   [PENDING] the frequency-reduction claim + the xhci-test re-run are not yet
+            real results. If you send before those, state them as conjecture.
+ Remove this header before sending. Plain text, no HTML.]
+
+Subject: [PATCH v9 0/2] media: uvcvideo: Quirks for Razer Kiyo Pro firmware lockup
+
+The Razer Kiyo Pro (1532:0e05) firmware locks up in a way that cascades to
+xhci_hc_died(), disconnecting every device on the bus -- keyboard and mouse
+included -- requiring a hard reboot. USB_QUIRK_NO_LPM (patch 1 of the original
+3-patch series) is merged and backported to stable 6.1/6.6/6.12/6.18/6.19; it
+removes one trigger (LPM-transition reinit failure). This series adds the
+remaining uvcvideo device quirks.
+
+What changed since v8 -- and it is a real change of understanding, not a tweak.
+I now have usbmon captured through real crashes, and I had the mechanism wrong.
+
+  The v8 series claimed UVC_QUIRK_CTRL_THROTTLE prevents the lockup by rate-
+  limiting control transfers, with a COMMIT-specific delay and an extended
+  COMMIT URB timeout. Wire data from two real crashes (2026-06-13, v8.1 loaded)
+  plus a re-analysis of the 2026-05-30 capture with the isochronous plane
+  included shows that is not what happens. I am withdrawing those claims.
+
+The actual failure is a two-phase stream-reconfiguration lock (identical on the
+heavy-churn 05-30 WebRTC call and the single-reconfiguration 06-13 call):
+
+  Phase 1: SET_INTERFACE alt 0 (stop stream) is submitted and HANGS ~5.4s. The
+           isochronous video endpoint keeps delivering frames normally through
+           the entire hang (5000+ frames, ~2ms jitter). The control endpoint is
+           unresponsive while data flows -- a control-plane stall. The driver
+           eventually unlinks the request (-2/ENOENT).
+  Phase 2: ~2ms later the COMMIT_CONTROL SET_CUR is submitted. ~26ms after that
+           the iso endpoint wedges (goes silent for the duration of the hang),
+           and the COMMIT itself hangs ~5-7s, completing -108 (ETIMEDOUT) if the
+           control timeout reaps it, or -32 (EPIPE) if a port-cycle reaps it
+           first. The submit->iso-wedge offset is a consistent 25-28ms across
+           every event in both captures.
+
+Two consequences for the patch series:
+
+1. The trigger is a single reconfiguration (one SET_INTERFACE + one COMMIT), not
+   a rapid SET_CUR burst. A minimum-interval throttle has nothing to pace and
+   cannot prevent this. The COMMIT-specific 200ms delay and the 10s COMMIT URB
+   timeout from v8 are dropped: the wire shows the hung COMMIT simply hangs
+   longer with the extended timeout (it sat the full 10s in one capture), so the
+   timeout does not aid recovery, and the 200ms delay targets a COMMIT-rate
+   effect that does not exist.
+
+2. The descriptor bug is not the real-crash mechanism. The SuperSpeed Endpoint
+   Companion descriptor for EP5 IN (interrupt) declares wBytesPerInterval=8 vs
+   wMaxPacketSize=64, and the concern was that xHCI underallocation produces a
+   COMP_SHORT_PACKET flood. In the real crash EP5 is silent: 89 events total
+   across a 437s call (all teardown artifacts, zero short-packet completions),
+   versus ~994,000 in the synthetic interrupt-hammer. The high-volume traffic is
+   the healthy iso video stream. So the COMP_SHORT_PACKET-flood path does not
+   fire in a real crash; the failure is an iso/control firmware lock independent
+   of the EP5 descriptor bug. (This narrows what an xHCI-side fix needs to
+   target -- see below.)
+
+Scope of this series, stated honestly: it does NOT fix the cascade. The cascade
+is a host-controller-level failure -- the controller dies when an endpoint
+wedges -- and belongs to the xHCI layer (Mathias Nyman / Michal Pecio). What
+this series does:
+
+  Patch 1/2: UVC_QUIRK_CTRL_THROTTLE, a single uniform minimum interval between
+    control transfers. It does not prevent the lockup. The honest claim is
+    narrower: by spacing control traffic it can reduce how often the firmware is
+    driven into the lockup. [PENDING: this frequency-reduction claim is not yet
+    isolated from the NO_LPM and workload confounds; a stock-kernel A/B is
+    planned. If you send before that result, state the claim as conjecture.]
+
+  Patch 2/2: Razer Kiyo Pro device-table entry with UVC_QUIRK_CTRL_THROTTLE,
+    UVC_QUIRK_DISABLE_AUTOSUSPEND and UVC_QUIRK_NO_RESET_RESUME. The latter two
+    address the autosuspend/resume reinit path (the 2026-06-06 crash was post-
+    resume), in line with quirks already carried for other fragile UVC firmware
+    (Insta360 Link, Logitech Rally Bar). They are mitigations, not a fix.
+
+For the xHCI maintainers: the useful new datum is that this is reproducible
+host-controller death triggered by a stream reconfiguration, with EP5 quiet and
+the iso endpoint wedging ~26ms after a COMMIT_CONTROL during the reconfiguration.
+Michal's COMP_SHORT_PACKET retry path (process_bulk_intr_td) does not run for
+iso and would not engage here; whether the max_esit_payload clamp changes the
+Phase-1 control stall or the Phase-2 iso wedge is the open question. [PENDING:
+re-run on 6.17.0-xhci-test with usbmon is planned to answer this directly.]
+
+Why kernel-side is the only path: the firmware bug cannot be fixed on shipped
+devices. The wBytesPerInterval byte is at offset 0x1F570A in the image shipped
+with Razer's Windows updater; we reverse-engineered the UVC Extension Unit flash
+protocol (XU6 sel 3, 32-byte chunks, status 0x82 = success) and implemented a
+Linux flasher. The device acknowledges writes and reports burn-complete but does
+not persist across a power cycle, and the ROM-boot recovery path is locked out
+in production firmware. Forensics in firmware-analysis/ in the linked repo.
+
+Test data (current understanding):
+  - Synthetic rapid-SET_CUR flood (stress-test-kiyo.sh): stock crashes at round
+    ~25; with a uniform throttle active, 500+ rounds clean. This confirms the
+    throttle handles the rapid-burst path -- but the rapid burst is NOT the
+    real-world failure (see wire analysis above), so this is necessary-not-
+    sufficient and should not be read as "the throttle fixes the crash."
+  - Real-world: 4 hc_died in 41 min on a 50ms uniform throttle (05-13); far rarer
+    since (2 watchdog-caught precursors across many hours on the layered v8.1),
+    but the captures show the surviving failures are the reconfiguration lock the
+    throttle cannot prevent.
+  - Wire captures (the load-bearing evidence): crash-evidence/2026-06-13-
+    precursor-wire-captures/ (RESULTS.md + usbmon) and the 05-30 cross-capture
+    comparison therein. Hammerint and stream-mmap-loop results on Intel Cannon
+    Lake unchanged from v8 (both clean; EP5 cancel-hammer and pure streaming do
+    not reproduce hc_died on Intel).
+
+Tested on: 6.17.0-35-generic (Ubuntu HWE), 6.17.0-xhci-test (Michal's
+max_esit_payload + COMP_SHORT_PACKET retry), 6.8.0-106-generic. Intel Cannon
+Lake PCH xHCI (8086:a36d). Two Razer Kiyo Pro units, fw 1.5.0.1 (bcdDevice 8.21).
+
+Reproducers, wire captures, and full analysis:
+  https://github.com/jphein/kiyo-xhci-fix
+
+Changes since v8:
+  - Withdrew the "CTRL_THROTTLE prevents the firmware lockup" claim; the
+    2026-06-13 wire captures show the failure is a stream-reconfiguration lock a
+    minimum-interval throttle cannot prevent.
+  - Dropped the COMMIT-specific 200ms delay and the 10s COMMIT URB timeout
+    (v8 layers b and c) -- both targeted a COMMIT-rate mechanism the wire
+    disproves; the extended timeout demonstrably only lengthens the hang.
+  - Reduced CTRL_THROTTLE to a uniform interval, reframed as a frequency-
+    reducing mitigation rather than a fix.
+  - Added the wire-evidence finding that EP5 is quiet in real crashes (no
+    COMP_SHORT_PACKET flood), so the descriptor-bug path does not fire and the
+    failure is independent of it.
+  - Reframed scope: device quirks mitigate frequency / the resume path; the
+    cascade is an xHCI-side issue, with new wire data to characterize it.
+
+JP Hein (2):
+  media: uvcvideo: add UVC_QUIRK_CTRL_THROTTLE for fragile USB firmware
+  media: uvcvideo: add Razer Kiyo Pro to device info table
