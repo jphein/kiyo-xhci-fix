@@ -65,30 +65,38 @@ Consistent with the Opus 06-07 re-audit (one root cause, *not* the EP5
 `wBytesPerInterval` path; Michal's short-packet-retry patch does not run for iso
 and would not engage here).
 
-### 2. Failure sequence — one root cause, control stall surfaces LAST
+### 2. Failure sequence — a TWO-PHASE stream-reconfiguration lock
 
-Reconstructed from timestamps (all on camera dev 010):
+> **Refined 2026-06-14** by the 05-30↔06-13 cross-capture verification (run
+> `wf_a4d7599d-784`), which adversarially corrected an earlier "iso wedges
+> first, control is the downstream symptom" reading. Control trouble actually
+> *leads*; the iso wedge follows with the COMMIT.
 
-1. `881770393` — the **single** `VS_COMMIT_CONTROL` SET_CUR of the whole call
-   submitted (`s 21 01 0200 0001 001a`, 26 bytes).
-2. `881797089` (+27 ms) — iso video EP2 **wedges**: goes silent for **5.46 s**
-   (its single largest gap by 200×; one unanswered submit, zero completions).
-3. `887254261` — EP2 **recovers** (resumes mid-frame).
-4. `887260603` (+6.3 ms) — the hung COMMIT finally drains **−32 (EPIPE)**, 5.49 s
-   after submit. It is the **only** −32 on the camera.
+The failure is a stream-reconfiguration sequence (stop-stream then re-commit)
+that hangs in two distinct phases. On camera dev 010:
 
-The control −32 is the **last-surfacing symptom** of an already-wedged
-controller, not an independent initiator — the iso ring even un-wedged ~6 ms
-*before* the stalled COMMIT reported. The COMMIT was preceded by a
-`SET_INTERFACE` that *also* hung ~5.4 s and completed −2 (ENOENT). Two
-consecutive control transfers each hanging ~5.4–5.5 s is a **host-controller-
-stopped** signature, not a device-side protocol STALL handshake.
+1. `876363135` — `SET_INTERFACE` alt 0 on iface 1 submitted (host **stopping**
+   the stream). It **hangs ~5.4 s while iso video keeps streaming healthily**
+   (5,405 EP2 frames in the window, ~2 ms jitter), then the driver unlinks it
+   → −2 (ENOENT) at `881768116`. **This is a control-plane-only stall: the
+   control endpoint is unresponsive while the data endpoint is perfectly fine.**
+2. `881770393` (+2.3 ms) — `VS_COMMIT_CONTROL` SET_CUR submitted (commit new
+   params, `s 21 01 0200 0001 001a`, 26 bytes).
+3. `881797089` (+26.7 ms) — **now** iso EP2 wedges: silent **5.46 s** (one
+   unanswered submit, zero completions).
+4. `887254261` — EP2 recovers; `887260603` (+6.3 ms) the COMMIT drains **−32**.
 
-> Conservative framing (verified): the 27 ms COMMIT-precedes-wedge ordering
-> shows the COMMIT was outstanding when iso stopped, but cannot prove the COMMIT
-> *caused* the wedge vs. both being downstream of the same controller fault. The
-> strong, defensible claim is: **single wedge event; the −32 is a symptom, not a
-> second failure path.**
+So the **leading edge is the control-plane stall** (SET_INTERFACE, iso healthy);
+the iso wedge arrives ~5.4 s later **with the COMMIT**. Both planes are stuck
+only in phase 2. The earlier write-up saw only phase 2 (COMMIT→iso-wedge→−32)
+and mislabelled the iso wedge as the initiator.
+
+> What the capture cannot prove: whether phase 1 *causes* phase 2, or both are
+> escalating symptoms of one firmware lock. What IS verified: the two-phase
+> `SET_INTERFACE`→`COMMIT` structure, with iso **healthy in phase 1** and
+> **wedged in phase 2**, is identical on 05-30 and 06-13 (cross-capture section
+> below). The control endpoint demonstrably stalls ~5 s with video flowing — so
+> there is a real control-plane failure component, not merely an iso wedge.
 
 ### 3. −110 and −32 are the SAME failure, distinguished only by what reaps the hung COMMIT
 
@@ -111,11 +119,14 @@ The capture contains **exactly one COMMIT in 437 s**. The throttle is a
 *minimum-interval* mechanism; with no rapid control burst it has nothing to
 pace, so it is (correctly) invisible on the wire. This is not evidence v8.1 was
 unloaded (srcversion confirmed loaded this session) — it is the **point**: the
-real failure has **no control-transfer-rate component**, so CTRL_THROTTLE is
-structurally incapable of preventing it. The single COMMIT hangs because the
-controller is already wedged from the iso side. This is the definitive nail in
-the coffin for the uvcvideo-throttle approach (already abandoned 06-07; this is
-wire-level confirmation).
+real failure has **no rapid-control-burst component**, so CTRL_THROTTLE (a
+minimum-*interval* mechanism) is structurally incapable of preventing it: the
+trigger is a single stream-reconfiguration (one SET_INTERFACE + one COMMIT, §2),
+not a fast SET_CUR storm. This is the definitive nail in the coffin for the
+uvcvideo-throttle-as-*fix* approach (already abandoned 06-07; wire-level
+confirmation). Caveat the throttle keeps a *narrow* role — see cross-capture
+section: by spacing reconfiguration churn it can reduce how *often* the
+two-phase lock fires, which plausibly explains the frequency drop since 05-13.
 
 The 10 s COMMIT URB-timeout extension (the other half of v8.1) is, if anything,
 counterproductive: in EV1 it let the COMMIT hang the full 10 s before release;
@@ -145,11 +156,46 @@ still destabilises the firmware, consistent with the iso-wedge root cause.
 Running tally: ritual-first → 2/2 clean (06-10 Meet, 06-11 OBS); no-ritual or
 long-stream → both of today's precursors.
 
+## Cross-capture comparison with 05-30 (added 2026-06-14, adversarially verified)
+
+Comparing this capture against the full 05-30 raw usbmon
+(`/home/jp/kiyo-livecall-usbmon-20260530.txt.gz`, 2.5 M lines, iso plane intact
+— the in-repo 05-30 extract was control-only, which is what made 05-30 *look*
+like a pure control-rate problem) settles the "did our patches reveal a deeper
+issue?" question. Run `wf_a4d7599d-784`; a refutation agent independently
+re-derived every number.
+
+**The identical two-phase lock appears on both dates** — 05-30 (heavy WebRTC
+control churn) and 06-13 (one lone reconfiguration):
+
+| Phase | Transfer | 05-30 (×3 events) | 06-13 | iso during it |
+|---|---|---|---|---|
+| 1 | `SET_INTERFACE` alt0 | hang ~5.1–5.5 s → −2 | hang 5.4 s → −2 | **healthy** (5,000+ frames, ~2–22 ms jitter) |
+| 2 | `COMMIT_CONTROL` | hang ~7 s → −108 (or 0) | hang 5.5 s → −32 | **wedges** ~26 ms after submit, silent = hang |
+
+The submit→iso-wedge offset on the COMMIT is **25–28 ms on every event, both
+captures**. The SET_INTERFACE phase shows iso fully alive (the *same* command
+completes in 0.1 ms when healthy — so the 5 s hangs are real failures, not
+teardowns).
+
+**Verdict on onion-vs-lens:** mostly *lens* — the same two-phase
+reconfiguration lock was operating on 05-30, when we mislabelled it a
+"control-rate trigger" because the control-only extract hid the iso plane. The
+patches reduced **frequency** (4 crashes/41 min on 05-13 → 2 precursors across
+many hours), not the mechanism. **But not pure lens:** the verification refuted
+the stronger "every failure is just the iso wedge surfacing through control"
+claim — the SET_INTERFACE phase is a *genuine control-plane stall with healthy
+iso*, so a real control-plane failure component exists (it is not all iso). That
+is the kernel of truth in the original control-rate hypothesis, and the honest
+basis for CTRL_THROTTLE's narrow frequency-reducing role.
+
 ## Method
 
 Captures auto-preserved by `call-watch.sh` (classifier fixed 06-10 to preserve
-on the URB-timeout precursor too). Analysed by a 6-agent forensic workflow over
-the decompressed captures via shell aggregation only (never loaded into model
-context); two load-bearing findings (EP5-quiet, failure-ordering) put through
-adversarial-refutation agents that independently re-derived every number.
-Workflow run `wf_ad510e76-ffc`.
+on the URB-timeout precursor too). Analysed by a 6-agent forensic workflow
+(`wf_ad510e76-ffc`) over the decompressed captures via shell aggregation only
+(never loaded into model context); load-bearing findings put through
+adversarial-refutation agents that independently re-derived every number. The
+05-30↔06-13 cross-capture comparison and the two-phase correction are run
+`wf_a4d7599d-784` — whose refutation agent overturned an initial "iso wedges
+first / one mechanism" reading, the correction now reflected in §2.
