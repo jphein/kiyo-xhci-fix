@@ -1,0 +1,16 @@
+Jun 30 13:21:22 katana usb-watchdog[4165086]: FATAL: xHCI not responding — initiating recovery
+Jun 30 13:21:22 katana usb-watchdog.sh[2162]: 13:21:22 FATAL: xHCI not responding — initiating recovery
+Jun 30 13:21:22 katana sudo[4165098]:       jp : PWD=/home/jp ; USER=root ; COMMAND=/usr/bin/dmesg
+Jun 30 13:21:22 katana sudo[4165098]: pam_unix(sudo:session): session opened for user root(uid=0) by jp(uid=1000)
+Jun 30 13:21:22 katana sudo[4165098]: pam_unix(sudo:session): session closed for user root
+Jun 30 13:21:22 katana usb-watchdog.sh[2162]: 13:21:22 Crash log saved to /tmp/usb-watchdog-crash-20260630-132122.log
+Jun 30 13:21:22 katana usb-watchdog[4165284]: LEVEL 2: Full xHCI rebind (0000:00:14.0)...
+Jun 30 13:21:22 katana usb-watchdog.sh[2162]: 13:21:22 LEVEL 2: Full xHCI rebind (0000:00:14.0)...
+Jun 30 13:21:22 katana sudo[4165295]:       jp : PWD=/home/jp ; USER=root ; COMMAND=/usr/bin/tee /sys/bus/pci/drivers/xhci_hcd/unbind
+Jun 30 13:21:22 katana sudo[4165295]: pam_unix(sudo:session): session opened for user root(uid=0) by jp(uid=1000)
+Jun 30 13:21:22 katana sudo[4165295]: pam_unix(sudo:session): session closed for user root
+Jun 30 13:21:27 katana sudo[4167292]:       jp : PWD=/home/jp ; USER=root ; COMMAND=/usr/bin/tee /sys/bus/pci/drivers/xhci_hcd/bind
+Jun 30 13:21:27 katana sudo[4167292]: pam_unix(sudo:session): session opened for user root(uid=0) by jp(uid=1000)
+Jun 30 13:21:27 katana sudo[4167292]: pam_unix(sudo:session): session closed for user root
+Jun 30 13:21:37 katana usb-watchdog[4169581]: LEVEL 2 OK: All devices alive after xHCI rebind
+Jun 30 13:21:37 katana usb-watchdog.sh[2162]: 13:21:37 LEVEL 2 OK: All devices alive after xHCI rebind

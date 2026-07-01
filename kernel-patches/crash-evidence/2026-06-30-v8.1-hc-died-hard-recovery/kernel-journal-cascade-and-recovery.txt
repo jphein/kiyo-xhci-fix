@@ -1,0 +1,199 @@
+Jun 30 13:21:19 katana kernel: BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 889, flush 0, corrupt 0, gen 0
+Jun 30 13:21:19 katana kernel: BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 890, flush 0, corrupt 0, gen 0
+Jun 30 13:21:21 katana kernel: audit: type=1400 audit(1782850881.113:1364): apparmor="AUDIT" operation="exec" class="file" info="conflicting profile attachments" profile="unconfined" name="/opt/brave.com/brave/brave" pid=4164310 comm="ThreadPoolForeg" requested_mask="x" fsuid=1000 ouid=0
+Jun 30 13:21:21 katana kernel: xhci_hcd 0000:00:14.0: xHCI host not responding to stop endpoint command
+Jun 30 13:21:21 katana kernel: xhci_hcd 0000:00:14.0: xHCI host controller not responding, assume dead
+Jun 30 13:21:21 katana kernel: xhci_hcd 0000:00:14.0: HC died; cleaning up
+Jun 30 13:21:21 katana kernel: usb 1-1: USB disconnect, device number 2
+Jun 30 13:21:21 katana kernel: usb 1-2: USB disconnect, device number 46
+Jun 30 13:21:21 katana kernel: uvcvideo 2-3:1.1: Failed to set UVC commit control : -110 (exp. 26).
+Jun 30 13:21:21 katana kernel: usb 2-1: USB disconnect, device number 2
+Jun 30 13:21:21 katana kernel: usb 2-1.4: USB disconnect, device number 5
+Jun 30 13:21:21 katana kernel: usb 1-4: USB disconnect, device number 3
+Jun 30 13:21:21 katana kernel: usb 1-4.1: USB disconnect, device number 5
+Jun 30 13:21:21 katana kernel: sd 6:0:0:0: [sdc] Synchronizing SCSI cache
+Jun 30 13:21:21 katana kernel: usb 1-4.2: USB disconnect, device number 7
+Jun 30 13:21:21 katana kernel: sd 6:0:0:0: [sdc] Synchronize Cache(10) failed: Result: hostbyte=DID_ERROR driverbyte=DRIVER_OK
+Jun 30 13:21:21 katana kernel: xhci_hcd 0000:00:14.0: WARN Can't disable streams for endpoint 0x81, streams are being disabled already
+Jun 30 13:21:21 katana kernel: usb 2-3: USB disconnect, device number 3
+Jun 30 13:21:21 katana kernel: usb 2-4: USB disconnect, device number 22
+Jun 30 13:21:21 katana kernel: usb 1-4.3: USB disconnect, device number 9
+Jun 30 13:21:22 katana kernel: usb 1-4.4: USB disconnect, device number 10
+Jun 30 13:21:22 katana kernel: usb 1-7: USB disconnect, device number 4
+Jun 30 13:21:22 katana kernel: usb 1-10: USB disconnect, device number 6
+Jun 30 13:21:22 katana kernel: usb 1-14: USB disconnect, device number 8
+Jun 30 13:21:22 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Jun 30 13:21:22 katana kernel: usb usb2: USB disconnect, device number 1
+Jun 30 13:21:22 katana kernel: xhci_hcd 0000:00:14.0: USB bus 2 deregistered
+Jun 30 13:21:22 katana kernel: xhci_hcd 0000:00:14.0: remove, state 1
+Jun 30 13:21:22 katana kernel: usb usb1: USB disconnect, device number 1
+Jun 30 13:21:22 katana kernel: xhci_hcd 0000:00:14.0: USB bus 1 deregistered
+Jun 30 13:21:27 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Jun 30 13:21:27 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 1
+Jun 30 13:21:27 katana kernel: xhci_hcd 0000:00:14.0: hcc params 0x200077c1 hci version 0x110 quirks 0x0000000000009810
+Jun 30 13:21:27 katana kernel: xhci_hcd 0000:00:14.0: xHCI Host Controller
+Jun 30 13:21:27 katana kernel: xhci_hcd 0000:00:14.0: new USB bus registered, assigned bus number 2
+Jun 30 13:21:27 katana kernel: xhci_hcd 0000:00:14.0: Host supports USB 3.1 Enhanced SuperSpeed
+Jun 30 13:21:27 katana kernel: usb usb1: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 6.17
+Jun 30 13:21:27 katana kernel: usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+Jun 30 13:21:27 katana kernel: usb usb1: Product: xHCI Host Controller
+Jun 30 13:21:27 katana kernel: usb usb1: Manufacturer: Linux 6.17.0-35-generic xhci-hcd
+Jun 30 13:21:27 katana kernel: usb usb1: SerialNumber: 0000:00:14.0
+Jun 30 13:21:27 katana kernel: hub 1-0:1.0: USB hub found
+Jun 30 13:21:27 katana kernel: hub 1-0:1.0: 16 ports detected
+Jun 30 13:21:27 katana kernel: usb usb2: New USB device found, idVendor=1d6b, idProduct=0003, bcdDevice= 6.17
+Jun 30 13:21:27 katana kernel: usb usb2: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+Jun 30 13:21:27 katana kernel: usb usb2: Product: xHCI Host Controller
+Jun 30 13:21:27 katana kernel: usb usb2: Manufacturer: Linux 6.17.0-35-generic xhci-hcd
+Jun 30 13:21:27 katana kernel: usb usb2: SerialNumber: 0000:00:14.0
+Jun 30 13:21:27 katana kernel: hub 2-0:1.0: USB hub found
+Jun 30 13:21:27 katana kernel: hub 2-0:1.0: 10 ports detected
+Jun 30 13:21:27 katana kernel: usb 1-1: new high-speed USB device number 2 using xhci_hcd
+Jun 30 13:21:27 katana kernel: usb 1-1: New USB device found, idVendor=2109, idProduct=2824, bcdDevice= 1.93
+Jun 30 13:21:27 katana kernel: usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Jun 30 13:21:27 katana kernel: usb 1-1: Product: USB2.0 Hub             
+Jun 30 13:21:27 katana kernel: usb 1-1: Manufacturer: VIA Labs, Inc.         
+Jun 30 13:21:27 katana kernel: usb 1-1: SerialNumber: 000000001
+Jun 30 13:21:27 katana kernel: hub 1-1:1.0: USB hub found
+Jun 30 13:21:27 katana kernel: hub 1-1:1.0: 4 ports detected
+Jun 30 13:21:27 katana kernel: usb 2-1: new SuperSpeed USB device number 2 using xhci_hcd
+Jun 30 13:21:27 katana kernel: usb 2-1: New USB device found, idVendor=2109, idProduct=0824, bcdDevice= 1.93
+Jun 30 13:21:27 katana kernel: usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Jun 30 13:21:27 katana kernel: usb 2-1: Product: USB3.1 Hub             
+Jun 30 13:21:27 katana kernel: usb 2-1: Manufacturer: VIA Labs, Inc.         
+Jun 30 13:21:27 katana kernel: usb 2-1: SerialNumber: 000000001
+Jun 30 13:21:27 katana kernel: hub 2-1:1.0: USB hub found
+Jun 30 13:21:27 katana kernel: hub 2-1:1.0: 4 ports detected
+Jun 30 13:21:27 katana kernel: usb 1-2: new high-speed USB device number 3 using xhci_hcd
+Jun 30 13:21:28 katana kernel: usb 1-2: New USB device found, idVendor=04e8, idProduct=6860, bcdDevice= 5.04
+Jun 30 13:21:28 katana kernel: usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Jun 30 13:21:28 katana kernel: usb 1-2: Product: SAMSUNG_Android
+Jun 30 13:21:28 katana kernel: usb 1-2: Manufacturer: SAMSUNG
+Jun 30 13:21:28 katana kernel: usb 1-2: SerialNumber: R5CRB0W66MK
+Jun 30 13:21:28 katana kernel: cdc_acm 1-2:1.1: ttyACM0: USB ACM device
+Jun 30 13:21:28 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:28 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:29 katana kernel: usb 2-3: device not accepting address 3, error -71
+Jun 30 13:21:29 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:29 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:29 katana kernel: usb 2-3: device not accepting address 4, error -71
+Jun 30 13:21:29 katana kernel: usb usb2-port3: attempt power cycle
+Jun 30 13:21:29 katana kernel: usb 2-1.4: new SuperSpeed USB device number 5 using xhci_hcd
+Jun 30 13:21:29 katana kernel: usb 2-1.4: New USB device found, idVendor=174c, idProduct=55aa, bcdDevice= 1.00
+Jun 30 13:21:29 katana kernel: usb 2-1.4: New USB device strings: Mfr=2, Product=3, SerialNumber=1
+Jun 30 13:21:29 katana kernel: usb 2-1.4: Product: ASM1153E
+Jun 30 13:21:29 katana kernel: usb 2-1.4: Manufacturer: asmedia
+Jun 30 13:21:29 katana kernel: usb 2-1.4: SerialNumber: 123456789012
+Jun 30 13:21:29 katana kernel: scsi host6: uas
+Jun 30 13:21:29 katana kernel: scsi 6:0:0:0: Direct-Access     Samsung  SSD 870 EVO 500G 0    PQ: 0 ANSI: 6
+Jun 30 13:21:29 katana kernel: sd 6:0:0:0: Attached scsi generic sg2 type 0
+Jun 30 13:21:29 katana kernel: sd 6:0:0:0: [sdc] 976773168 512-byte logical blocks: (500 GB/466 GiB)
+Jun 30 13:21:29 katana kernel: sd 6:0:0:0: [sdc] Write Protect is off
+Jun 30 13:21:29 katana kernel: sd 6:0:0:0: [sdc] Mode Sense: 43 00 00 00
+Jun 30 13:21:29 katana kernel: sd 6:0:0:0: [sdc] Write cache: enabled, read cache: enabled, doesn't support DPO or FUA
+Jun 30 13:21:29 katana kernel: sd 6:0:0:0: [sdc] Preferred minimum I/O size 512 bytes
+Jun 30 13:21:29 katana kernel: sd 6:0:0:0: [sdc] Optimal transfer size 33553920 bytes
+Jun 30 13:21:29 katana kernel:  sdc: sdc1
+Jun 30 13:21:29 katana kernel: sd 6:0:0:0: [sdc] Attached SCSI disk
+Jun 30 13:21:29 katana kernel: usb 1-4: new high-speed USB device number 4 using xhci_hcd
+Jun 30 13:21:30 katana kernel: usb 1-4: New USB device found, idVendor=2109, idProduct=2817, bcdDevice=90.14
+Jun 30 13:21:30 katana kernel: usb 1-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Jun 30 13:21:30 katana kernel: usb 1-4: Product: USB2.0 Hub             
+Jun 30 13:21:30 katana kernel: usb 1-4: Manufacturer: VIA Labs, Inc.         
+Jun 30 13:21:30 katana kernel: usb 1-4: SerialNumber: 000000000
+Jun 30 13:21:30 katana kernel: hub 1-4:1.0: USB hub found
+Jun 30 13:21:30 katana kernel: hub 1-4:1.0: 4 ports detected
+Jun 30 13:21:30 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:30 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:31 katana kernel: usb 2-3: device not accepting address 6, error -71
+Jun 30 13:21:31 katana kernel: usb 1-7: new high-speed USB device number 5 using xhci_hcd
+Jun 30 13:21:31 katana kernel: usb 1-7: New USB device found, idVendor=1a40, idProduct=0201, bcdDevice= 1.00
+Jun 30 13:21:31 katana kernel: usb 1-7: New USB device strings: Mfr=0, Product=1, SerialNumber=0
+Jun 30 13:21:31 katana kernel: usb 1-7: Product: USB 2.0 Hub [MTT]
+Jun 30 13:21:31 katana kernel: hub 1-7:1.0: USB hub found
+Jun 30 13:21:31 katana kernel: hub 1-7:1.0: 7 ports detected
+Jun 30 13:21:31 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:31 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:32 katana kernel: usb 2-3: device not accepting address 7, error -71
+Jun 30 13:21:32 katana kernel: usb usb2-port3: unable to enumerate USB device
+Jun 30 13:21:32 katana kernel: usb 1-10: new full-speed USB device number 6 using xhci_hcd
+Jun 30 13:21:32 katana kernel: usb 1-10: New USB device found, idVendor=1462, idProduct=b926, bcdDevice= 0.01
+Jun 30 13:21:32 katana kernel: usb 1-10: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Jun 30 13:21:32 katana kernel: usb 1-10: Product: MYSTIC LIGHT 
+Jun 30 13:21:32 katana kernel: usb 1-10: Manufacturer: MSI
+Jun 30 13:21:32 katana kernel: usb 1-10: SerialNumber: A02018091207
+Jun 30 13:21:32 katana kernel: input: MSI MYSTIC LIGHT  as /devices/pci0000:00/0000:00:14.0/usb1/1-10/1-10:1.0/0003:1462:B926.000B/input/input31
+Jun 30 13:21:32 katana kernel: hid-generic 0003:1462:B926.000B: input,hiddev0,hidraw0: USB HID v1.10 Device [MSI MYSTIC LIGHT ] on usb-0000:00:14.0-10/input0
+Jun 30 13:21:32 katana kernel: usb 1-4.1: new full-speed USB device number 7 using xhci_hcd
+Jun 30 13:21:32 katana kernel: usb 1-4.1: New USB device found, idVendor=1209, idProduct=2201, bcdDevice= 1.00
+Jun 30 13:21:32 katana kernel: usb 1-4.1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Jun 30 13:21:32 katana kernel: usb 1-4.1: Product: Raise
+Jun 30 13:21:32 katana kernel: usb 1-4.1: Manufacturer: Dygma
+Jun 30 13:21:32 katana kernel: usb 1-4.1: SerialNumber: 6ED88ED450535254352E3120FF163028raiseD
+Jun 30 13:21:32 katana kernel: cdc_acm 1-4.1:1.0: ttyACM1: USB ACM device
+Jun 30 13:21:32 katana kernel: input: Dygma Raise Consumer Control as /devices/pci0000:00/0000:00:14.0/usb1/1-4/1-4.1/1-4.1:1.2/0003:1209:2201.000C/input/input32
+Jun 30 13:21:32 katana kernel: input: Dygma Raise Keyboard as /devices/pci0000:00/0000:00:14.0/usb1/1-4/1-4.1/1-4.1:1.2/0003:1209:2201.000C/input/input33
+Jun 30 13:21:32 katana kernel: input: Dygma Raise Mouse as /devices/pci0000:00/0000:00:14.0/usb1/1-4/1-4.1/1-4.1:1.2/0003:1209:2201.000C/input/input34
+Jun 30 13:21:32 katana kernel: hid-generic 0003:1209:2201.000C: input,hidraw1: USB HID v1.01 Keyboard [Dygma Raise] on usb-0000:00:14.0-4.1/input2
+Jun 30 13:21:32 katana kernel: input: Dygma Raise as /devices/pci0000:00/0000:00:14.0/usb1/1-4/1-4.1/1-4.1:1.3/0003:1209:2201.000D/input/input35
+Jun 30 13:21:32 katana kernel: hid-generic 0003:1209:2201.000D: input,hidraw2: USB HID v1.01 Mouse [Dygma Raise] on usb-0000:00:14.0-4.1/input3
+Jun 30 13:21:32 katana kernel: usb 2-4: new SuperSpeed USB device number 8 using xhci_hcd
+Jun 30 13:21:32 katana kernel: usb 2-4: New USB device found, idVendor=2109, idProduct=0817, bcdDevice=90.14
+Jun 30 13:21:32 katana kernel: usb 2-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Jun 30 13:21:32 katana kernel: usb 2-4: Product: USB3.0 Hub             
+Jun 30 13:21:32 katana kernel: usb 2-4: Manufacturer: VIA Labs, Inc.         
+Jun 30 13:21:32 katana kernel: usb 2-4: SerialNumber: 000000000
+Jun 30 13:21:32 katana kernel: hub 2-4:1.0: USB hub found
+Jun 30 13:21:32 katana kernel: hub 2-4:1.0: 4 ports detected
+Jun 30 13:21:32 katana kernel: usb 1-14: new full-speed USB device number 8 using xhci_hcd
+Jun 30 13:21:33 katana kernel: usb 1-14: New USB device found, idVendor=8087, idProduct=0029, bcdDevice= 0.01
+Jun 30 13:21:33 katana kernel: usb 1-14: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+Jun 30 13:21:33 katana kernel: Bluetooth: hci0: Found device firmware: intel/ibt-20-1-3.sfi
+Jun 30 13:21:33 katana kernel: Bluetooth: hci0: Boot Address: 0x24800
+Jun 30 13:21:33 katana kernel: Bluetooth: hci0: Firmware Version: 132-3.24
+Jun 30 13:21:33 katana kernel: Bluetooth: hci0: Firmware already loaded
+Jun 30 13:21:33 katana kernel: Bluetooth: hci0: HCI LE Coded PHY feature bit is set, but its usage is not supported.
+Jun 30 13:21:33 katana kernel: Bluetooth: MGMT ver 1.23
+Jun 30 13:21:33 katana kernel: usb 1-4.2: new full-speed USB device number 9 using xhci_hcd
+Jun 30 13:21:33 katana kernel: usb 1-4.2: New USB device found, idVendor=258e, idProduct=000f, bcdDevice= 0.01
+Jun 30 13:21:33 katana kernel: usb 1-4.2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Jun 30 13:21:33 katana kernel: usb 1-4.2: Product: USB KEYBOARD
+Jun 30 13:21:33 katana kernel: usb 1-4.2: Manufacturer: Hailuck Co.,Ltd
+Jun 30 13:21:33 katana kernel: usb 1-4.2: SerialNumber: SN:0009
+Jun 30 13:21:33 katana kernel: input: Hailuck Co.,Ltd USB KEYBOARD as /devices/pci0000:00/0000:00:14.0/usb1/1-4/1-4.2/1-4.2:1.0/0003:258E:000F.000E/input/input36
+Jun 30 13:21:33 katana kernel: hid-generic 0003:258E:000F.000E: input,hidraw3: USB HID v1.11 Keyboard [Hailuck Co.,Ltd USB KEYBOARD] on usb-0000:00:14.0-4.2/input0
+Jun 30 13:21:33 katana kernel: input: Hailuck Co.,Ltd USB KEYBOARD Consumer Control as /devices/pci0000:00/0000:00:14.0/usb1/1-4/1-4.2/1-4.2:1.1/0003:258E:000F.000F/input/input37
+Jun 30 13:21:33 katana kernel: input: Hailuck Co.,Ltd USB KEYBOARD Keyboard as /devices/pci0000:00/0000:00:14.0/usb1/1-4/1-4.2/1-4.2:1.1/0003:258E:000F.000F/input/input38
+Jun 30 13:21:33 katana kernel: hid-generic 0003:258E:000F.000F: input,hiddev1,hidraw4: USB HID v1.11 Keyboard [Hailuck Co.,Ltd USB KEYBOARD] on usb-0000:00:14.0-4.2/input1
+Jun 30 13:21:33 katana kernel: usb 1-4.3: new full-speed USB device number 10 using xhci_hcd
+Jun 30 13:21:33 katana kernel: usb 1-4.3: New USB device found, idVendor=046d, idProduct=c548, bcdDevice= 5.01
+Jun 30 13:21:33 katana kernel: usb 1-4.3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+Jun 30 13:21:33 katana kernel: usb 1-4.3: Product: USB Receiver
+Jun 30 13:21:33 katana kernel: usb 1-4.3: Manufacturer: Logitech
+Jun 30 13:21:33 katana kernel: input: Logitech USB Receiver as /devices/pci0000:00/0000:00:14.0/usb1/1-4/1-4.3/1-4.3:1.0/0003:046D:C548.0010/input/input39
+Jun 30 13:21:33 katana kernel: hid-generic 0003:046D:C548.0010: input,hidraw5: USB HID v1.11 Keyboard [Logitech USB Receiver] on usb-0000:00:14.0-4.3/input0
+Jun 30 13:21:33 katana kernel: input: Logitech USB Receiver Mouse as /devices/pci0000:00/0000:00:14.0/usb1/1-4/1-4.3/1-4.3:1.1/0003:046D:C548.0011/input/input40
+Jun 30 13:21:33 katana kernel: input: Logitech USB Receiver Consumer Control as /devices/pci0000:00/0000:00:14.0/usb1/1-4/1-4.3/1-4.3:1.1/0003:046D:C548.0011/input/input41
+Jun 30 13:21:33 katana kernel: input: Logitech USB Receiver System Control as /devices/pci0000:00/0000:00:14.0/usb1/1-4/1-4.3/1-4.3:1.1/0003:046D:C548.0011/input/input42
+Jun 30 13:21:33 katana kernel: hid-generic 0003:046D:C548.0011: input,hidraw6: USB HID v1.11 Mouse [Logitech USB Receiver] on usb-0000:00:14.0-4.3/input1
+Jun 30 13:21:33 katana kernel: hid-generic 0003:046D:C548.0012: hiddev2,hidraw7: USB HID v1.11 Device [Logitech USB Receiver] on usb-0000:00:14.0-4.3/input2
+Jun 30 13:21:33 katana kernel: usb 1-4.4: new high-speed USB device number 11 using xhci_hcd
+Jun 30 13:21:34 katana kernel: usb 1-4.4: New USB device found, idVendor=05e3, idProduct=0751, bcdDevice=14.04
+Jun 30 13:21:34 katana kernel: usb 1-4.4: New USB device strings: Mfr=3, Product=4, SerialNumber=0
+Jun 30 13:21:34 katana kernel: usb 1-4.4: Product: USB Storage
+Jun 30 13:21:34 katana kernel: usb 1-4.4: Manufacturer: USB Storage
+Jun 30 13:21:34 katana kernel: usb-storage 1-4.4:1.0: USB Mass Storage device detected
+Jun 30 13:21:34 katana kernel: scsi host7: usb-storage 1-4.4:1.0
+Jun 30 13:21:34 katana kernel: input: StadiaJJXW-cc2b as /devices/virtual/misc/uhid/0005:18D1:9400.0013/input/input43
+Jun 30 13:21:34 katana kernel: stadia 0005:18D1:9400.0013: input,hidraw8: BLUETOOTH HID v1.00 Gamepad [StadiaJJXW-cc2b] on 94:e6:f7:28:31:28
+Jun 30 13:21:34 katana kernel: stadia 0005:18D1:9400.0013: Force Feedback for Google Stadia controller
+Jun 30 13:21:35 katana kernel: scsi 7:0:0:0: Direct-Access     Generic  STORAGE DEVICE   1404 PQ: 0 ANSI: 6
+Jun 30 13:21:35 katana kernel: sd 7:0:0:0: Attached scsi generic sg3 type 0
+Jun 30 13:21:35 katana kernel: sd 7:0:0:0: [sdd] Media removed, stopped polling
+Jun 30 13:21:35 katana kernel: sd 7:0:0:0: [sdd] Attached SCSI removable disk
+Jun 30 13:22:19 katana kernel: BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 891, flush 0, corrupt 0, gen 0
+Jun 30 13:22:19 katana kernel: BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 892, flush 0, corrupt 0, gen 0
+Jun 30 13:23:19 katana kernel: BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 893, flush 0, corrupt 0, gen 0
+Jun 30 13:23:19 katana kernel: BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 894, flush 0, corrupt 0, gen 0
+Jun 30 13:24:19 katana kernel: BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 895, flush 0, corrupt 0, gen 0
+Jun 30 13:24:19 katana kernel: BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 896, flush 0, corrupt 0, gen 0

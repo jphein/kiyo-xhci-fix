@@ -1,0 +1,21 @@
+Jun 30 13:21:28 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:28 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:29 katana kernel: usb 2-3: device not accepting address 3, error -71
+Jun 30 13:21:29 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:29 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:29 katana kernel: usb 2-3: device not accepting address 4, error -71
+Jun 30 13:21:29 katana kernel: usb usb2-port3: attempt power cycle
+Jun 30 13:21:30 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:30 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:31 katana kernel: usb 2-3: device not accepting address 6, error -71
+Jun 30 13:21:31 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:31 katana kernel: usb 2-3: Device not responding to setup address.
+Jun 30 13:21:32 katana kernel: usb 2-3: device not accepting address 7, error -71
+Jun 30 13:21:32 katana kernel: usb usb2-port3: unable to enumerate USB device
+Jul 01 13:01:03 katana kernel: usb 2-3: new SuperSpeed USB device number 13 using xhci_hcd
+Jul 01 13:01:03 katana kernel: usb 2-3: New USB device found, idVendor=1532, idProduct=0e05, bcdDevice= 8.21
+Jul 01 13:01:03 katana kernel: usb 2-3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+Jul 01 13:01:03 katana kernel: usb 2-3: Product: Razer Kiyo Pro
+Jul 01 13:01:03 katana kernel: usb 2-3: Manufacturer: Razer Inc
+Jul 01 13:01:03 katana kernel: usb 2-3: Found UVC 1.00 device Razer Kiyo Pro (1532:0e05)
+Jul 01 13:01:05 katana kernel: uvcvideo 2-3:1.1: Failed to set UVC probe control : -32 (exp. 26).

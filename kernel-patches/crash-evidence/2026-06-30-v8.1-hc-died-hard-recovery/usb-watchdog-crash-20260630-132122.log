@@ -1,0 +1,67 @@
+=== USB Watchdog Crash Dump ===
+Timestamp: Tue Jun 30 01:21:22 PM PDT 2026
+
+=== Last 50 lines of dmesg ===
+[230981.972242] BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 881, flush 0, corrupt 0, gen 0
+[230981.972284] BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 882, flush 0, corrupt 0, gen 0
+[231041.970688] BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 883, flush 0, corrupt 0, gen 0
+[231041.970765] BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 884, flush 0, corrupt 0, gen 0
+[231101.916409] input: StadiaJJXW-cc2b as /devices/virtual/misc/uhid/0005:18D1:9400.000A/input/input30
+[231101.916670] stadia 0005:18D1:9400.000A: input,hidraw8: BLUETOOTH HID v1.00 Gamepad [StadiaJJXW-cc2b] on 94:e6:f7:28:31:28
+[231101.916674] stadia 0005:18D1:9400.000A: Force Feedback for Google Stadia controller
+[231101.974966] BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 885, flush 0, corrupt 0, gen 0
+[231101.974985] BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 886, flush 0, corrupt 0, gen 0
+[231161.967872] BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 887, flush 0, corrupt 0, gen 0
+[231161.969623] BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 888, flush 0, corrupt 0, gen 0
+[231162.129733] usb 1-2: new high-speed USB device number 45 using xhci_hcd
+[231162.256050] usb 1-2: New USB device found, idVendor=04e8, idProduct=6860, bcdDevice= 5.04
+[231162.256054] usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[231162.256056] usb 1-2: Product: SAMSUNG_Android
+[231162.256057] usb 1-2: Manufacturer: SAMSUNG
+[231162.256058] usb 1-2: SerialNumber: R5CRB0W66MK
+[231162.265252] cdc_acm 1-2:1.1: ttyACM1: USB ACM device
+[231173.770903] usb 1-2: USB disconnect, device number 45
+[231174.301487] usb 1-2: new high-speed USB device number 46 using xhci_hcd
+[231174.428442] usb 1-2: New USB device found, idVendor=04e8, idProduct=6860, bcdDevice= 5.04
+[231174.428446] usb 1-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[231174.428447] usb 1-2: Product: SAMSUNG_Android
+[231174.428448] usb 1-2: Manufacturer: SAMSUNG
+[231174.428449] usb 1-2: SerialNumber: R5CRB0W66MK
+[231174.437480] cdc_acm 1-2:1.1: ttyACM1: USB ACM device
+[231221.967475] BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 889, flush 0, corrupt 0, gen 0
+[231221.967496] BTRFS error (device nvme1n1): bdev /dev/nvme1n1 errs: wr 0, rd 890, flush 0, corrupt 0, gen 0
+[231223.967700] audit: type=1400 audit(1782850881.113:1364): apparmor="AUDIT" operation="exec" class="file" info="conflicting profile attachments" profile="unconfined" name="/opt/brave.com/brave/brave" pid=4164310 comm="ThreadPoolForeg" requested_mask="x" fsuid=1000 ouid=0
+[231224.590226] xhci_hcd 0000:00:14.0: xHCI host not responding to stop endpoint command
+[231224.590234] xhci_hcd 0000:00:14.0: xHCI host controller not responding, assume dead
+[231224.590259] xhci_hcd 0000:00:14.0: HC died; cleaning up
+[231224.590280] usb 1-1: USB disconnect, device number 2
+[231224.590489] usb 1-2: USB disconnect, device number 46
+[231224.591161] uvcvideo 2-3:1.1: Failed to set UVC commit control : -110 (exp. 26).
+[231224.591834] usb 2-1: USB disconnect, device number 2
+[231224.591838] usb 2-1.4: USB disconnect, device number 5
+[231224.600899] usb 1-4: USB disconnect, device number 3
+[231224.600904] usb 1-4.1: USB disconnect, device number 5
+[231224.609383] sd 6:0:0:0: [sdc] Synchronizing SCSI cache
+[231224.707300] usb 1-4.2: USB disconnect, device number 7
+[231224.769241] sd 6:0:0:0: [sdc] Synchronize Cache(10) failed: Result: hostbyte=DID_ERROR driverbyte=DRIVER_OK
+[231224.780786] xhci_hcd 0000:00:14.0: WARN Can't disable streams for endpoint 0x81, streams are being disabled already
+[231224.785854] usb 2-3: USB disconnect, device number 3
+[231224.788766] usb 2-4: USB disconnect, device number 22
+[231224.797775] usb 1-4.3: USB disconnect, device number 9
+[231224.912395] usb 1-4.4: USB disconnect, device number 10
+[231224.936650] usb 1-7: USB disconnect, device number 4
+[231224.936806] usb 1-10: USB disconnect, device number 6
+[231224.941450] usb 1-14: USB disconnect, device number 8
+
+=== USB devices ===
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 008: ID 8087:0029 Intel Corp. AX200 Bluetooth
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+
+=== HID devices in sysfs ===
+
+=== Expected device check ===
+  Logitech receiver (046d:c548): MISSING
+  Dygma keyboard (1209:2201): MISSING
