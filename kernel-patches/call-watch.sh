@@ -57,9 +57,12 @@ stop_and_classify() {
     human_size=$(numfmt --to=iec --suffix=B "$raw_size" 2>/dev/null || echo "${raw_size}B")
 
     # Did anything bad fire in dmesg during the call window?
+    # grep -c already prints "0" on no-match (and exits 1); use `|| true` to
+    # swallow that exit without appending a second "0" (which produced a
+    # "0\n0" crash_count and an "integer expression expected" error).
     crash_count=$(sudo -n dmesg --since "$CALL_START_LOCAL" 2>/dev/null \
         | grep -cE "timeout: still [0-9]+ active urbs|Failed to set UVC commit control|HC died|host controller not responding|Abort failed to stop" \
-        || echo 0)
+        || true)
 
     if [ "$crash_count" -gt 0 ]; then
         local ts final
