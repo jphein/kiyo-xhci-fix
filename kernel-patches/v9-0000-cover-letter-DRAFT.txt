@@ -105,6 +105,17 @@ Test data (current understanding):
     since (2 watchdog-caught precursors across many hours on the layered v8.1),
     but the captures show the surviving failures are the reconfiguration lock the
     throttle cannot prevent.
+  - Operational pattern consistent with accumulated device state: every session
+    begun on a freshly enumerated camera has run clean (4/4 -- 61-min WebRTC,
+    2-h OBS continuous capture, two further calls), while sessions begun on an
+    enumeration hours-to-days old account for 4 of 5 failures captured. The
+    exceptions cut both ways: one 72-min call on a 25-hour-old enumeration ran
+    clean (2026-07-09), and one precursor fired after 70+ min of continuous
+    streaming on a freshly cycled camera (2026-06-13, caught by a userspace
+    watchdog before hc_died). Small n, uncontrolled workloads -- suggestive
+    only -- but re-enumerating the camera before use is the most effective
+    operational mitigation found so far, which is why we read the lockup as
+    accumulated firmware state rather than a race a throttle could close.
   - Wire captures (the load-bearing evidence): crash-evidence/2026-06-13-
     precursor-wire-captures/ (RESULTS.md + usbmon) and the 05-30 cross-capture
     comparison therein. Hammerint and stream-mmap-loop results on Intel Cannon
