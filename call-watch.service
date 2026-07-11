@@ -1,0 +1,12 @@
+[Unit]
+Description=Kiyo call-watch — usbmon auto-capture around video calls
+After=default.target
+
+[Service]
+Type=simple
+ExecStart=/home/jp/Projects/kiyo-xhci-fix/kernel-patches/call-watch.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target

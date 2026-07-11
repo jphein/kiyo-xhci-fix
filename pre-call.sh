@@ -42,6 +42,17 @@ kiyo_speed() {
     cat "/sys/bus/usb/devices/$p/speed" 2>/dev/null
 }
 
+kiyo_video_nodes() {
+    # The camera's actual /dev/video* nodes — NOT hardcoded video0: after a
+    # USB2 fallback the nodes shift (2026-07-10: camera was video1/video2 and
+    # the old /dev/video0 check would have missed a live stream).
+    local port="$1" v
+    [ -z "$port" ] && return
+    for v in /sys/bus/usb/devices/"$port"/*/video4linux/video*; do
+        [ -e "$v" ] && echo "/dev/$(basename "$v")"
+    done
+}
+
 # Map "B-P" to the hub-port disable attribute (root ports only).
 port_disable_path() {
     local bus="${1%%-*}" port="${1#*-}"
@@ -83,8 +94,9 @@ fi
 
 # --- 3. camera present and idle? -------------------------------------------
 PORT=$(find_kiyo) || { bad "Kiyo not found on any USB port — plug it in / run revive-kiyo.sh"; echo; exit 1; }
-if fuser /dev/video0 >/dev/null 2>&1; then
-    bad "something is holding /dev/video0 — close it first, then re-run (cycling a held camera kills its stream)"
+NODES=$(kiyo_video_nodes "$PORT")
+if [ -n "$NODES" ] && fuser $NODES >/dev/null 2>&1; then
+    bad "something is holding the camera ($(echo $NODES | tr '\n' ' ')) — close it first, then re-run (cycling a held camera kills its stream)"
     echo; exit 1
 fi
 say "Kiyo at $PORT speed=$(kiyo_speed "$PORT") — cycling for fresh enumeration..."
