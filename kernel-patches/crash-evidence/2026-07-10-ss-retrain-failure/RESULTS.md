@@ -17,11 +17,18 @@ deterministic** (06-10 ×2, 06-11, 07-04, 07-08) before this.
 - Board has no per-port power switching (06-30 finding) — no software VBUS
   drop exists, so once link cycles fail, physical replug is the only path.
 - As of 07-11 00:16 the camera had not been replugged: still `1-3` @480,
-  devnum 43, enum 07-10 14:03:17. **Replug outcome pending** — if a VBUS drop
-  restores SS training, this joins 06-30 as camera-firmware state that
-  survives everything except power removal (a milder cousin of the 06-30
-  protocol-death: there the camera wouldn't even enumerate; here it
-  enumerates and streams at USB2 but won't SS-train).
+  devnum 43, enum 07-10 14:03:17.
+- **07-11 00:48 — full xHCI rebind does NOT fix it (decisive).** A complete
+  PCI unbind/bind of `0000:00:14.0` (the watchdog's Level-2 path; watchdog
+  paused during the operation, all devices re-enumerated cleanly in ~20s)
+  forced fresh link training on every port — and the Kiyo came back at USB2
+  again. The SS-training refusal is therefore **camera-side firmware state,
+  not host-side link state**: it survives port cycles AND a full host
+  controller teardown. This is a milder cousin of the 06-30 protocol-death
+  (there the camera wouldn't enumerate at all; here it enumerates and streams
+  at USB2 but won't SS-train) — second member of the class of Kiyo firmware
+  states that survive every software reset. **VBUS-drop (physical replug)
+  outcome still pending**; expected to clear it, as it did on 07-01.
 
 ## Tooling gaps found
 
