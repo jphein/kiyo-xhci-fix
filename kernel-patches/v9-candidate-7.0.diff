@@ -1,0 +1,101 @@
+--- tmp/pristine-uvc/drivers/media/usb/uvc/uvcvideo.h	2026-04-12 13:48:06.000000000 -0700
++++ /usr/src/uvcvideo-kiyo-2.0/drivers/media/usb/uvc/uvcvideo.h	2026-08-25 14:37:33.849571000 -0700
+@@ -81,6 +81,7 @@
+ #define UVC_QUIRK_INVALID_DEVICE_SOF	0x00010000
+ #define UVC_QUIRK_MJPEG_NO_EOF		0x00020000
+ #define UVC_QUIRK_MSXU_META		0x00040000
++#define UVC_QUIRK_CTRL_THROTTLE		0x00080000
+ 
+ /* Format flags */
+ #define UVC_FMT_FLAG_COMPRESSED		0x00000001
+@@ -576,6 +577,8 @@
+ 
+ struct uvc_device {
+ 	struct usb_device *udev;
++	/* UVC control transfer throttling (UVC_QUIRK_CTRL_THROTTLE) */
++	unsigned long last_ctrl_jiffies;
+ 	struct usb_interface *intf;
+ 	unsigned long warnings;
+ 	u32 quirks;
+--- tmp/pristine-uvc/drivers/media/usb/uvc/uvc_video.c	2026-04-12 13:48:06.000000000 -0700
++++ /usr/src/uvcvideo-kiyo-2.0/drivers/media/usb/uvc/uvc_video.c	2026-08-25 14:37:33.849535214 -0700
+@@ -36,6 +36,34 @@
+ 	u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE;
+ 	unsigned int pipe;
+ 
++	/*
++	 * Rate-limit control transfers for devices with fragile firmware
++	 * (UVC_QUIRK_CTRL_THROTTLE, Razer Kiyo Pro). Sustained rapid
++	 * control transfers can wedge the device's stream-reconfiguration
++	 * path; the hung COMMIT then cascades into xHCI controller death
++	 * on Intel Cannon Lake. Spacing reconfiguration churn reduces how
++	 * often the two-phase lock is entered. COMMIT_CONTROL gets extra
++	 * headroom (200ms vs 100ms). The former 10s URB-timeout extension
++	 * is deliberately NOT carried forward: wire captures (2026-06-13)
++	 * and a zero-warning cascade (2026-06-30) showed it only stretches
++	 * the wedge-to-death window without preventing the fault.
++	 */
++	if (dev->quirks & UVC_QUIRK_CTRL_THROTTLE) {
++		bool is_commit = (query == UVC_SET_CUR &&
++				  cs == UVC_VS_COMMIT_CONTROL);
++		unsigned long min_interval =
++			msecs_to_jiffies(is_commit ? 200 : 100);
++
++		if (dev->last_ctrl_jiffies &&
++		    time_before(jiffies,
++				dev->last_ctrl_jiffies + min_interval)) {
++			unsigned long wait = dev->last_ctrl_jiffies +
++					     min_interval - jiffies;
++			msleep(jiffies_to_msecs(wait));
++		}
++		dev->last_ctrl_jiffies = jiffies;
++	}
++
+ 	pipe = (query & 0x80) ? usb_rcvctrlpipe(dev->udev, 0)
+ 			      : usb_sndctrlpipe(dev->udev, 0);
+ 	type |= (query & 0x80) ? USB_DIR_IN : USB_DIR_OUT;
+--- tmp/pristine-uvc/drivers/media/usb/uvc/uvc_driver.c	2026-04-12 13:48:06.000000000 -0700
++++ /usr/src/uvcvideo-kiyo-2.0/drivers/media/usb/uvc/uvc_driver.c	2026-08-25 14:42:29.887400740 -0700
+@@ -2210,6 +2210,24 @@
+ 	dev->quirks = uvc_quirks_param == -1
+ 		    ? dev->info->quirks : uvc_quirks_param;
+ 
++	/*
++	 * Devices with CTRL_THROTTLE have firmware fragile enough that LPM
++	 * transitions destabilise it (the Kiyo Pro's USB_QUIRK_NO_LPM is in
++	 * the usb-core quirk table for exactly that reason). Observed on
++	 * 7.0.0-30 (2026-08-25): the core quirk no longer sticks -- the
++	 * device enumerates with usb3_hardware_lpm_u1 enabled despite both
++	 * the built-in table entry and usbcore.quirks=1532:0e05:k. Enforce
++	 * it here at the driver layer, where it cannot be lost.
++	 */
++	if (dev->quirks & UVC_QUIRK_CTRL_THROTTLE) {
++		if (usb_disable_lpm(udev))
++			dev_warn(&intf->dev,
++				 "could not disable LPM (continuing)\n");
++		else
++			dev_info(&intf->dev,
++				 "LPM disabled at driver level (fragile firmware)\n");
++	}
++
+ 	if (id->idVendor && id->idProduct)
+ 		uvc_dbg(dev, PROBE, "Probing known UVC device %s (%04x:%04x)\n",
+ 			udev->devpath, id->idVendor, id->idProduct);
+@@ -3248,6 +3266,17 @@
+ 	  .bInterfaceSubClass	= 1,
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info		= UVC_INFO_META(V4L2_META_FMT_D4XX) },
++	/* Razer Kiyo Pro — fragile firmware, cascading xHCI death */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x1532,
++	  .idProduct		= 0x0e05,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0,
++	  .driver_info		= UVC_INFO_QUIRK(UVC_QUIRK_CTRL_THROTTLE
++					| UVC_QUIRK_DISABLE_AUTOSUSPEND
++					| UVC_QUIRK_NO_RESET_RESUME) },
+ 	/* Generic USB Video Class */
+ 	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_UNDEFINED) },
+ 	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_15) },

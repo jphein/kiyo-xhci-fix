@@ -1,0 +1,66 @@
+=== USB Watchdog Crash Dump ===
+Timestamp: Tue Aug 25 02:27:01 PM PDT 2026
+
+=== Last 50 lines of dmesg ===
+[223573.638183] audit: type=1400 audit(1787691940.125:1881): apparmor="DENIED" operation="capable" class="cap" profile="fusermount3" pid=557893 comm="fusermount3" capability=1  capname="dac_override"
+[223573.638188] audit: type=1400 audit(1787691940.125:1882): apparmor="DENIED" operation="capable" class="cap" profile="fusermount3" pid=557893 comm="fusermount3" capability=7  capname="setuid"
+[223573.638274] audit: type=1400 audit(1787691940.125:1883): apparmor="DENIED" operation="capable" class="cap" profile="fusermount3" pid=557894 comm="fusermount3" capability=7  capname="setuid"
+[223573.795983] audit: type=1400 audit(1787691940.283:1884): apparmor="DENIED" operation="capable" class="cap" profile="fusermount3" pid=557896 comm="fusermount3" capability=1  capname="dac_override"
+[223573.795988] audit: type=1400 audit(1787691940.283:1885): apparmor="DENIED" operation="capable" class="cap" profile="fusermount3" pid=557896 comm="fusermount3" capability=7  capname="setuid"
+[223573.796115] audit: type=1400 audit(1787691940.283:1886): apparmor="DENIED" operation="capable" class="cap" profile="fusermount3" pid=557897 comm="fusermount3" capability=7  capname="setuid"
+[223574.675234] audit: type=1400 audit(1787691941.162:1887): apparmor="DENIED" operation="capable" class="cap" profile="fusermount3" pid=557911 comm="fusermount3" capability=1  capname="dac_override"
+[223574.675712] audit: type=1400 audit(1787691941.162:1888): apparmor="DENIED" operation="capable" class="cap" profile="fusermount3" pid=557912 comm="fusermount3" capability=7  capname="setuid"
+[223574.864892] audit: type=1400 audit(1787691941.349:1889): apparmor="DENIED" operation="capable" class="cap" profile="fusermount3" pid=557979 comm="fusermount3" capability=1  capname="dac_override"
+[223574.880047] audit: type=1400 audit(1787691941.367:1890): apparmor="DENIED" operation="capable" class="cap" profile="fusermount3" pid=558001 comm="fusermount3" capability=7  capname="setuid"
+[223598.337483] usb 1-5: USB disconnect, device number 54
+[223612.843617] usb 2-3: new SuperSpeed USB device number 20 using xhci_hcd
+[223612.854995] usb 2-3: Int endpoint with wBytesPerInterval of 8 in config 1 interface 0 altsetting 0 ep 133: setting to 64
+[223612.855238] usb 2-3: New USB device found, idVendor=1532, idProduct=0e05, bcdDevice= 8.21
+[223612.855241] usb 2-3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[223612.855242] usb 2-3: Product: Razer Kiyo Pro
+[223612.855243] usb 2-3: Manufacturer: Razer Inc
+[223612.889310] videodev: Linux video capture interface: v2.00
+[223612.905286] uvcvideo 2-3:1.0: Found UVC 1.00 device Razer Kiyo Pro (1532:0e05)
+[223612.906877] uvcvideo 2-3:1.1: Failed to set UVC probe control : -32 (exp. 26).
+[223612.907199] usbcore: registered new interface driver uvcvideo
+[223612.958770] audit: type=1400 audit(1787691979.447:1891): apparmor="AUDIT" operation="exec" class="file" info="conflicting profile attachments" profile="unconfined" name="/opt/brave.com/brave/brave" pid=573754 comm="ThreadPoolSingl" requested_mask="x" fsuid=1000 ouid=0
+[223656.250319] audit: type=1400 audit(1787692022.738:1892): apparmor="AUDIT" operation="exec" class="file" info="conflicting profile attachments" profile="unconfined" name="/opt/brave.com/brave/brave" pid=589203 comm="ThreadPoolSingl" requested_mask="x" fsuid=1000 ouid=0
+[223884.837399] v4l2-loopback driver version 0.15.3 loaded
+[223884.870188] audit: type=1400 audit(1787692251.364:1893): apparmor="AUDIT" operation="exec" class="file" info="conflicting profile attachments" profile="unconfined" name="/opt/brave.com/brave/brave" pid=692914 comm="ThreadPoolSingl" requested_mask="x" fsuid=1000 ouid=0
+[223903.804926] audit: type=1400 audit(1787692270.296:1894): apparmor="AUDIT" operation="exec" class="file" info="conflicting profile attachments" profile="unconfined" name="/opt/brave.com/brave/brave" pid=700984 comm="ThreadPoolSingl" requested_mask="x" fsuid=1000 ouid=0
+[224239.239094] audit: type=1400 audit(1787692605.743:1895): apparmor="AUDIT" operation="exec" class="file" info="conflicting profile attachments" profile="unconfined" name="/opt/brave.com/brave/brave" pid=841254 comm="ThreadPoolSingl" requested_mask="x" fsuid=1000 ouid=0
+[224853.969530] xhci_hcd 0000:00:14.0: Abort failed to stop command ring: -110
+[224853.969538] xhci_hcd 0000:00:14.0: xHCI host controller not responding, assume dead
+[224853.969567] xhci_hcd 0000:00:14.0: HC died; cleaning up
+[224853.970314] xhci_hcd 0000:00:14.0: Timeout while waiting for evaluate context command
+[224853.975474] usb 2-1: USB disconnect, device number 2
+[224853.976252] uvcvideo 2-3:1.1: Failed to set UVC commit control : -110 (exp. 26).
+[224853.981633] usb 1-1: USB disconnect, device number 2
+[224853.987035] usb 2-3: USB disconnect, device number 20
+[224853.987038] usb 1-2: USB disconnect, device number 58
+[224853.987506] ch341-uart ttyUSB0: ch341-uart converter now disconnected from ttyUSB0
+[224853.987524] ch341 1-2:1.0: device disconnected
+[224853.987647] usb 1-4: USB disconnect, device number 3
+[224853.987650] usb 1-4.1: USB disconnect, device number 5
+[224853.990990] usb 1-14: Failed to suspend device, error -19
+[224854.011884] usb 2-4: USB disconnect, device number 19
+[224854.123566] usb 1-4.2: USB disconnect, device number 36
+[224854.225579] usb 1-4.3: USB disconnect, device number 12
+[224854.365629] usb 1-4.4: USB disconnect, device number 15
+[224854.399653] usb 1-6: USB disconnect, device number 59
+[224854.400395] usb 1-7: USB disconnect, device number 6
+[224854.400807] usb 1-9: USB disconnect, device number 60
+[224854.401612] usb 1-10: USB disconnect, device number 10
+[224854.408689] usb 1-14: USB disconnect, device number 17
+
+=== USB devices ===
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 004 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+
+=== HID devices in sysfs ===
+
+=== Expected device check ===
+  Logitech receiver (046d:c548): MISSING
+  Dygma keyboard (1209:2201): MISSING

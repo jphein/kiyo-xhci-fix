@@ -75,6 +75,41 @@ LAST_LINK="unknown"
 CAPTURE_PID=""
 CAPTURE_FILE=""
 CALL_START_LOCAL=""
+CALL_PROV=""
+
+# What was ACTUALLY running for this datapoint?
+#
+# Added 2026-08-19: until now every clean call printed the literal string
+# "v8.1 held under real-world load" — while no DKMS uvcvideo existed for ANY
+# installed kernel, so the box had been on stock for an unknown number of
+# sessions and the evidence log could not tell. A datapoint that does not
+# record its own provenance is an anecdote. Never hardcode the claim again.
+#
+# Also records whether the Kiyo's AUDIO function is streaming: ep 0x82 is the
+# microphone (wire-confirmed 2026-08-19), and mic-on roughly 5.7x's the bus
+# data rate, so a mic-off call is a materially easier test than a mic-on one.
+provenance() {
+    local kern loaded dkms_ko ondisk modstate kiyomic u c
+    kern=$(uname -r)
+    loaded=$(cat /sys/module/uvcvideo/srcversion 2>/dev/null || echo "unknown")
+    dkms_ko="/lib/modules/${kern}/updates/dkms/uvcvideo.ko.zst"
+    if [ ! -e "$dkms_ko" ]; then
+        modstate="STOCK"
+    else
+        ondisk=$(sudo -n /usr/sbin/modinfo -F srcversion "$dkms_ko" 2>/dev/null)
+        if [ "$loaded" = "$ondisk" ]; then modstate="PATCHED"; else modstate="MISMATCH"; fi
+    fi
+
+    kiyomic="no"
+    for u in /proc/asound/card*/usbid; do
+        [ -e "$u" ] || continue
+        [ "$(cat "$u" 2>/dev/null)" = "1532:0e05" ] || continue
+        c=$(dirname "$u")
+        grep -q "Status: Running" "$c/stream0" 2>/dev/null && kiyomic="yes"
+    done
+
+    echo "kernel=${kern} uvcvideo=${modstate}(${loaded:0:8}) kiyo_mic=${kiyomic}"
+}
 
 stop_and_classify() {
     [ -z "$CAPTURE_PID" ] && return
@@ -90,11 +125,21 @@ stop_and_classify() {
     raw_size=$(stat -c %s "$CAPTURE_FILE" 2>/dev/null || echo "0")
     human_size=$(numfmt --to=iec --suffix=B "$raw_size" 2>/dev/null || echo "${raw_size}B")
 
-    # Did anything bad fire in dmesg during the call window?
+    # Did anything bad fire in the kernel log during the call window?
+    #
+    # journalctl, NOT dmesg (changed 2026-08-19). The kernel ring buffer here
+    # is only ~3600 lines: a Focusrite Scarlett stuck in a URB-retry storm
+    # (~188 lines/sec) evicted the ENTIRE buffer every ~20s, so a
+    # `dmesg --since <call start>` would have returned nothing but spam,
+    # scored crash_count=0, declared the call CLEAN and DELETED the capture.
+    # journald is persistent and immune to ring eviction; for the same window
+    # it returned 75011 lines where dmesg returned 3641. No sudo needed
+    # either — membership in `adm` is enough for `journalctl -k`.
+    #
     # grep -c already prints "0" on no-match (and exits 1); use `|| true` to
     # swallow that exit without appending a second "0" (which produced a
     # "0\n0" crash_count and an "integer expression expected" error).
-    crash_count=$(sudo -n dmesg --since "$CALL_START_LOCAL" 2>/dev/null \
+    crash_count=$(journalctl -k --since "$CALL_START_LOCAL" -q 2>/dev/null \
         | grep -cE "timeout: still [0-9]+ active urbs|Failed to set UVC commit control|HC died|host controller not responding|Abort failed to stop" \
         || true)
 
@@ -105,8 +150,9 @@ stop_and_classify() {
         mv "$CAPTURE_FILE" "$final"
         gzip -9 "$final"
         echo "[$(date +%H:%M:%S)] CALL END — ${crash_count} CRASH EVENT(S) detected — preserved: $(basename ${final}.gz) (${human_size} raw)"
-        echo "[$(date +%H:%M:%S)] dmesg failure tail:"
-        sudo -n dmesg --since "$CALL_START_LOCAL" 2>/dev/null \
+        echo "[$(date +%H:%M:%S)] provenance: ${CALL_PROV}"
+        echo "[$(date +%H:%M:%S)] kernel-log failure tail:"
+        journalctl -k --since "$CALL_START_LOCAL" -q 2>/dev/null \
             | grep -E "timeout: still [0-9]+ active urbs|Failed to set UVC commit control|HC died|host controller not responding|Abort failed to stop|Found UVC 1.00 device Razer" \
             | tail -8 | sed "s/^/    /"
     else
@@ -117,7 +163,7 @@ stop_and_classify() {
         commits=$(LC_ALL=C grep -c 's 21 01 0200' "$CAPTURE_FILE" 2>/dev/null || true)
         setintfs=$(LC_ALL=C grep -c 's 01 0b ' "$CAPTURE_FILE" 2>/dev/null || true)
         rm -f "$CAPTURE_FILE"
-        echo "[$(date +%H:%M:%S)] CALL END — CLEAN (${human_size} captured; survived ${commits:-?} COMMITs, ${setintfs:-?} SET_INTERFACEs; deleted) — v8.1 held under real-world load"
+        echo "[$(date +%H:%M:%S)] CALL END — CLEAN (${human_size} captured; survived ${commits:-?} COMMITs, ${setintfs:-?} SET_INTERFACEs; deleted) — ${CALL_PROV}"
     fi
 
     CAPTURE_PID=""
@@ -162,6 +208,7 @@ while true; do
         comms=${state#ACTIVE:}
         BUS="${PORT%%-*}"
         CALL_START_LOCAL=$(date '+%Y-%m-%d %H:%M:%S')
+        CALL_PROV=$(provenance)
         TS=$(date -u +%Y%m%dT%H%M%SZ)
         CAPTURE_FILE="/tmp/auto-usbmon-${TS}.txt"
         sudo -n dd if=/sys/kernel/debug/usb/usbmon/${BUS}u of="$CAPTURE_FILE" bs=4K 2>/dev/null &
@@ -169,7 +216,7 @@ while true; do
         # Give dd a moment to actually start writing
         sleep 0.3
         if kill -0 "$CAPTURE_PID" 2>/dev/null; then
-            echo "[$(date +%H:%M:%S)] CALL START — holder=${comms} — capturing bus ${BUS} → $(basename $CAPTURE_FILE) (pid $CAPTURE_PID)"
+            echo "[$(date +%H:%M:%S)] CALL START — holder=${comms} — ${CALL_PROV} — capturing bus ${BUS} → $(basename $CAPTURE_FILE) (pid $CAPTURE_PID)"
         else
             echo "[$(date +%H:%M:%S)] CALL START — holder=${comms} — WARN capture failed to start"
             CAPTURE_PID=""

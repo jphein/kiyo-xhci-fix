@@ -1,0 +1,19 @@
+[Unit]
+Description=Scarlett URB-storm guard — auto-suspend PipeWire nodes on kernel retry storms
+Documentation=file:///home/jp/Projects/kiyo-xhci-fix/scarlett-storm-guard.sh
+# PipeWire must be up for pactl to act; not Requires= — the guard tolerates
+# and logs a missing PipeWire rather than dying with it.
+After=pipewire.service
+
+[Service]
+Type=simple
+ExecStart=/home/jp/Projects/kiyo-xhci-fix/scarlett-storm-guard.sh
+Restart=on-failure
+RestartSec=10
+# The storm it exists to stop once drove the journal at ~188 lines/sec;
+# the guard itself must never be able to do that.
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target

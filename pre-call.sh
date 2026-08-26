@@ -130,7 +130,10 @@ fi
 
 # Precursors during the dance? (probe-control -32 is a benign per-enumeration
 # artifact and deliberately NOT matched — see 2026-06-10 RESULTS.md)
-PRECURSORS=$(sudo -n dmesg --since "$CYCLE_T0" 2>/dev/null \
+# journalctl, NOT dmesg (2026-08-19): the ~3600-line kernel ring buffer can be
+# fully evicted in ~20s by a chatty device (a Scarlett URB-retry storm did
+# exactly that at ~188 lines/sec), which would silently score 0 precursors.
+PRECURSORS=$(journalctl -k --since "$CYCLE_T0" -q 2>/dev/null \
     | grep -cE "timeout: still [0-9]+ active urbs|Failed to set UVC commit control|HC died" || true)
 if [ "${PRECURSORS:-0}" -eq 0 ]; then
     ok "no precursors during re-enumeration"
