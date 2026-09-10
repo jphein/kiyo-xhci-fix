@@ -88,6 +88,50 @@ is_kiyo_port() {
     [ "$(cat "$p/idProduct" 2>/dev/null)" = "$KIYO_PID" ]
 }
 
+# Last hub-attached port a Kiyo was seen on ("2-4.2"). Remembered while the
+# camera is alive so that AFTER an HC death — when the camera has already
+# disconnected and kiyo_ports() returns nothing — recovery still knows which
+# PPPS port to VBUS-cycle. 2026-09-10: L2 rebind revived the host, health_check
+# said "all devices alive", and the Kiyo stayed protocol-dead (setup-address
+# error -71 on every retry) until JP physically replugged it. Root ports have
+# no VBUS control, so this only ever helps a camera on a switchable hub.
+KIYO_LAST_HUB_PORT=""
+remember_kiyo_hub_port() {
+    local port
+    for port in $(kiyo_ports); do
+        case "$port" in
+            *.*) KIYO_LAST_HUB_PORT="$port" ;;
+        esac
+    done
+}
+
+revive_kiyo_after_recovery() {
+    # Called after a successful L2/L2+ host recovery. The host being alive says
+    # nothing about the camera: give it a few seconds to re-enumerate, then
+    # VBUS-cycle its remembered hub port if it is still missing.
+    local i
+    for _ in 1 2 3 4; do
+        find_kiyo_port >/dev/null && { log "POST-RECOVERY: Kiyo re-enumerated on its own"; return 0; }
+        sleep 2
+    done
+    if [ -z "$KIYO_LAST_HUB_PORT" ]; then
+        log "POST-RECOVERY: Kiyo ABSENT after host recovery — it was on a root port (no VBUS control); physical replug required"
+        return 1
+    fi
+    if vbus_cycle_port "$KIYO_LAST_HUB_PORT"; then
+        log "POST-RECOVERY: Kiyo absent — VBUS power-cycled its hub port $KIYO_LAST_HUB_PORT"
+        sleep 6
+        if find_kiyo_port >/dev/null; then
+            log "POST-RECOVERY OK: Kiyo re-enumerated after VBUS cycle (no physical replug needed)"
+            return 0
+        fi
+        log "POST-RECOVERY: Kiyo still absent after VBUS cycle of $KIYO_LAST_HUB_PORT — physical replug required"
+        return 1
+    fi
+    log "POST-RECOVERY: VBUS cycle of $KIYO_LAST_HUB_PORT failed (uhubctl missing or sudo denied) — physical replug required"
+    return 1
+}
+
 port_from_line() {
     # Extract the USB port path ("2-3", "2-1.4") from a kernel log line like
     #   "usb 2-1.4: timeout: still 12 active urbs on EP #82"
@@ -590,6 +634,7 @@ recover() {
 
     if health_check; then
         log "LEVEL 2 OK: All devices alive after xHCI rebind"
+        revive_kiyo_after_recovery
         LAST_RECOVERY=$(date +%s); RECOVERING=0; CONSEC_FAILS=0
         test_mode_after_recover ok
         return
@@ -606,6 +651,7 @@ recover() {
         sleep 15
         if health_check; then
             log "LEVEL 2+ OK: All devices alive after extended settle wait"
+        revive_kiyo_after_recovery
             LAST_RECOVERY=$(date +%s); RECOVERING=0; CONSEC_FAILS=0
             test_mode_after_recover ok
             return
@@ -693,6 +739,7 @@ open_feed() {
 open_feed
 
 while true; do
+    remember_kiyo_hub_port
     # Capture read's exit code DIRECTLY — `rc=$?` after the `fi` would read the
     # `if` statement's status (0 when the condition is false with no else),
     # misclassifying every timeout as EOF and respawning journalctl on a loop.
