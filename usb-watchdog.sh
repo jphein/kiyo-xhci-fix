@@ -88,6 +88,55 @@ is_kiyo_port() {
     [ "$(cat "$p/idProduct" 2>/dev/null)" = "$KIYO_PID" ]
 }
 
+# Presence is not health. 2026-09-17 12:45: EARLY #1 link-cycled root port 2-3
+# after a commit-control stall; the camera re-enumerated ("Kiyo re-enumerated
+# after cycle") but "can't set config #1, error -71" left it unconfigured —
+# lsusb saw it, no /dev/video* existed, and the call app had no camera for two
+# minutes. A Kiyo is only revived once uvcvideo has bound a video node.
+kiyo_has_video() {
+    compgen -G "/sys/bus/usb/devices/$1/$1:1.*/video4linux/video*" >/dev/null 2>&1
+}
+
+wait_kiyo_video() {
+    # $1 = port, $2 = seconds to wait (uvcvideo probe takes ~2 s after bind)
+    local i
+    for (( i = 0; i < ${2:-5}; i++ )); do
+        kiyo_has_video "$1" && return 0
+        sleep 1
+    done
+    kiyo_has_video "$1"
+}
+
+# De-authorize/re-authorize forces a full re-enumeration (port reset +
+# set-configuration) with no VBUS drop. Cleared the 12:45 unconfigured state
+# in 2 s by hand when the plain driver unbind/bind had not. Root-port
+# fallback only — a PPPS VBUS cycle is still the preferred reset.
+authorized_cycle_port() {
+    local f="/sys/bus/usb/devices/$1/authorized"
+    [ -e "$f" ] || return 1
+    echo 0 | sudo -n tee "$f" >/dev/null 2>&1 || return 1
+    sleep 1
+    echo 1 | sudo -n tee "$f" >/dev/null 2>&1 || return 1
+    wait_kiyo_video "$1" 6
+}
+
+# Root-port reset ladder for a camera we cannot VBUS-cycle: driver-level
+# unbind/bind, verified by a video node; escalate to the authorized toggle
+# when the camera came back present but unconfigured.
+link_cycle_port() {
+    local port="$1"
+    echo "$port" | sudo tee /sys/bus/usb/drivers/usb/unbind >/dev/null 2>&1
+    sleep 2
+    echo "$port" | sudo tee /sys/bus/usb/drivers/usb/bind >/dev/null 2>&1
+    wait_kiyo_video "$port" 5 && return 0
+    if is_kiyo_port "$port"; then
+        log "  $port present but no video node after link cycle — authorized-toggle re-enumeration"
+        authorized_cycle_port "$port" && { log "  $port revived by authorized toggle"; return 0; }
+        log "  $port still without a video node after authorized toggle"
+    fi
+    return 1
+}
+
 # Last hub-attached port a Kiyo was seen on ("2-4.2"). Remembered while the
 # camera is alive so that AFTER an HC death — when the camera has already
 # disconnected and kiyo_ports() returns nothing — recovery still knows which
@@ -533,6 +582,7 @@ early_intervene() {
     # Target the camera that actually stalled (two Kiyos since 2026-08-26).
     # Fall back to first-found if the line didn't carry a port.
     local port
+    local p2
     port=$(port_from_line "$srcline")
     if [ -z "$port" ] || ! is_kiyo_port "$port"; then
         port=$(find_kiyo_port)
@@ -555,14 +605,14 @@ early_intervene() {
         sleep 6
     else
         log "EARLY #$EARLY_COUNT: $trigger — link-cycling Kiyo port $port (root port, no VBUS control; HID untouched)"
-        echo "$port" | sudo tee /sys/bus/usb/drivers/usb/unbind >/dev/null 2>&1
-        sleep 2
-        echo "$port" | sudo tee /sys/bus/usb/drivers/usb/bind >/dev/null 2>&1
-        sleep 3
+        link_cycle_port "$port"
     fi
 
-    if is_kiyo_port "$port" || find_kiyo_port >/dev/null; then
-        log "EARLY #$EARLY_COUNT OK: Kiyo re-enumerated after cycle — cascade hopefully averted"
+    # Require a bound video node, not mere presence (see kiyo_has_video).
+    if kiyo_has_video "$port" || { p2=$(find_kiyo_port) && kiyo_has_video "$p2"; }; then
+        log "EARLY #$EARLY_COUNT OK: Kiyo re-enumerated with a video node after cycle — cascade hopefully averted"
+    elif is_kiyo_port "$port" || find_kiyo_port >/dev/null; then
+        log "EARLY #$EARLY_COUNT: Kiyo present but UNCONFIGURED (no video node) after cycle — physical replug likely required"
     else
         log "EARLY #$EARLY_COUNT: Kiyo did not return after cycle — watching for cascade (HC-died path still armed)"
     fi
@@ -609,10 +659,7 @@ recover() {
             sleep 4
         else
             log "LEVEL 1: Unbinding Kiyo port $port..."
-            echo "$port" | sudo tee /sys/bus/usb/drivers/usb/unbind >/dev/null 2>&1
-            sleep 2
-            echo "$port" | sudo tee /sys/bus/usb/drivers/usb/bind >/dev/null 2>&1
-            sleep 3
+            link_cycle_port "$port"
         fi
     done
     if [ "$cycled" -eq 1 ]; then
