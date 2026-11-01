@@ -137,6 +137,30 @@ link_cycle_port() {
     return 1
 }
 
+# 2026-10-31 19:03 (jp-eb): link cycle + authorized toggle both left the Kiyo
+# present but UNCONFIGURED (SET_CONFIG -110/-71: fragile firmware right after a
+# drop), and the watchdog ended on "physical replug". The same driver
+# unbind/bind succeeded ~15 min later by hand. So never end on that verdict:
+# retry the root-port ladder at +60 s and +180 s in the background, once per
+# incident (lock file), and only then say replug.
+deferred_retry_port() {
+    local port="$1" lock="${XDG_RUNTIME_DIR:-/var/tmp}/usb-watchdog-retry-$1"
+    [ -e "$lock" ] && return
+    : > "$lock"
+    (
+        local d
+        for d in 60 120; do
+            sleep "$d"
+            if kiyo_has_video "$port"; then log "DEFERRED: $port has a video node again — no retry needed"; break; fi
+            if ! [ -e "/sys/bus/usb/devices/$port" ]; then log "DEFERRED: $port gone from the bus — physical replug required"; break; fi
+            log "DEFERRED: retrying root-port ladder on $port"
+            if link_cycle_port "$port"; then log "DEFERRED OK: $port revived on retry"; break; fi
+            log "DEFERRED: $port still unconfigured after retry"
+        done
+        rm -f "$lock"
+    ) &
+}
+
 # Last hub-attached port a Kiyo was seen on ("2-4.2"). Remembered while the
 # camera is alive so that AFTER an HC death — when the camera has already
 # disconnected and kiyo_ports() returns nothing — recovery still knows which
@@ -612,7 +636,8 @@ early_intervene() {
     if kiyo_has_video "$port" || { p2=$(find_kiyo_port) && kiyo_has_video "$p2"; }; then
         log "EARLY #$EARLY_COUNT OK: Kiyo re-enumerated with a video node after cycle — cascade hopefully averted"
     elif is_kiyo_port "$port" || find_kiyo_port >/dev/null; then
-        log "EARLY #$EARLY_COUNT: Kiyo present but UNCONFIGURED (no video node) after cycle — physical replug likely required"
+        log "EARLY #$EARLY_COUNT: Kiyo present but UNCONFIGURED (no video node) after cycle — retrying at +60 s / +180 s"
+        deferred_retry_port "$port"
     else
         log "EARLY #$EARLY_COUNT: Kiyo did not return after cycle — watching for cascade (HC-died path still armed)"
     fi
