@@ -1,0 +1,11 @@
+#!/bin/sh
+# jp-eb 2026-10-31: refuse USB3 U1/U2 on every hub port. Kernel 7.0 ignores usbcore NO_LPM quirks
+# (Kiyo Pro 1532:0e05 fails SET_CONFIG -110/-71 while U1 is allowed); the DKMS uvcvideo disables LPM
+# only after probe. Undo: systemctl disable usb3-no-lpm; rm /etc/udev/rules.d/90-usb3-no-lpm.rules;
+# echo u1_u2 > /sys/bus/usb/devices/usbN/N-0:1.0/usbN-portM/usb3_lpm_permit
+n=0
+for p in /sys/bus/usb/devices/*/usb*-port*/usb3_lpm_permit /sys/bus/usb/devices/*/*-port*/usb3_lpm_permit; do
+  [ -f "$p" ] || continue
+  echo 0 > "$p" 2>/dev/null && n=$((n+1))
+done
+logger -t usb3-no-lpm "set usb3_lpm_permit=0 on $n ports"

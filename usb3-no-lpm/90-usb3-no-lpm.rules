@@ -1,0 +1,2 @@
+# jp-eb 2026-10-31: see /usr/local/sbin/usb3-no-lpm (port devices have no udev subsystem, so hook the hub driver bind)
+ACTION=="bind", SUBSYSTEM=="usb", DRIVER=="hub", RUN+="/usr/local/sbin/usb3-no-lpm"
