@@ -53,11 +53,13 @@ kiyo_video_nodes() {
 }
 
 state_describe() {
-    # Returns "ACTIVE: <comm-list>" or "IDLE"
     local nodes pids
     nodes=$(kiyo_video_nodes "$1")
     [ -z "$nodes" ] && { echo "IDLE"; return; }
-    # fuser: PIDs on stdout, filenames on stderr — safe to aggregate nodes
+    # 2026-09-24: OBS holds the Kiyo permanently (obs-vcam.service, ~/Projects/obs-plugins/kiyo)
+    # and republishes it as /dev/video9 "OBS Virtual Camera". OBS itself is not a call;
+    # a call is any process reading the virtual camera, or any non-OBS process on the raw nodes.
+    [ -e /dev/video9 ] && nodes="$nodes /dev/video9"
     pids=$(fuser $nodes 2>/dev/null | tr ' ' '\n' | grep -E '^[0-9]+$' | sort -u)
     if [ -z "$pids" ]; then
         echo "IDLE"
@@ -66,7 +68,8 @@ state_describe() {
     local comms
     comms=$(for p in $pids; do
                 ps -p "$p" -o comm= 2>/dev/null
-            done | sort -u | tr '\n' ',' | sed 's/,$//')
+            done | grep -v '^obs$' | sort -u | tr '\n' ',' | sed 's/,$//')
+    [ -z "$comms" ] && { echo "IDLE"; return; }
     echo "ACTIVE:$comms"
 }
 

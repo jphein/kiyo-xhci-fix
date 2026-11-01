@@ -9,3 +9,8 @@ jp ALL=(root) NOPASSWD: /usr/bin/tee /sys/bus/usb/drivers/usb/unbind
 jp ALL=(root) NOPASSWD: /usr/bin/tee /sys/bus/usb/drivers/usb/bind
 jp ALL=(root) NOPASSWD: /sbin/modprobe -r xhci_pci xhci_pci_renesas
 jp ALL=(root) NOPASSWD: /sbin/modprobe xhci_pci xhci_pci_renesas
+# NOTE (2026-09-17): the authorized-toggle fallback writes
+# /sys/bus/usb/devices/<port>/authorized. sudoers forbids wildcards in command
+# arguments, and <port> changes when the camera moves (2-3 root port today,
+# 2-4.x once on the PPPS hub), so that write relies on the user's general
+# NOPASSWD grant on this host. Add a fixed-path line per port if that ever goes away.

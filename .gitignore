@@ -13,3 +13,9 @@ kernel-patches/matrix/michal-tests/results/
 
 # Matrix test runner queue / run-time state (test orchestrator scratch)
 kernel-patches/matrix/results/
+
+# usbmon auto-captures over GitHub's 100 MB blob limit — kept local-only,
+# indexed with sha256 in crash-evidence/auto-captures/INDEX.md
+kernel-patches/crash-evidence/auto-captures/CRASH-20260908T202356Z-3events.txt.gz
+kernel-patches/crash-evidence/auto-captures/CRASH-20260917T193156Z-3events.txt.gz
+scratch/

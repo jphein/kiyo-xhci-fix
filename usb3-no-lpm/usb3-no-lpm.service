@@ -1,0 +1,8 @@
+[Unit]
+Description=Refuse USB3 U1/U2 LPM on every hub port (kernel 7.0 quirk regression, Kiyo Pro)
+After=systemd-udevd.service
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/usb3-no-lpm
+[Install]
+WantedBy=multi-user.target

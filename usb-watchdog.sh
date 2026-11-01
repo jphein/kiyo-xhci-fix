@@ -69,6 +69,145 @@ find_kiyo_port() {
     return 1
 }
 
+kiyo_ports() {
+    # ALL Kiyo ports. Since 2026-08-26 there are two cameras (one on the PPPS
+    # hub at 2-1.4, one direct at 2-3) — anything that cycles "the" Kiyo must
+    # know which one it means, or act on all of them.
+    for dev in /sys/bus/usb/devices/*/; do
+        if [ -f "$dev/idVendor" ] && \
+           [ "$(cat "$dev/idVendor" 2>/dev/null)" = "$KIYO_VID" ] && \
+           [ "$(cat "$dev/idProduct" 2>/dev/null)" = "$KIYO_PID" ]; then
+            basename "$dev"
+        fi
+    done
+}
+
+is_kiyo_port() {
+    local p="/sys/bus/usb/devices/$1"
+    [ "$(cat "$p/idVendor" 2>/dev/null)" = "$KIYO_VID" ] && \
+    [ "$(cat "$p/idProduct" 2>/dev/null)" = "$KIYO_PID" ]
+}
+
+# Presence is not health. 2026-09-17 12:45: EARLY #1 link-cycled root port 2-3
+# after a commit-control stall; the camera re-enumerated ("Kiyo re-enumerated
+# after cycle") but "can't set config #1, error -71" left it unconfigured —
+# lsusb saw it, no /dev/video* existed, and the call app had no camera for two
+# minutes. A Kiyo is only revived once uvcvideo has bound a video node.
+kiyo_has_video() {
+    compgen -G "/sys/bus/usb/devices/$1/$1:1.*/video4linux/video*" >/dev/null 2>&1
+}
+
+wait_kiyo_video() {
+    # $1 = port, $2 = seconds to wait (uvcvideo probe takes ~2 s after bind)
+    local i
+    for (( i = 0; i < ${2:-5}; i++ )); do
+        kiyo_has_video "$1" && return 0
+        sleep 1
+    done
+    kiyo_has_video "$1"
+}
+
+# De-authorize/re-authorize forces a full re-enumeration (port reset +
+# set-configuration) with no VBUS drop. Cleared the 12:45 unconfigured state
+# in 2 s by hand when the plain driver unbind/bind had not. Root-port
+# fallback only — a PPPS VBUS cycle is still the preferred reset.
+authorized_cycle_port() {
+    local f="/sys/bus/usb/devices/$1/authorized"
+    [ -e "$f" ] || return 1
+    echo 0 | sudo -n tee "$f" >/dev/null 2>&1 || return 1
+    sleep 1
+    echo 1 | sudo -n tee "$f" >/dev/null 2>&1 || return 1
+    wait_kiyo_video "$1" 6
+}
+
+# Root-port reset ladder for a camera we cannot VBUS-cycle: driver-level
+# unbind/bind, verified by a video node; escalate to the authorized toggle
+# when the camera came back present but unconfigured.
+link_cycle_port() {
+    local port="$1"
+    echo "$port" | sudo tee /sys/bus/usb/drivers/usb/unbind >/dev/null 2>&1
+    sleep 2
+    echo "$port" | sudo tee /sys/bus/usb/drivers/usb/bind >/dev/null 2>&1
+    wait_kiyo_video "$port" 5 && return 0
+    if is_kiyo_port "$port"; then
+        log "  $port present but no video node after link cycle — authorized-toggle re-enumeration"
+        authorized_cycle_port "$port" && { log "  $port revived by authorized toggle"; return 0; }
+        log "  $port still without a video node after authorized toggle"
+    fi
+    return 1
+}
+
+# Last hub-attached port a Kiyo was seen on ("2-4.2"). Remembered while the
+# camera is alive so that AFTER an HC death — when the camera has already
+# disconnected and kiyo_ports() returns nothing — recovery still knows which
+# PPPS port to VBUS-cycle. 2026-09-10: L2 rebind revived the host, health_check
+# said "all devices alive", and the Kiyo stayed protocol-dead (setup-address
+# error -71 on every retry) until JP physically replugged it. Root ports have
+# no VBUS control, so this only ever helps a camera on a switchable hub.
+KIYO_LAST_HUB_PORT=""
+remember_kiyo_hub_port() {
+    local port
+    for port in $(kiyo_ports); do
+        case "$port" in
+            *.*) KIYO_LAST_HUB_PORT="$port" ;;
+        esac
+    done
+}
+
+revive_kiyo_after_recovery() {
+    # Called after a successful L2/L2+ host recovery. The host being alive says
+    # nothing about the camera: give it a few seconds to re-enumerate, then
+    # VBUS-cycle its remembered hub port if it is still missing.
+    local i
+    for _ in 1 2 3 4; do
+        find_kiyo_port >/dev/null && { log "POST-RECOVERY: Kiyo re-enumerated on its own"; return 0; }
+        sleep 2
+    done
+    if [ -z "$KIYO_LAST_HUB_PORT" ]; then
+        log "POST-RECOVERY: Kiyo ABSENT after host recovery — it was on a root port (no VBUS control); physical replug required"
+        return 1
+    fi
+    if vbus_cycle_port "$KIYO_LAST_HUB_PORT"; then
+        log "POST-RECOVERY: Kiyo absent — VBUS power-cycled its hub port $KIYO_LAST_HUB_PORT"
+        sleep 6
+        if find_kiyo_port >/dev/null; then
+            log "POST-RECOVERY OK: Kiyo re-enumerated after VBUS cycle (no physical replug needed)"
+            return 0
+        fi
+        log "POST-RECOVERY: Kiyo still absent after VBUS cycle of $KIYO_LAST_HUB_PORT — physical replug required"
+        return 1
+    fi
+    log "POST-RECOVERY: VBUS cycle of $KIYO_LAST_HUB_PORT failed (uhubctl missing or sudo denied) — physical replug required"
+    return 1
+}
+
+port_from_line() {
+    # Extract the USB port path ("2-3", "2-1.4") from a kernel log line like
+    #   "usb 2-1.4: timeout: still 12 active urbs on EP #82"
+    #   "uvcvideo 2-1.4:1.1: Failed to set UVC commit control : -32"
+    # so intervention targets the camera that actually stalled.
+    echo "$1" | grep -oE '(usb|uvcvideo) [0-9]+-[0-9]+(\.[0-9]+)*' | head -1 | awk '{print $2}'
+}
+
+vbus_cycle_port() {
+    # TRUE power cycle (VBUS drop) for a device on a per-port-switchable hub —
+    # the only software reset that clears the Kiyo's wedge-prone firmware
+    # states (06-30/07-10: link cycles and even full xHCI rebinds do NOT; only
+    # a VBUS drop does — previously that meant JP physically replugging).
+    # Only possible for hub-attached ports (a dot in the path); root-hub ports
+    # on this board have no power switching (no PPPS, verified 06-30).
+    local port="$1"
+    case "$port" in
+        *.*) ;;
+        *) return 1 ;;   # root port — no VBUS control, caller falls back
+    esac
+    command -v uhubctl >/dev/null 2>&1 || return 1
+    local parent="${port%.*}" pnum="${port##*.}"
+    # -d 4: leave power off long enough for the camera to fully discharge.
+    sudo -n uhubctl -l "$parent" -p "$pnum" -a cycle -d 4 >/dev/null 2>&1 || return 1
+    return 0
+}
+
 check_hid_alive() {
     # If any HID device has vanished from sysfs, the controller is likely wedged.
     # We can't filter by `find -name usbhid` because */driver is a symlink whose
@@ -426,6 +565,7 @@ early_intervene() {
     # a few seconds. That is far cheaper than the alternative — the whole USB bus
     # (keyboard + mouse) dying ~14 minutes later.
     local trigger="${1:-precursor}"
+    local srcline="${2:-}"
 
     [ "$EARLY_ENABLED" = "1" ] || return
     [ "$MODE" = "test" ] && return
@@ -439,8 +579,14 @@ early_intervene() {
         return  # rate-limit gentle cycles independently of full recovery
     fi
 
+    # Target the camera that actually stalled (two Kiyos since 2026-08-26).
+    # Fall back to first-found if the line didn't carry a port.
     local port
-    port=$(find_kiyo_port)
+    local p2
+    port=$(port_from_line "$srcline")
+    if [ -z "$port" ] || ! is_kiyo_port "$port"; then
+        port=$(find_kiyo_port)
+    fi
     if [ -z "$port" ]; then
         # Kiyo already gone — cascade may be underway. Nothing to cycle, and we
         # deliberately DON'T arm EARLY_LAST, so the hard paths stay free to act.
@@ -450,15 +596,23 @@ early_intervene() {
 
     EARLY_LAST=$now
     EARLY_COUNT=$((EARLY_COUNT + 1))
-    log "EARLY #$EARLY_COUNT: $trigger — cycling Kiyo port $port (pre-cascade; HID untouched)"
 
-    echo "$port" | sudo tee /sys/bus/usb/drivers/usb/unbind >/dev/null 2>&1
-    sleep 2
-    echo "$port" | sudo tee /sys/bus/usb/drivers/usb/bind >/dev/null 2>&1
-    sleep 3
+    # Prefer a TRUE VBUS power-cycle (PPPS hub port) — the reset that actually
+    # clears wedge-prone camera firmware state. Fall back to the link-level
+    # unbind/bind for the direct root-port camera.
+    if vbus_cycle_port "$port"; then
+        log "EARLY #$EARLY_COUNT: $trigger — VBUS power-cycled Kiyo at $port via PPPS hub (pre-cascade; HID untouched)"
+        sleep 6
+    else
+        log "EARLY #$EARLY_COUNT: $trigger — link-cycling Kiyo port $port (root port, no VBUS control; HID untouched)"
+        link_cycle_port "$port"
+    fi
 
-    if find_kiyo_port >/dev/null; then
-        log "EARLY #$EARLY_COUNT OK: Kiyo re-enumerated after gentle cycle — cascade hopefully averted"
+    # Require a bound video node, not mere presence (see kiyo_has_video).
+    if kiyo_has_video "$port" || { p2=$(find_kiyo_port) && kiyo_has_video "$p2"; }; then
+        log "EARLY #$EARLY_COUNT OK: Kiyo re-enumerated with a video node after cycle — cascade hopefully averted"
+    elif is_kiyo_port "$port" || find_kiyo_port >/dev/null; then
+        log "EARLY #$EARLY_COUNT: Kiyo present but UNCONFIGURED (no video node) after cycle — physical replug likely required"
     else
         log "EARLY #$EARLY_COUNT: Kiyo did not return after cycle — watching for cascade (HC-died path still armed)"
     fi
@@ -494,18 +648,24 @@ recover() {
     # Save crash context
     dump_crash_log
 
-    # Level 1: Try to reset just the Kiyo's USB port
-    local port
-    port=$(find_kiyo_port)
-    if [ -n "$port" ]; then
-        log "LEVEL 1: Unbinding Kiyo port $port..."
-        echo "$port" | sudo tee /sys/bus/usb/drivers/usb/unbind >/dev/null 2>&1
+    # Level 1: Reset the Kiyo(s) — VBUS power-cycle where a PPPS hub allows it,
+    # link-level unbind/bind otherwise. Cycles every Kiyo present (two cameras
+    # since 2026-08-26; during a real cascade either may be the trigger).
+    local port cycled=0
+    for port in $(kiyo_ports); do
+        cycled=1
+        if vbus_cycle_port "$port"; then
+            log "LEVEL 1: VBUS power-cycled Kiyo at $port via PPPS hub"
+            sleep 4
+        else
+            log "LEVEL 1: Unbinding Kiyo port $port..."
+            link_cycle_port "$port"
+        fi
+    done
+    if [ "$cycled" -eq 1 ]; then
         sleep 2
-        echo "$port" | sudo tee /sys/bus/usb/drivers/usb/bind >/dev/null 2>&1
-        sleep 3
-
         if health_check; then
-            log "LEVEL 1 OK: All devices alive after port rebind"
+            log "LEVEL 1 OK: All devices alive after Kiyo cycle(s)"
             LAST_RECOVERY=$(date +%s); RECOVERING=0; CONSEC_FAILS=0
             test_mode_after_recover ok
             return
@@ -521,6 +681,7 @@ recover() {
 
     if health_check; then
         log "LEVEL 2 OK: All devices alive after xHCI rebind"
+        revive_kiyo_after_recovery
         LAST_RECOVERY=$(date +%s); RECOVERING=0; CONSEC_FAILS=0
         test_mode_after_recover ok
         return
@@ -537,6 +698,7 @@ recover() {
         sleep 15
         if health_check; then
             log "LEVEL 2+ OK: All devices alive after extended settle wait"
+        revive_kiyo_after_recovery
             LAST_RECOVERY=$(date +%s); RECOVERING=0; CONSEC_FAILS=0
             test_mode_after_recover ok
             return
@@ -624,6 +786,7 @@ open_feed() {
 open_feed
 
 while true; do
+    remember_kiyo_hub_port
     # Capture read's exit code DIRECTLY — `rc=$?` after the `fi` would read the
     # `if` statement's status (0 when the condition is false with no else),
     # misclassifying every timeout as EOF and respawning journalctl on a loop.
@@ -643,7 +806,7 @@ while true; do
                 # endpoint) fired ~4s before the UVC commit stall and ~14 min
                 # before HC died. Cycle the Kiyo now, while HID is still alive.
                 [ "$MODE" = "test" ] && continue
-                early_intervene "stuck URBs on endpoint"
+                early_intervene "stuck URBs on endpoint" "$line"
                 ;;
             *"Failed to set UVC commit control"*)
                 # LEVEL 0 PRECURSOR — UVC commit-control stall (-32/-110/-108).
@@ -656,7 +819,7 @@ while true; do
                 # with the device healthy — benign per-probe artifact, not a
                 # precursor (verified 2026-06-10 across three enumerations).
                 [ "$MODE" = "test" ] && continue
-                early_intervene "UVC commit-control stall"
+                early_intervene "UVC commit-control stall" "$line"
                 ;;
             *"Cannot set alt interface"*"ret = -19"*|*"usb_set_interface failed"*"-19"*)
                 # -19 = ENODEV, device gone mid-transfer.
