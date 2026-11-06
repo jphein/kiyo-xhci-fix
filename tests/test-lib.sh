@@ -32,6 +32,8 @@ echo "lib/kiyo-usb.sh — wakizashi-shaped fixture"
   expect "kiyo_xhci_pci_for_port 6-2.3.2" "0000:3b:00.0" "$(kiyo_xhci_pci_for_port 6-2.3.2)"
   expect "kiyo_xhci_pci_for_port on a bus with no root hub" "" "$(kiyo_xhci_pci_for_port 9-1 || true)"
   expect "kiyo_detect_xhci_pci prefers the Kiyo's controller" "0000:3b:00.0" "$(kiyo_detect_xhci_pci 0000:00:14.0)"
+  expect "kiyo_resolve_xhci_pci without a pin re-detects" "0000:3b:00.0" "$(kiyo_resolve_xhci_pci 0000:00:14.0 "")"
+  expect "kiyo_resolve_xhci_pci with a pin never re-detects (Oracle finding 1)" "0000:00:14.0" "$(kiyo_resolve_xhci_pci 0000:3b:00.0 0000:00:14.0)"
   d="$(kiyo_state_dir captures)"
   expect "kiyo_state_dir under KIYO_STATE_ROOT" "$tmp/state/captures" "$d"
   [ -d "$d" ] && ok "kiyo_state_dir creates the directory" || bad "kiyo_state_dir did not create $d"
@@ -57,7 +59,9 @@ echo "default project dir and state root"
 echo "no valuables on tmpfs (static guard)"
 # The only /tmp path allowed is the watchdog's Level-4 sentinel, which is MEANT
 # to vanish at reboot. Anything else writing under /tmp is a regression.
-viol=$(grep -nE '"/tmp/|=/tmp/' "$ROOT/usb-watchdog.sh" "$ROOT/kernel-patches/call-watch.sh" | grep -v 'CLAUDE_SENTINEL=' || true)
+# Every tool, every spelling (quoted, redirected, bare), comments excluded.
+viol=$(grep -nE '(^|[^[:alnum:]_/])/tmp(/|["'"'"' ]|$)' "$ROOT/usb-watchdog.sh" "$ROOT/kernel-patches/call-watch.sh" "$ROOT/lib/kiyo-usb.sh" "$ROOT/scarlett-storm-guard.sh" "$ROOT/pre-call.sh" "$ROOT/mic-keeper.sh" \
+       | grep -vE ':[[:space:]]*#' | grep -v 'CLAUDE_SENTINEL=' || true)
 if [ -z "$viol" ]; then ok "only the reboot-cleared sentinel lives in /tmp"; else bad "writes under /tmp:"; echo "$viol" | sed 's/^/        /'; fi
 
 echo; echo "fail=$fail (ok lines above are the passes; subshell counts do not propagate)"

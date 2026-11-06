@@ -23,10 +23,12 @@
 
 # The controller to rebind at Level 2 is the one the Kiyo sits on: 0000:00:14.0
 # on katana, the Thunderbolt dock's 0000:3b:00.0 on wakizashi. Auto-detected
-# from the camera's bus whenever a Kiyo is present (re-checked every poll);
-# WATCHDOG_XHCI_PCI or ~/.config/usb-watchdog.conf pins it for a host whose
-# camera may be absent at start.
+# from the camera's bus whenever a Kiyo is present (re-checked every poll).
+# XHCI_PCI (env WATCHDOG_XHCI_PCI or ~/.config/usb-watchdog.conf) is only the
+# FALLBACK used while no camera is present. XHCI_PCI_PIN (env
+# WATCHDOG_XHCI_PCI_PIN or the conf) is a real pin: no re-detection at all.
 XHCI_PCI="${WATCHDOG_XHCI_PCI:-$(kiyo_detect_xhci_pci "0000:00:14.0")}"
+XHCI_PCI_PIN="${WATCHDOG_XHCI_PCI_PIN:-}"
 KIYO_VID="1532"
 KIYO_PID="0e05"
 COOLDOWN=60          # seconds between recovery attempts (from end of last recovery)
@@ -58,9 +60,10 @@ TEST_CYCLE=0
 TEST_START_TS=0
 
 # Expected USB devices — recovery is not complete until these are present.
-# These are katana's; another host overrides them (and XHCI_PCI) in
-# ~/.config/usb-watchdog.conf, e.g.
-#   XHCI_PCI="0000:3b:00.0"
+# These are katana's; another host overrides them in ~/.config/usb-watchdog.conf,
+# together with the controller fallback (XHCI_PCI) or a hard pin (XHCI_PCI_PIN):
+#   XHCI_PCI="0000:3b:00.0"          # used while no camera is present
+#   XHCI_PCI_PIN="0000:3b:00.0"      # optional: never re-detect
 #   EXPECTED_DEVICES=(["Dell dock HID"]="413c:b06e")
 declare -A EXPECTED_DEVICES=(
     ["Dygma keyboard"]="1209:2201"
@@ -831,7 +834,7 @@ open_feed
 
 while true; do
     remember_kiyo_hub_port
-    XHCI_PCI="$(kiyo_detect_xhci_pci "$XHCI_PCI")"
+    XHCI_PCI="$(kiyo_resolve_xhci_pci "$XHCI_PCI" "$XHCI_PCI_PIN")"
     # Capture read's exit code DIRECTLY — `rc=$?` after the `fi` would read the
     # `if` statement's status (0 when the condition is false with no else),
     # misclassifying every timeout as EOF and respawning journalctl on a loop.

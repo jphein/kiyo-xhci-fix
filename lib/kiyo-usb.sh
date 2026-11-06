@@ -55,6 +55,15 @@ kiyo_detect_xhci_pci() {
     [ -n "$fallback" ] && echo "$fallback"
 }
 
+# The controller to act on: a PIN wins outright (a host that wants one fixed
+# controller regardless of where a camera shows up); otherwise re-detect from
+# the camera present now, keeping the current value as the fallback.
+kiyo_resolve_xhci_pci() {   # kiyo_resolve_xhci_pci <current> <pin>
+    local current="${1:-}" pin="${2:-}"
+    if [ -n "$pin" ]; then echo "$pin"; return 0; fi
+    kiyo_detect_xhci_pci "$current"
+}
+
 # Durable, non-synced, gitignored state directory for a tool: <project>/tmp/<sub>.
 # The project tmp/ is on disk (ext4), ignored by git (tmp/.gitignore) and not
 # synced by Syncthing. Never /tmp (RAM) and never /var/tmp (disposable only).
