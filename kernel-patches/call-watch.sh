@@ -24,12 +24,18 @@
 
 set -u
 
+# shellcheck source=../lib/kiyo-usb.sh
+. "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/../lib/kiyo-usb.sh"
+
 POLL_S=3
 KIYO_VID=1532
 KIYO_PID=0e05
-AUTO_DIR="/home/jp/Projects/kiyo-xhci-fix/kernel-patches/crash-evidence/auto-captures"
+AUTO_DIR="$KIYO_PROJECT_DIR/kernel-patches/crash-evidence/auto-captures"
+# Live captures run to hundreds of MB and are the evidence of a crash until
+# classified; they go on disk (project tmp/captures), never on the RAM tmpfs.
+CAPTURE_DIR="${CALL_WATCH_CAPTURE_DIR:-$(kiyo_state_dir captures)}"
 
-mkdir -p "$AUTO_DIR"
+mkdir -p "$AUTO_DIR" "$CAPTURE_DIR"
 sudo -n modprobe usbmon 2>/dev/null
 
 kiyo_port() {
@@ -213,7 +219,7 @@ while true; do
         CALL_START_LOCAL=$(date '+%Y-%m-%d %H:%M:%S')
         CALL_PROV=$(provenance)
         TS=$(date -u +%Y%m%dT%H%M%SZ)
-        CAPTURE_FILE="/tmp/auto-usbmon-${TS}.txt"
+        CAPTURE_FILE="$CAPTURE_DIR/auto-usbmon-${TS}.txt"
         sudo -n dd if=/sys/kernel/debug/usb/usbmon/${BUS}u of="$CAPTURE_FILE" bs=4K 2>/dev/null &
         CAPTURE_PID=$!
         # Give dd a moment to actually start writing

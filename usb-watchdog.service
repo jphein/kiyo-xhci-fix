@@ -1,6 +1,6 @@
 [Unit]
 Description=USB Watchdog — auto-recovers xHCI controller lockups
-After=multi-user.target
+After=default.target
 
 [Service]
 Type=simple
@@ -9,4 +9,4 @@ Restart=always
 RestartSec=5
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
