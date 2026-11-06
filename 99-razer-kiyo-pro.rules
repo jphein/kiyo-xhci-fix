@@ -1,5 +1,6 @@
 # Razer Kiyo Pro (1532:0e05) — prevent xHCI cascade failure
-# Disable autosuspend. LPM is handled by usbcore quirks=1532:0e05:k in modprobe.d.
+# Disable autosuspend. LPM is handled by the in-tree USB_QUIRK_NO_LPM (kernel >= 7.0);
+# do NOT add usbcore.quirks=1532:0e05:k on such kernels — it toggles the quirk OFF.
 ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="1532", ATTR{idProduct}=="0e05", \
   ATTR{avoid_reset_quirk}="1", \
   ATTR{power/control}="on", \
