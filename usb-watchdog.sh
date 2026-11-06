@@ -18,7 +18,15 @@
 #
 # Install: ~/Projects/kiyo-xhci-fix/kernel-patches/install-watchdog.sh
 
-XHCI_PCI="0000:00:14.0"
+# shellcheck source=lib/kiyo-usb.sh
+. "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/lib/kiyo-usb.sh"
+
+# The controller to rebind at Level 2 is the one the Kiyo sits on: 0000:00:14.0
+# on katana, the Thunderbolt dock's 0000:3b:00.0 on wakizashi. Auto-detected
+# from the camera's bus whenever a Kiyo is present (re-checked every poll);
+# WATCHDOG_XHCI_PCI or ~/.config/usb-watchdog.conf pins it for a host whose
+# camera may be absent at start.
+XHCI_PCI="${WATCHDOG_XHCI_PCI:-$(kiyo_detect_xhci_pci "0000:00:14.0")}"
 KIYO_VID="1532"
 KIYO_PID="0e05"
 COOLDOWN=60          # seconds between recovery attempts (from end of last recovery)
@@ -44,16 +52,25 @@ EARLY_COUNT=0        # gentle cycles fired this run (datapoint: cascades possibl
 #   After WATCHDOG_MAX_RECOVERIES successful recoveries, exit 0 so the
 #   outer runner can move on. If recovery fails, exit 1 (don't GAVE_UP-loop).
 MODE="${WATCHDOG_MODE:-normal}"
-RESULTS_DIR="${WATCHDOG_RESULTS_DIR:-/tmp}"
+RESULTS_DIR="${WATCHDOG_RESULTS_DIR:-$(kiyo_state_dir watchdog)/test-results}"
 MAX_RECOVERIES="${WATCHDOG_MAX_RECOVERIES:-3}"
 TEST_CYCLE=0
 TEST_START_TS=0
 
-# Expected USB devices — recovery is not complete until these are present
+# Expected USB devices — recovery is not complete until these are present.
+# These are katana's; another host overrides them (and XHCI_PCI) in
+# ~/.config/usb-watchdog.conf, e.g.
+#   XHCI_PCI="0000:3b:00.0"
+#   EXPECTED_DEVICES=(["Dell dock HID"]="413c:b06e")
 declare -A EXPECTED_DEVICES=(
     ["Dygma keyboard"]="1209:2201"
     ["Logitech receiver"]="046d:c548"
 )
+WATCHDOG_CONF="${WATCHDOG_CONF:-${XDG_CONFIG_HOME:-$HOME/.config}/usb-watchdog.conf}"
+if [ -r "$WATCHDOG_CONF" ]; then
+    # shellcheck source=/dev/null
+    . "$WATCHDOG_CONF"
+fi
 
 log() { logger -t "$LOG_TAG" "$1"; echo "$(date '+%H:%M:%S') $1"; }
 
@@ -274,7 +291,9 @@ check_expected_devices() {
 }
 
 dump_crash_log() {
-    local logfile="/tmp/usb-watchdog-crash-$(date '+%Y%m%d-%H%M%S').log"
+    # On disk, not tmpfs: the 08-25 dump had to be rescued from /tmp by hand.
+    local logfile
+    logfile="$(kiyo_state_dir watchdog)/usb-watchdog-crash-$(date '+%Y%m%d-%H%M%S').log"
     {
         echo "=== USB Watchdog Crash Dump ==="
         echo "Timestamp: $(date)"
@@ -435,7 +454,7 @@ call_claude() {
 
     local ts inc
     ts=$(date -u +%Y%m%dT%H%M%SZ)
-    inc="/tmp/usb-watchdog-incident-$ts"
+    inc="$(kiyo_state_dir watchdog)/incident-$ts"
     mkdir -p "$inc"
 
     # Bundle: dmesg, lsusb, sysfs state, watchdog log
@@ -812,6 +831,7 @@ open_feed
 
 while true; do
     remember_kiyo_hub_port
+    XHCI_PCI="$(kiyo_detect_xhci_pci "$XHCI_PCI")"
     # Capture read's exit code DIRECTLY — `rc=$?` after the `fi` would read the
     # `if` statement's status (0 when the condition is false with no else),
     # misclassifying every timeout as EOF and respawning journalctl on a loop.
