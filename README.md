@@ -188,6 +188,16 @@ sudo rmmod uvcvideo && sudo modprobe uvcvideo
 
 To remove when upstream patches land: `sudo dkms remove uvcvideo-kiyo/1.0 --all`
 
+## Install the user-level stack on a host
+
+```bash
+./install-stack.sh --dry-run   # udev rule, watchdog sudoers, the three guard units, the self-check timer
+./install-stack.sh
+./kiyo-protocol --go           # the written protocol (plan: scratch/PLAN-*.md) → scratch/results/<date>-<host>.md
+```
+The DKMS module, the optional port-level LPM block and `~/.config/usb-watchdog.conf`
+(for a camera not on `0000:00:14.0`) are separate steps; see HANDOFF.md.
+
 ## Self-check (is the stack in effect?)
 
 ```bash
