@@ -1,38 +1,42 @@
-# HANDOFF — updated 2026-08-26
-
-State after the 2026-08-25 crash day (full detail: memory `project_kernel_patches.md`,
-evidence `kernel-patches/crash-evidence/2026-08-25-stock-hc-crash/RESULTS.md`).
+# HANDOFF — updated 2026-11-06 (kiyo lane; plan: scratch/PLAN-2026-11-06.md, report: scratch/reports/2026-11-06.md)
 
 ## Where things stand
 
-- **Stock repro DELIVERED** (owed since April): HC death on stock 7.0.0-30 with
-  full usbmon + provenance; two same-day precursor stalls also captured. EP5
-  hypothesis-A excluded on stock. Wire timings: Phase-1 SET_INTERFACE hang 5.16s,
-  Phase-2 COMMIT hang ~18.5s → HC died.
-- **NO_LPM regression found**: merged P1 quirk not applied on 7.x (u1 was live).
-  Bisect + linux-usb report pending. Stopgap active: v9-candidate module calls
-  usb_disable_lpm() at probe.
-- **v9-candidate LIVE** as DKMS `uvcvideo-kiyo/2.0` (7.0-based source):
-  CTRL_THROTTLE spacing kept, 10s COMMIT timeout dropped (per 06-13/06-30),
-  driver-level LPM disable added. srcversion E2EBD0A2… Repo copy:
-  `kernel-patches/v9-candidate-7.0.diff`. 6.x kernels still use `uvcvideo-kiyo/1.0`
-  (BUILD_EXCLUSIVE ^6). **Patched module has ~no real call exposure yet** — its
-  one datapoint is the 15:08 −32 stall (pre-rebind enum). Next real calls decide.
-- **Reply draft ready for JP review**: `kernel-patches/reply-to-pecio-v8.txt`
-  (stock repro + 0x82=mic correction + EP5-on-stock + LPM regression + xhci-test
-  rebase question). DO NOT send unreviewed.
-- Defense stack all live + production-proven: usb-watchdog (L0 save 14:30, L2
-  16s recovery 14:27), call-watch (journald classification, provenance stamps,
-  crash preservation), scarlett-storm-guard (2 saves 08-22; unit file now in repo).
+- **Two beds.** Kiyo Pro A on **katana** (JP's desktop; not plugged in on 11-06), Kiyo Pro B on
+  **wakizashi** (Dell laptop, camera at `6-2.3.2` on the Thunderbolt dock's xHCI `0000:3b:00.0`).
+  wakizashi is the control: the same stack there, clean = katana's remaining failures are katana's
+  own controller/port/cable.
+- **The "7.x NO_LPM regression" is closed — it was our parameter.** `usb_detect_quirks()` XORs
+  `usbcore.quirks=` against the built-in table; the Kiyo entry is built into 7.0, so katana's
+  `usbcore.quirks=1532:0e05:k` switched NO_LPM OFF from the 26.04 upgrade until 2026-11-06
+  (quirks attr 0x10 = RESET only; wakizashi with no parameter reads 0x400). Removed from GRUB,
+  modprobe.d and the runtime list on 11-06; `/proc/cmdline` carries it until the next boot.
+  Verify at plug-in: `quirks` = 0x410, `power/usb3_hardware_lpm_u1` absent. No linux-usb
+  regression report; the thread gets a correction instead (reply v9).
+- **v9-candidate** DKMS `uvcvideo-kiyo/2.0` (srcversion E2EBD0A2…) installed on BOTH hosts for
+  7.0.0-38 and 7.0.0-42; loaded on katana; wakizashi still runs stock until a module reload or
+  reboot (JP's window — it re-probes the cameras on a host he uses).
+- **Port-level LPM block** (PR #4, `usb3-no-lpm`) stays on katana as belt-and-braces until the
+  protocol passes with the in-tree quirk effective; not installed on wakizashi (quirk effective,
+  laptop/dock power).
+- **kiyo-selfcheck** (PR #7): every layer measured, PASS/FAIL, user timer after boot + daily,
+  `scratch/selfcheck/<host>.log`, critical notification on FAIL. **Captures and crash dumps are
+  off tmpfs** (PR #6): `tmp/captures`, `tmp/watchdog`. The watchdog follows the Kiyo's controller
+  (wakizashi: 3b:00.0) and takes `~/.config/usb-watchdog.conf` per host.
+- Upstream: last mail is JP's 2026-08-26 reply (SENT; Message-ID 20260826133952.1694379-1); no
+  answer in 10 weeks; v8 patches 2/3 unapplied, no review since 04-27.
 
-## Open items
-
-1. JP reviews/sends reply-to-pecio-v8.
-2. Bisect the NO_LPM application failure (static table vs parser vs hub.c) →
-   separate linux-usb report.
-3. xhci-test A/B — needs decision: 7.x rebase of Michal's patch vs 6.17 skew run.
-4. call-watch still writes live captures to /tmp (16G tmpfs) — move to /var/tmp
-   or project tmp/ (katana /tmp rule, CLAUDE.md 2026-08-25).
-5. Collect patched-module call tally (call-watch now stamps PATCHED/STOCK per call).
-6. Scarlett sink-disable decision still open (JP hasn't said whether the
-   headphone out is used) — guard covers it meanwhile.
+## Open items (owner · tracker)
+1. **Hardware run** — JP's card: plug the Kiyo into katana, reboot katana into -42 (GRUB fix +
+   gnome-shell), give the go. Then the protocol (scratch/PLAN-2026-11-06.md §Test protocol) on
+   both beds; results in `scratch/results/<date>-<host>.md`. (kiyo lane, on JP's go)
+2. **Reply v9** — correction of the 08-26 "regression" paragraph + status + the xhci-test ask;
+   JP's send card. (kiyo lane; draft `kernel-patches/reply-v9.eml`, gitignored class)
+3. **wakizashi module swap** (`modprobe -r uvcvideo && modprobe uvcvideo`, nothing holding the
+   nodes) in JP's window; then `kiyo-selfcheck` there must PASS. (kiyo lane, on JP's go)
+4. Decide PR #4's port block on katana after the protocol (retire or keep). (kiyo lane)
+5. Stale GRUB custom entries in `/etc/grub.d/40_custom` point at a 6.17.0-20 kernel that no longer
+   exists in /boot — harmless, remove in a /housekeep pass. (housekeep)
+6. 9 untracked auto-captures (09-23, 09-24, 11-01) — index + sha256, commit the <100 MB ones.
+7. `mic-keeper.sh` still has no unit; `obs-vcam` is disabled since ~09-25 (JP's call to re-enable).
+8. Scarlett sink-disable: CLOSED (JP uses the output; guard stays).

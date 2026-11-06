@@ -85,28 +85,38 @@ All three are required. The DKMS module alone won't prevent LPM-triggered stalls
 
 > **Secure Boot note:** DKMS modules are unsigned. If Secure Boot is enabled, you must either enroll a MOK signing key (with `CA:TRUE` — non-CA certs land in the `.platform` keyring which the kernel ignores for module verification) or disable Secure Boot.
 
-### Step 1: Disable LPM (covers patch 1 — USB_QUIRK_NO_LPM)
+### Step 1: Keep the NO_LPM quirk effective (patch 1 — USB_QUIRK_NO_LPM)
 
-LPM must be disabled at the USB core level **before** the device enumerates. A udev rule fires too late — the `usb3_hardware_lpm_u1/u2` sysfs attributes are read-only at runtime.
+Patch 1 is **in-tree since kernel 7.0** (`drivers/usb/core/quirks.c`, entry
+`1532:0e05 → USB_QUIRK_NO_LPM`) and in stable 6.1/6.6/6.12/6.18/6.19. On those
+kernels you do **nothing** — and you must **remove** any `usbcore.quirks=1532:0e05:k`
+you added earlier.
 
-**Important:** On most distro kernels, `usbcore` is built-in (not a loadable module), so `modprobe.d` options are ignored. You must pass the quirk via the **kernel command line** instead.
+> ⚠️ **The parameter cancels the quirk on a kernel that already has it.**
+> `usb_detect_quirks()` XORs the `usbcore.quirks=` flags against the built-in
+> table (kernel-parameters.txt: each letter "will change the built-in quirk;
+> setting it if it is clear and clearing it if it is set"). So the parameter
+> that *enabled* NO_LPM on 6.17 *disables* it on 7.0: `0x400 ^ 0x400 = 0`.
+> katana ran that way from Aug to Nov 2026 and the camera enumerated with U1
+> active on every 7.x kernel ("NO_LPM regression", found 2026-11-06 by
+> comparing with a second host that had no parameter: its Kiyo reads
+> `quirks = 0x400`, katana's read `0x10`).
 
+Verify on any kernel (camera plugged in; `N-M` is the camera's port):
 ```bash
-# Add to kernel command line (GRUB)
-sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 usbcore.quirks=1532:0e05:k"/' /etc/default/grub
-sudo update-grub
-
-# Or for systemd-boot:
-# Append usbcore.quirks=1532:0e05:k to your entry's options line
+cat /sys/bus/usb/devices/N-M/quirks                     # must include 0x400 (NO_LPM)
+ls /sys/bus/usb/devices/N-M/power/usb3_hardware_lpm_u1  # must NOT exist (lpm_capable=0)
 ```
+`./kiyo-selfcheck` does both, and fails loudly if the parameter is present on
+a kernel that has the quirk built in.
 
-A `modprobe.d` config (`razer-kiyo-usb.conf`) is also included as a fallback for kernels where usbcore is a loadable module.
-
-This takes effect on next reboot. To verify after reboot:
+Only on a kernel **without** the entry (older than 7.0 and not one of the
+stable branches above), pass the quirk on the **kernel command line** —
+`usbcore` is built in on distro kernels, so `modprobe.d` is ignored and a udev
+rule fires too late:
 ```bash
-cat /proc/cmdline | grep -o 'usbcore.quirks=[^ ]*'   # should show usbcore.quirks=1532:0e05:k
-# Verify LPM files are absent for Kiyo ports (quirk prevents LPM negotiation entirely):
-ls /sys/bus/usb/devices/2-*/power/usb3_hardware_lpm_u1 2>&1  # should show "No such file"
+sudo sed -i 's/^GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 usbcore.quirks=1532:0e05:k"/' /etc/default/grub
+sudo update-grub   # and remove it again when you move to a kernel that has the entry
 ```
 
 ### Step 2: udev rule (autosuspend + reset quirk)
@@ -116,7 +126,7 @@ sudo cp 99-razer-kiyo-pro.rules /etc/udev/rules.d/
 sudo udevadm control --reload-rules
 ```
 
-Remove the GRUB parameter, modprobe.d config, and udev rule once patch 1 ships in your running kernel (check: `grep -r "1532.*0e05" /lib/modules/$(uname -r)/kernel/drivers/usb/core/`).
+The udev rule stays (autosuspend/reset handling is not part of patch 1). The GRUB parameter and modprobe.d config must be GONE on a kernel that carries the quirk — see Step 1.
 
 ### Step 3: DKMS module (covers patches 2-3)
 
@@ -177,6 +187,21 @@ sudo rmmod uvcvideo && sudo modprobe uvcvideo
 ```
 
 To remove when upstream patches land: `sudo dkms remove uvcvideo-kiyo/1.0 --all`
+
+## Self-check (is the stack in effect?)
+
+```bash
+./kiyo-selfcheck            # PASS/FAIL/WARN per layer, exit 1 on any FAIL
+./install-selfcheck.sh      # user timer: 3 min after every boot + daily, --log mode
+```
+Checks: DKMS module for the running kernel and loaded srcversion; a DKMS build
+for every installed kernel; reboot pending; the NO_LPM quirk not XOR-cancelled
+by `usbcore.quirks=`; the camera (when plugged in): SuperSpeed, `quirks` has
+0x400, no `usb3_hardware_lpm_*` attributes, a video node; the port-level LPM
+block where installed; udev rule, sudoers, persistent journald; the guard
+units; the capture directory on disk. `--log` keeps `scratch/selfcheck/<host>.log`,
+the last full run, a `FAIL-*` file and a critical desktop notification on FAIL.
+Tests: `tests/test-selfcheck.sh` (fixture trees + command shims).
 
 ## Testing
 

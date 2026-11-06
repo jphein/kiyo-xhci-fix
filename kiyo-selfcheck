@@ -1,0 +1,264 @@
+#!/bin/bash
+# kiyo-selfcheck — is the Razer Kiyo Pro stack actually IN EFFECT on this host?
+#
+# Born 2026-11-06 (JP: "fix my two kiyo cameras once and for all"). Every layer
+# of the fix has silently stopped working at least once without anyone noticing:
+#   - the DKMS module was absent from every installed kernel for weeks (08-19);
+#   - the merged NO_LPM quirk was cancelled by our own usbcore.quirks= parameter
+#     from the day katana moved to 7.0 (the kernel XORs the parameter against
+#     its built-in table: quirks.c usb_detect_quirks; found 11-06 by comparing
+#     katana with wakizashi);
+#   - captures were deleted by a blinded classifier (08-19).
+# A rule is not a state until it does something, so this script measures each
+# layer and prints PASS/FAIL/WARN with the value it saw. Run it by hand, or let
+# kiyo-selfcheck.timer run it after every boot and daily (--log).
+#
+# Exit 0 = no FAIL (WARNs allowed), 1 = at least one FAIL, 2 = usage.
+#
+# Every path and tool goes through an override so tests/test-selfcheck.sh can
+# point it at a fixture: KIYO_SYSFS, SELFCHECK_PROC, SELFCHECK_MODULES,
+# SELFCHECK_BOOT, SELFCHECK_ETC, SELFCHECK_RUN, SELFCHECK_VARLOG, and the
+# commands uname/systemctl/modinfo/notify-send resolved through PATH.
+set -u
+
+# shellcheck source=lib/kiyo-usb.sh
+. "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/lib/kiyo-usb.sh"
+
+PROC="${SELFCHECK_PROC:-/proc}"
+MODULES="${SELFCHECK_MODULES:-/lib/modules}"
+BOOT="${SELFCHECK_BOOT:-/boot}"
+ETC="${SELFCHECK_ETC:-/etc}"
+RUN="${SELFCHECK_RUN:-/var/run}"
+VARLOG="${SELFCHECK_VARLOG:-/var/log}"
+USER_UNITS="${SELFCHECK_USER_UNITS:-usb-watchdog call-watch scarlett-storm-guard}"
+PORT_BLOCK_UNIT="${SELFCHECK_PORT_BLOCK_UNIT:-usb3-no-lpm}"
+HOST="${SELFCHECK_HOST:-$(hostname)}"
+
+LOG_MODE=0
+case "${1:-}" in
+    --log) LOG_MODE=1 ;;
+    "") ;;
+    -h|--help) echo "usage: kiyo-selfcheck [--log]"; exit 2 ;;
+    *) echo "usage: kiyo-selfcheck [--log]" >&2; exit 2 ;;
+esac
+
+FAILS=0; WARNS=0; PASSES=0
+pass() { PASSES=$((PASSES+1)); printf 'PASS  %-22s %s\n' "$1" "$2"; }
+warn() { WARNS=$((WARNS+1));   printf 'WARN  %-22s %s\n' "$1" "$2"; }
+fail() { FAILS=$((FAILS+1));   printf 'FAIL  %-22s %s\n' "$1" "$2"; }
+info() {                       printf 'info  %-22s %s\n' "$1" "$2"; }
+
+_modinfo() {
+    if command -v modinfo >/dev/null 2>&1; then modinfo "$@"; else /usr/sbin/modinfo "$@"; fi
+}
+
+# A quirks list ("1532:0e05:k,05e3:0612:k") carries the NO_LPM flag for the Kiyo?
+quirk_list_toggles_kiyo_nolpm() {
+    local list="$1" entry
+    IFS=',' read -r -a entries <<< "$list"
+    for entry in "${entries[@]}"; do
+        case "$entry" in
+            "$KIYO_VID:$KIYO_PID:"*k*) return 0 ;;
+        esac
+    done
+    return 1
+}
+
+run_checks() {
+    local kver kmajor
+    kver="$(uname -r)"
+    kmajor="${kver%%.*}"
+    echo "kiyo-selfcheck  host=$HOST  kernel=$kver  $(date '+%Y-%m-%d %H:%M:%S %Z')"
+
+    # ---- 1. DKMS module for the running kernel, and is it the one loaded? ----
+    local ko ondisk loaded
+    ko=$(ls "$MODULES/$kver"/updates/dkms/uvcvideo.ko* 2>/dev/null | head -1)
+    if [ -z "$ko" ]; then
+        fail "dkms-running-kernel" "no DKMS uvcvideo under $MODULES/$kver/updates/dkms — stock driver; run: sudo dkms install uvcvideo-kiyo/2.0 -k $kver"
+    else
+        ondisk=$(_modinfo -F srcversion "$ko" 2>/dev/null)
+        if [ -r "$KIYO_SYSFS/module/uvcvideo/srcversion" ]; then
+            loaded=$(cat "$KIYO_SYSFS/module/uvcvideo/srcversion")
+            if [ -n "$ondisk" ] && [ "$loaded" = "$ondisk" ]; then
+                pass "dkms-running-kernel" "loaded uvcvideo $loaded == DKMS .ko on disk"
+            else
+                fail "dkms-running-kernel" "loaded uvcvideo ${loaded:-?} != DKMS on disk ${ondisk:-?} — reload the module (no camera user) or reboot"
+            fi
+        else
+            warn "dkms-running-kernel" "DKMS .ko present ($ondisk) but uvcvideo is not loaded yet (loads at first camera plug)"
+        fi
+    fi
+
+    # ---- 2. Every installed kernel has a DKMS build (the next reboot is safe) ----
+    local v missing="" vm
+    for vm in "$BOOT"/vmlinuz-*; do
+        [ -e "$vm" ] || continue
+        v="${vm##*/vmlinuz-}"
+        ls "$MODULES/$v"/updates/dkms/uvcvideo.ko* >/dev/null 2>&1 || missing="$missing $v"
+    done
+    if [ -n "$missing" ]; then
+        fail "dkms-all-kernels" "no DKMS uvcvideo for:$missing — run: sudo dkms autoinstall (or dkms install uvcvideo-kiyo/2.0 -k <ver>)"
+    else
+        pass "dkms-all-kernels" "every kernel in $BOOT has a DKMS uvcvideo"
+    fi
+
+    # ---- 3. Reboot pending? ----
+    if [ -e "$RUN/reboot-required" ]; then
+        warn "reboot-pending" "$(tr '\n' ' ' < "$RUN/reboot-required.pkgs" 2>/dev/null)— the stack is checked again 3 min after the reboot"
+    else
+        pass "reboot-pending" "none"
+    fi
+
+    # ---- 4. NO_LPM: the in-tree quirk must not be XOR-cancelled (kernel >= 7) ----
+    # kernel-parameters.txt: each usbcore.quirks letter "will change the built-in
+    # quirk; setting it if it is clear and clearing it if it is set". The Kiyo
+    # entry is built into 7.0+ (quirks.c), so the parameter that was REQUIRED on
+    # 6.17 now switches NO_LPM OFF. 0x400 ^ 0x400 = 0 — what katana ran with
+    # from Aug to Nov 2026.
+    local cmdline="" param="" cmd_has=0 param_has=0
+    [ -r "$PROC/cmdline" ] && cmdline=$(cat "$PROC/cmdline")
+    [ -r "$KIYO_SYSFS/module/usbcore/parameters/quirks" ] && param=$(tr -d '\n' < "$KIYO_SYSFS/module/usbcore/parameters/quirks")
+    for w in $cmdline; do
+        case "$w" in usbcore.quirks=*) quirk_list_toggles_kiyo_nolpm "${w#usbcore.quirks=}" && cmd_has=1 ;; esac
+    done
+    [ -n "$param" ] && quirk_list_toggles_kiyo_nolpm "$param" && param_has=1
+    if [ "$kmajor" -ge 7 ] 2>/dev/null; then
+        if [ "$param_has" -eq 1 ]; then
+            fail "nolpm-not-cancelled" "usbcore.quirks=$param is live: on kernel $kver it XOR-toggles the in-tree NO_LPM OFF — remove it from GRUB_CMDLINE_LINUX_DEFAULT (and clear: echo | sudo tee /sys/module/usbcore/parameters/quirks)"
+        elif [ "$cmd_has" -eq 1 ]; then
+            warn "nolpm-not-cancelled" "runtime list is clear, but /proc/cmdline still carries usbcore.quirks for 1532:0e05 — it comes back at every boot if GRUB still has it (fixed on katana 11-06; verify after the next boot)"
+        else
+            pass "nolpm-not-cancelled" "no usbcore.quirks toggle for 1532:0e05 (in-tree quirk stays ON)"
+        fi
+    else
+        if [ "$param_has" -eq 1 ]; then
+            pass "nolpm-not-cancelled" "kernel $kver has no in-tree entry; usbcore.quirks=1532:0e05:k supplies NO_LPM"
+        else
+            fail "nolpm-not-cancelled" "kernel $kver predates the in-tree quirk and usbcore.quirks=1532:0e05:k is missing"
+        fi
+    fi
+
+    # ---- 5. The camera itself, when plugged in ----
+    local ports port d speed q lpm nodes
+    ports=$(kiyo_usb_ports)
+    if [ -z "$ports" ]; then
+        info "kiyo-device" "no Kiyo plugged in — device checks skipped"
+    fi
+    for port in $ports; do
+        d="$KIYO_SYSFS/bus/usb/devices/$port"
+        speed=$(cat "$d/speed" 2>/dev/null)
+        if [ "$speed" = "5000" ] || [ "$speed" = "10000" ]; then
+            pass "kiyo-link[$port]" "SuperSpeed ($speed)"
+        else
+            fail "kiyo-link[$port]" "speed=${speed:-?} — not SuperSpeed; physical replug restores it"
+        fi
+        q=$(cat "$d/quirks" 2>/dev/null || echo 0x0)
+        if [ $(( q & 0x400 )) -ne 0 ]; then
+            pass "kiyo-quirk[$port]" "quirks=$q has NO_LPM (0x400)"
+        else
+            fail "kiyo-quirk[$port]" "quirks=$q lacks NO_LPM (0x400) — the usb-core quirk did not apply to this enumeration"
+        fi
+        if [ -e "$d/power/usb3_hardware_lpm_u1" ]; then
+            lpm="u1=$(cat "$d/power/usb3_hardware_lpm_u1" 2>/dev/null) u2=$(cat "$d/power/usb3_hardware_lpm_u2" 2>/dev/null)"
+            case "$lpm" in
+                *enabled*) fail "kiyo-lpm[$port]" "$lpm — LPM negotiable and active on the camera" ;;
+                *)         warn "kiyo-lpm[$port]" "$lpm — kernel considers the camera LPM-capable (quirk missing); only the driver/port block keeps it off" ;;
+            esac
+        else
+            pass "kiyo-lpm[$port]" "usb3_hardware_lpm_u1/u2 absent (lpm_capable=0: quirk effective)"
+        fi
+        nodes=$(for v in "$d"/*/video4linux/video*; do [ -e "$v" ] && basename "$v"; done | tr '\n' ' ')
+        if [ -n "$nodes" ]; then
+            pass "kiyo-video[$port]" "$nodes"
+        else
+            fail "kiyo-video[$port]" "no video node — enumerated but uvcvideo did not bind (unconfigured camera; authorized toggle or replug)"
+        fi
+    done
+
+    # ---- 6. Port-level LPM block (PR #4), where it is installed ----
+    local permits bad="" p
+    if systemctl is-enabled "$PORT_BLOCK_UNIT" >/dev/null 2>&1; then
+        permits=0
+        for p in "$KIYO_SYSFS"/bus/usb/devices/*/*-port*/usb3_lpm_permit; do
+            [ -f "$p" ] || continue
+            permits=$((permits+1))
+            [ "$(cat "$p")" = "0" ] || bad="$bad ${p#"$KIYO_SYSFS"/bus/usb/devices/}=$(cat "$p")"
+        done
+        if [ -n "$bad" ]; then
+            fail "port-lpm-block" "$PORT_BLOCK_UNIT enabled but ports still permit LPM:$bad — run: sudo /usr/local/sbin/usb3-no-lpm"
+        else
+            pass "port-lpm-block" "$PORT_BLOCK_UNIT enabled; usb3_lpm_permit=0 on all $permits ports"
+        fi
+    else
+        info "port-lpm-block" "$PORT_BLOCK_UNIT not enabled on this host (fine where the device quirk is effective)"
+    fi
+
+    # ---- 7. udev rule, sudoers, journald ----
+    if [ -e "$ETC/udev/rules.d/99-razer-kiyo-pro.rules" ]; then
+        pass "udev-rule" "$ETC/udev/rules.d/99-razer-kiyo-pro.rules"
+    else
+        fail "udev-rule" "99-razer-kiyo-pro.rules missing — autosuspend/reset quirk not set at plug time"
+    fi
+    if [ -e "$ETC/sudoers.d/usb-watchdog" ]; then
+        pass "sudoers" "$ETC/sudoers.d/usb-watchdog"
+    else
+        warn "sudoers" "no $ETC/sudoers.d/usb-watchdog — the watchdog relies on a general NOPASSWD grant"
+    fi
+    if [ -d "$VARLOG/journal" ]; then
+        pass "journald-persistent" "$VARLOG/journal"
+    else
+        warn "journald-persistent" "no $VARLOG/journal — kernel history is lost at reboot and call-watch cannot classify across one"
+    fi
+
+    # ---- 8. Units ----
+    local u act en
+    for u in $USER_UNITS; do
+        act=$(systemctl --user is-active "$u" 2>/dev/null); en=$(systemctl --user is-enabled "$u" 2>/dev/null)
+        if [ "$act" = "active" ] && [ "$en" = "enabled" ]; then
+            pass "unit[$u]" "active, enabled"
+        else
+            fail "unit[$u]" "${act:-?}, ${en:-?} — systemctl --user enable --now $u"
+        fi
+    done
+
+    # ---- 9. Capture dir on disk, not tmpfs ----
+    local cdir fstype
+    cdir=$(kiyo_state_dir captures)
+    fstype=$(stat -f -c %T "$cdir" 2>/dev/null)
+    if [ "$fstype" = "tmpfs" ] || [ -z "$fstype" ]; then
+        fail "capture-dir" "$cdir is on ${fstype:-?} — captures would die with the RAM"
+    else
+        pass "capture-dir" "$cdir ($fstype)"
+    fi
+
+    echo
+    if [ "$FAILS" -gt 0 ]; then
+        echo "RESULT: FAIL ($FAILS failed, $WARNS warnings, $PASSES passed)"
+        return 1
+    fi
+    echo "RESULT: PASS ($PASSES passed, $WARNS warnings)"
+    return 0
+}
+
+if [ "$LOG_MODE" -eq 0 ]; then
+    run_checks
+    exit $?
+fi
+
+# --log: keep a one-line history per host, the full last run, and shout on FAIL.
+LOGDIR="$KIYO_PROJECT_DIR/scratch/selfcheck"
+mkdir -p "$LOGDIR"
+out=$(run_checks 2>&1); rc=$?
+printf '%s\n' "$out" > "$LOGDIR/$HOST-last.txt"
+summary=$(printf '%s\n' "$out" | tail -1)
+printf '%s  %s  %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$(uname -r)" "$summary" >> "$LOGDIR/$HOST.log"
+if [ "$rc" -ne 0 ]; then
+    f="$LOGDIR/FAIL-$HOST-$(date -u +%Y%m%dT%H%M%SZ).txt"
+    printf '%s\n' "$out" > "$f"
+    printf '%s\n' "$out" | grep '^FAIL' | logger -t kiyo-selfcheck 2>/dev/null
+    notify-send -u critical -a kiyo-selfcheck "Kiyo stack FAIL on $HOST" \
+        "$(printf '%s\n' "$out" | grep '^FAIL' | cut -c7-60 | head -4)
+$f" 2>/dev/null
+fi
+printf '%s\n' "$out"
+exit "$rc"

@@ -1,0 +1,7 @@
+[Unit]
+Description=kiyo-selfcheck — verify the Razer Kiyo Pro stack is in effect (PASS/FAIL to scratch/selfcheck)
+Documentation=file:///home/jp/Projects/kiyo-xhci-fix/kiyo-selfcheck
+
+[Service]
+Type=oneshot
+ExecStart=%h/Projects/kiyo-xhci-fix/kiyo-selfcheck --log
