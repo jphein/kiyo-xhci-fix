@@ -252,13 +252,21 @@ out=$(run_checks 2>&1); rc=$?
 printf '%s\n' "$out" > "$LOGDIR/$HOST-last.txt"
 summary=$(printf '%s\n' "$out" | tail -1)
 printf '%s  %s  %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$(uname -r)" "$summary" >> "$LOGDIR/$HOST.log"
+# Notify only when the SET of failures changes (JP's rule: repeated nags are
+# noise). A known failure waiting on his window (e.g. wakizashi's module reload)
+# is logged every run but shouted once.
+fails_now=$(printf '%s\n' "$out" | grep '^FAIL' | cut -c7- | sed 's/ \{2,\}.*//' | sort)
+fails_prev=$(cat "$LOGDIR/$HOST-fails.txt" 2>/dev/null)
+printf '%s\n' "$fails_now" > "$LOGDIR/$HOST-fails.txt"
 if [ "$rc" -ne 0 ]; then
     f="$LOGDIR/FAIL-$HOST-$(date -u +%Y%m%dT%H%M%SZ).txt"
     printf '%s\n' "$out" > "$f"
     printf '%s\n' "$out" | grep '^FAIL' | logger -t kiyo-selfcheck 2>/dev/null
-    notify-send -u critical -a kiyo-selfcheck "Kiyo stack FAIL on $HOST" \
-        "$(printf '%s\n' "$out" | grep '^FAIL' | cut -c7-60 | head -4)
+    if [ "$fails_now" != "$fails_prev" ]; then
+        notify-send -u critical -a kiyo-selfcheck "Kiyo stack FAIL on $HOST" \
+            "$(printf '%s\n' "$out" | grep '^FAIL' | cut -c7-60 | head -4)
 $f" 2>/dev/null
+    fi
 fi
 printf '%s\n' "$out"
 exit "$rc"
