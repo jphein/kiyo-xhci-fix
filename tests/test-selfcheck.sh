@@ -145,6 +145,11 @@ expect_rc 1 "--log FAIL"
 [ -f "$fx/project/scratch/selfcheck/fixturehost-last.txt" ] && ok "last.txt written" || bad "last.txt missing"
 ls "$fx/project/scratch/selfcheck"/FAIL-fixturehost-*.txt >/dev/null 2>&1 && ok "FAIL file written" || bad "FAIL file missing"
 [ "$(grep -c '^notify-send' "$fx/notify.log" 2>/dev/null)" = "1" ] && ok "exactly one notify-send" || bad "notify-send count: $(grep -c '^notify-send' "$fx/notify.log" 2>/dev/null)"
+run_sc "$fx" --log   # same failure again → logged, not re-notified
+[ "$(grep -c '^notify-send' "$fx/notify.log" 2>/dev/null)" = "1" ] && ok "same FAIL set again: no second notification" || bad "re-notified an unchanged FAIL set"
+[ "$(grep -c 'RESULT: FAIL' "$fx/project/scratch/selfcheck/fixturehost.log")" = "2" ] && ok "but both runs are in the history" || bad "history missing a run"
+echo "inactive enabled" > "$fx/units/user/call-watch"; run_sc "$fx" --log   # a NEW failure joins → notify again
+[ "$(grep -c '^notify-send' "$fx/notify.log" 2>/dev/null)" = "2" ] && ok "a changed FAIL set notifies again" || bad "changed FAIL set not notified"
 
 echo "T10b --log on a PASS tree: history line, no FAIL file, no notification"
 fx="$T/t10b"; build_fixture "$fx"; mkdir -p "$fx/project"; run_sc "$fx" --log
