@@ -19,7 +19,7 @@
 - **Port-level LPM block** (PR #4, `usb3-no-lpm`) stays on katana as belt-and-braces until the
   protocol passes with the in-tree quirk effective; not installed on wakizashi (quirk effective,
   laptop/dock power).
-- **kiyo-selfcheck** (PR #7): every layer measured, PASS/FAIL, user timer after boot + daily,
+- **kiyo-selfcheck** (PR #8), **kiyo-protocol** + **install-stack.sh** (PR #9): every layer measured, PASS/FAIL, user timer after boot + daily,
   `scratch/selfcheck/<host>.log`, critical notification on FAIL. **Captures and crash dumps are
   off tmpfs** (PR #6): `tmp/captures`, `tmp/watchdog`. The watchdog follows the Kiyo's controller
   (wakizashi: 3b:00.0) and takes `~/.config/usb-watchdog.conf` per host.
@@ -40,3 +40,8 @@
 6. 9 untracked auto-captures (09-23, 09-24, 11-01) — index + sha256, commit the <100 MB ones.
 7. `mic-keeper.sh` still has no unit; `obs-vcam` is disabled since ~09-25 (JP's call to re-enable).
 8. Scarlett sink-disable: CLOSED (JP uses the output; guard stays).
+9. Oracle PR #6 finding 2 (latent): with two Kiyos on two controllers, after A's controller dies the
+   watchdog's re-detection moves to B's and Level 2 would rebind the healthy one. Follow-up: take the
+   PCI address from the triggering "xhci_hcd 0000:…: HC died" line. (kiyo lane; before any host runs two)
+10. Oracle PR #6 finding 3 (pre-existing): the watchdog's `*"USB disconnect"*"$XHCI_PCI"*` branch can never
+   match (the kernel line carries no PCI address; 0 hits in 60 days). Harmless; fix or drop. (kiyo lane)
