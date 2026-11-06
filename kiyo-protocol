@@ -1,0 +1,200 @@
+#!/bin/bash
+# kiyo-protocol — run the written Kiyo test protocol on THIS host and write
+# scratch/results/<date>-<host>.md with provenance. Spec: scratch/PLAN-2026-11-06.md.
+#
+#   1. enumeration   SuperSpeed, quirks has NO_LPM, no usb3_hardware_lpm_* attrs, video node
+#   2. stack         kiyo-selfcheck PASS (DKMS, LPM, port block, units, capture dir)
+#   3. stress        stream-open/close loop + probe/commit ladder for --stress-min minutes,
+#                    then a 30-frame grab; zero kernel failure markers, zero watchdog events
+#   4. call          a real call/preview on this host for --call-min minutes (operator-driven)
+#   5. suspend       one suspend/resume (operator-driven), then enumeration + 2-min stream
+#
+# It only runs with --go: the protocol holds the camera and uses the desktop for
+# about an hour, and JP's rule is "no tests on my active desktop" — the go is his
+# word, relayed by the lane that launches this (CLAUDE.md, JP 2026-10-31).
+#
+# Exit: 0 all run steps PASS, 1 any FAIL, 2 nothing to test / refused.
+# Overrides for tests: KIYO_SYSFS, PROTOCOL_RESULTS_DIR, PROTOCOL_STREAMLOOP,
+# PROTOCOL_PROBECYCLE, PROTOCOL_SELFCHECK, PROTOCOL_FAST=1 (minutes become seconds),
+# and journalctl/v4l2-ctl/fuser/ps/systemctl/uname/hostname resolved through PATH.
+set -u
+
+# shellcheck source=lib/kiyo-usb.sh
+. "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/lib/kiyo-usb.sh"
+
+STRESS_MIN=30; CALL_MIN=20; SKIP_CALL=0; SKIP_SUSPEND=0; GO=0; PORT=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --go) GO=1 ;;
+        --stress-min) STRESS_MIN="$2"; shift ;;
+        --call-min) CALL_MIN="$2"; shift ;;
+        --skip-call) SKIP_CALL=1 ;;
+        --skip-suspend) SKIP_SUSPEND=1 ;;
+        --port) PORT="$2"; shift ;;
+        -h|--help) sed -n 2,20p "$0"; exit 2 ;;
+        *) echo "unknown option: $1" >&2; exit 2 ;;
+    esac
+    shift
+done
+if [ "$GO" -ne 1 ]; then
+    echo "refused: --go is required. The protocol holds the camera and the desktop for ~1 h;" >&2
+    echo "JP's rule is no tests on his active desktop — launch it on his go only." >&2
+    exit 2
+fi
+
+HOST="$(hostname)"
+RESULTS_DIR="${PROTOCOL_RESULTS_DIR:-$KIYO_PROJECT_DIR/scratch/results}"
+STREAMLOOP="${PROTOCOL_STREAMLOOP:-$KIYO_PROJECT_DIR/kernel-patches/matrix/michal-tests/stream-loop.sh}"
+PROBECYCLE="${PROTOCOL_PROBECYCLE:-$KIYO_PROJECT_DIR/kernel-patches/test-probe-commit-cycle.sh}"
+SELFCHECK="${PROTOCOL_SELFCHECK:-$KIYO_PROJECT_DIR/kiyo-selfcheck}"
+RUN_ID="$(date +%Y-%m-%d)-$HOST"
+RUN_DIR="$RESULTS_DIR/$RUN_ID"
+REPORT="$RESULTS_DIR/$RUN_ID.md"
+mkdir -p "$RUN_DIR"
+# PROTOCOL_FAST=1 turns minutes into seconds (tests and dry runs).
+unit=60; [ "${PROTOCOL_FAST:-0}" = "1" ] && unit=1
+
+MARKERS='timeout: still [0-9]+ active urbs|Failed to set UVC commit control|HC died|host controller not responding|Abort failed to stop|Timeout while waiting for evaluate context|xhci_hc_died'
+WD_EVENTS='FATAL:|LEVEL [0-9]|EARLY'
+
+FAILS=0; RESULTS=()   # "step|verdict|detail"
+record() { RESULTS+=("$1|$2|$3"); [ "$2" = "FAIL" ] && FAILS=$((FAILS+1)); printf '%-12s %-7s %s\n' "$1" "$2" "$3"; }
+
+now() { date '+%Y-%m-%d %H:%M:%S'; }
+kernel_markers() {   # kernel_markers <since>  -> count, and the lines to $RUN_DIR
+    journalctl -k --since "$1" -q 2>/dev/null | grep -E "$MARKERS" | tee -a "$RUN_DIR/kernel-markers.log" | wc -l
+}
+watchdog_events() {  # watchdog_events <since> -> count
+    journalctl -t usb-watchdog --since "$1" -q 2>/dev/null | grep -E "$WD_EVENTS" | tee -a "$RUN_DIR/watchdog-events.log" | wc -l
+}
+dev_state() {        # dev_state <port> -> "speed=… quirks=… lpm=… nodes=…"
+    local d="$KIYO_SYSFS/bus/usb/devices/$1" lpm nodes
+    [ -e "$d/power/usb3_hardware_lpm_u1" ] && lpm="PRESENT(u1=$(cat "$d/power/usb3_hardware_lpm_u1"))" || lpm=absent
+    nodes=$(for v in "$d"/*/video4linux/video*; do [ -e "$v" ] && basename "$v"; done | tr '\n' ',' | sed 's/,$//')
+    echo "speed=$(cat "$d/speed" 2>/dev/null) quirks=$(cat "$d/quirks" 2>/dev/null) lpm=$lpm nodes=${nodes:-none}"
+}
+first_node() {       # first_node <port> -> /dev/videoN (the streaming interface :1.0 comes first)
+    local v
+    for v in "$KIYO_SYSFS/bus/usb/devices/$1"/*:1.0/video4linux/video* "$KIYO_SYSFS/bus/usb/devices/$1"/*/video4linux/video*; do
+        [ -e "$v" ] && { echo "/dev/$(basename "$v")"; return; }
+    done
+}
+
+# ---------- provenance ----------
+[ -z "$PORT" ] && PORT=$(kiyo_usb_ports | head -1)
+if [ -z "$PORT" ]; then
+    echo "nothing to test: no Kiyo (1532:0e05) in sysfs on $HOST" >&2
+    exit 2
+fi
+DEV=$(first_node "$PORT")
+{
+    echo "# Kiyo protocol — $RUN_ID"
+    echo
+    echo "- started: $(now)"
+    echo "- host: $HOST  kernel: $(uname -r)  uvcvideo srcversion: $(cat "$KIYO_SYSFS/module/uvcvideo/srcversion" 2>/dev/null || echo none)"
+    echo "- cmdline usbcore.quirks: $(grep -o 'usbcore.quirks=[^ ]*' "${SELFCHECK_PROC:-/proc}/cmdline" 2>/dev/null || echo none)  runtime: '$(tr -d '\n' < "$KIYO_SYSFS/module/usbcore/parameters/quirks" 2>/dev/null)'"
+    echo "- camera: port $PORT  $(dev_state "$PORT")  device: ${DEV:-none}"
+    echo "- units: usb-watchdog=$(systemctl --user is-active usb-watchdog 2>/dev/null) call-watch=$(systemctl --user is-active call-watch 2>/dev/null) scarlett-storm-guard=$(systemctl --user is-active scarlett-storm-guard 2>/dev/null)"
+    echo "- stress: $STRESS_MIN min  call: $([ "$SKIP_CALL" = 1 ] && echo skipped || echo "$CALL_MIN min")  suspend: $([ "$SKIP_SUSPEND" = 1 ] && echo skipped || echo yes)"
+    echo
+} > "$REPORT"
+cat "$REPORT"
+
+# ---------- 1. enumeration ----------
+st=$(dev_state "$PORT"); q=$(cat "$KIYO_SYSFS/bus/usb/devices/$PORT/quirks" 2>/dev/null || echo 0x0)
+if [[ "$st" == speed=5000* || "$st" == speed=10000* ]] && [ $(( q & 0x400 )) -ne 0 ] && [[ "$st" == *lpm=absent* ]] && [[ "$st" != *nodes=none* ]]; then
+    record enumeration PASS "$st"
+else
+    record enumeration FAIL "$st (want SuperSpeed, quirks&0x400, lpm absent, a video node)"
+fi
+
+# ---------- 2. stack ----------
+sc_out=$("$SELFCHECK" 2>&1); sc_rc=$?
+printf '%s\n' "$sc_out" > "$RUN_DIR/selfcheck.txt"
+if [ "$sc_rc" -eq 0 ]; then record stack PASS "$(printf '%s\n' "$sc_out" | tail -1)"; else record stack FAIL "$(printf '%s\n' "$sc_out" | grep '^FAIL' | cut -c7- | tr '\n' ';')"; fi
+
+# ---------- 3. stress ----------
+if [ -z "$DEV" ]; then
+    record stress FAIL "no video node to stream from"
+else
+    since=$(now); half=$(( STRESS_MIN * unit / 2 ))
+    echo "stress: stream-open/close loop for ${half}s on $DEV ..."
+    DEVICE="$DEV" DURATION_SEC="$half" LOG_DIR="$RUN_DIR" "$STREAMLOOP" > "$RUN_DIR/stream-loop.out" 2>&1
+    echo "stress: probe/commit ladder for ${half}s on $DEV ..."
+    DEV="$DEV" CYCLES=1000000 INTERVAL_MS=250 timeout "$half" "$PROBECYCLE" > "$RUN_DIR/probe-commit.out" 2>&1
+    sleep 2
+    grab="ok"; timeout 30 v4l2-ctl -d "$DEV" --stream-mmap --stream-count=30 --stream-to=/dev/null >/dev/null 2>&1 || grab="FAILED"
+    km=$(kernel_markers "$since"); we=$(watchdog_events "$since"); st=$(dev_state "$PORT")
+    if [ "$km" -eq 0 ] && [ "$we" -eq 0 ] && [ "$grab" = ok ] && [[ "$st" == speed=5000* || "$st" == speed=10000* ]]; then
+        record stress PASS "${STRESS_MIN} min, 0 kernel markers, 0 watchdog events, 30-frame grab ok, still $st"
+    else
+        record stress FAIL "kernel markers=$km watchdog events=$we grab=$grab after: $st (see $RUN_DIR/)"
+    fi
+fi
+
+# ---------- 4. call ----------
+if [ "$SKIP_CALL" = 1 ]; then
+    record call SKIPPED "--skip-call"
+else
+    since=$(now); want=$(( CALL_MIN * unit )); waited=0; held=0; holder=""
+    echo "call: start a call or camera preview on $HOST now, using the Kiyo, and keep it up for $CALL_MIN min (mic on for half of it). Waiting up to 10 min for a holder ..."
+    nodes=$(for v in "$KIYO_SYSFS/bus/usb/devices/$PORT"/*/video4linux/video*; do [ -e "$v" ] && echo "/dev/$(basename "$v")"; done); [ -e /dev/video9 ] && nodes="$nodes /dev/video9"
+    while [ "$waited" -lt $(( 10 * unit )) ]; do
+        # shellcheck disable=SC2086
+        pids=$(fuser $nodes 2>/dev/null | tr ' ' '\n' | grep -E '^[0-9]+$' | sort -u)
+        holder=$(for p in $pids; do ps -p "$p" -o comm= 2>/dev/null; done | grep -v '^obs$' | sort -u | tr '\n' ',' | sed 's/,$//')
+        [ -n "$holder" ] && break
+        sleep 5; waited=$((waited+5))
+    done
+    if [ -z "$holder" ]; then
+        record call NOT-RUN "no call holder appeared within 10 min"
+    else
+        echo "call: holder=$holder — measuring $CALL_MIN min ..."
+        while [ "$held" -lt "$want" ]; do sleep 5; held=$((held+5)); done
+        km=$(kernel_markers "$since"); we=$(watchdog_events "$since")
+        journalctl --user -u call-watch --since "$since" -q 2>/dev/null > "$RUN_DIR/call-watch.log"
+        if [ "$km" -eq 0 ] && [ "$we" -eq 0 ]; then
+            record call PASS "holder=$holder ${CALL_MIN} min, 0 kernel markers, 0 watchdog events (call-watch log in $RUN_DIR/)"
+        else
+            record call FAIL "holder=$holder kernel markers=$km watchdog events=$we"
+        fi
+    fi
+fi
+
+# ---------- 5. suspend/resume ----------
+if [ "$SKIP_SUSPEND" = 1 ]; then
+    record suspend SKIPPED "--skip-suspend"
+else
+    since=$(now); waited=0; resumed=0
+    echo "suspend: suspend $HOST now (lid or menu), then resume. Waiting up to 15 min for the resume ..."
+    while [ "$waited" -lt $(( 15 * unit )) ]; do
+        if journalctl -k --since "$since" -q 2>/dev/null | grep -qE 'PM: suspend exit|Finishing wakeup|PM: resume devices took'; then resumed=1; break; fi
+        sleep 5; waited=$((waited+5))
+    done
+    if [ "$resumed" -ne 1 ]; then
+        record suspend NOT-RUN "no resume seen within 15 min"
+    else
+        sleep 10
+        st=$(dev_state "$PORT"); DEV=$(first_node "$PORT")
+        if [ -n "$DEV" ]; then DEVICE="$DEV" DURATION_SEC=$(( 2 * unit )) LOG_DIR="$RUN_DIR" "$STREAMLOOP" > "$RUN_DIR/post-suspend-stream.out" 2>&1; fi
+        km=$(kernel_markers "$since"); we=$(watchdog_events "$since")
+        if [ "$km" -eq 0 ] && [ "$we" -eq 0 ] && [[ "$st" == speed=5000* || "$st" == speed=10000* ]] && [[ "$st" != *nodes=none* ]]; then
+            record suspend PASS "resumed; $st; 2-min stream clean"
+        else
+            record suspend FAIL "kernel markers=$km watchdog events=$we after resume: $st"
+        fi
+    fi
+fi
+
+# ---------- report ----------
+{
+    echo "| step | verdict | detail |"
+    echo "|---|---|---|"
+    for r in "${RESULTS[@]}"; do IFS='|' read -r s v d <<< "$r"; echo "| $s | $v | $d |"; done
+    echo
+    echo "- finished: $(now)"
+    echo "- artefacts: $RUN_DIR/ (selfcheck.txt, stream-loop.out, probe-commit.out, kernel-markers.log, watchdog-events.log, call-watch.log)"
+    if [ "$FAILS" -gt 0 ]; then echo; echo "**RESULT: FAIL ($FAILS)**"; else echo; echo "**RESULT: PASS** (run steps all passed; SKIPPED/NOT-RUN steps listed above)"; fi
+} >> "$REPORT"
+echo; tail -3 "$REPORT"; echo "report: $REPORT"
+[ "$FAILS" -eq 0 ]
