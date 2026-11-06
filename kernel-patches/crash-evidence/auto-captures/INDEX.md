@@ -17,3 +17,12 @@ listed here with sha256 so provenance survives. katana copy is the master.
 | CRASH-20260910T193017Z-3events.txt.gz | 77M | 6f66ea7e092f70fa… | yes | 09-10 fresh HC death → protocol-dead → replug (motivated c4d37cc) |
 | CRASH-20260917T193156Z-3events.txt.gz | 145M | ce8ec65047db385a… | no (>100 MB) | 09-17 12:31 zero-warning HC death on stock 7.0.0-31, watchdog L2 16 s, Kiyo on root port → physical replug |
 | CRASH-20260917T194547Z-1events.txt.gz | 25M | d922116d9abe55ab… | yes | 09-17 12:45 hung COMMIT -110 → can't set config -71; EARLY link-cycle false-OK; fixed by authorized toggle |
+| CRASH-20260923T170203Z-3events.txt.gz | 596K | 54b4cbf35e9f970e… | yes | 09-23 10:02 zero-warning HC death; L2 OK 16 s; post-recovery hub VBUS cycle of 2-1.4 did not revive (protocol-dead); physical replug |
+| CRASH-20260923T180944Z-1events.txt.gz | 62M | aa23107f69780290… | yes | 09-23 11:09 single event during the protocol-dead window (hub re-tries; ~790 resets 10:00–12:28) |
+| CRASH-20260923T192623Z-1events.txt.gz | 520K | ebd685ca8b1c0f42… | yes | 09-23 12:26 hung COMMIT -110 → re-enum 12:28 |
+| CRASH-20260924T175437Z-2events.txt.gz | 4.0K | 539ab0f1846ddb2e… | yes | 09-24 10:54 HC death #1 of five that day; VIA hub 2-1.4 VBUS cycle 0/4 post-recovery |
+| CRASH-20260924T195221Z-3events.txt.gz | 109M | 572775946279178c… | no (>100 MB) | 09-24 12:52 HC death #2 (298 MB raw; also re-enumerated the Scarlett → mic-keeper born) |
+| CRASH-20260924T201015Z-3events.txt.gz | 22M | 7f878de05352fc1c… | yes | 09-24 13:10 HC death #3 |
+| CRASH-20260924T202926Z-3events.txt.gz | 7.4M | a00f8dd35acd36a6… | yes | 09-24 13:29 HC death #4 (re-crash within minutes of the replug) |
+| CRASH-20260924T203206Z-3events.txt.gz | 472K | 04669e3e8b3470a0… | yes | 09-24 13:32 HC death #5; 13:34–14:02 then ran clean |
+| CRASH-20261101T020305Z-1events.txt.gz | 880K | 7f23ad9a9f6e320d… | yes | 10-31 19:03 PDT, 1 event; context not recorded (journal rotated); 21 min before the usb3-no-lpm install |
