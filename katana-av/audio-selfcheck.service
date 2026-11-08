@@ -1,0 +1,8 @@
+[Unit]
+Description=audio-selfcheck — verify katana's call audio (Scarlett 48 kHz, defaults, OBS 720p30, virtual camera)
+Documentation=file:///home/jp/Projects/kiyo-xhci-fix/katana-av/audio-selfcheck
+After=pipewire.service wireplumber.service
+
+[Service]
+Type=oneshot
+ExecStart=%h/Projects/kiyo-xhci-fix/katana-av/audio-selfcheck --log

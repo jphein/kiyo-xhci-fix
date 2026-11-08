@@ -1,0 +1,11 @@
+#!/bin/bash
+# av-selfcheck — the one command for "is katana ready for a call?": the Kiyo stack
+# (kiyo-selfcheck) then the call audio + OBS path (audio-selfcheck).
+# Exit 0 only when both have no FAIL. Arguments go to audio-selfcheck (e.g. --no-probe).
+HERE="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+"$HERE/../kiyo-selfcheck"; v=$?
+echo
+"$HERE/audio-selfcheck" "$@"; a=$?
+echo
+echo "av-selfcheck: video $([ $v -eq 0 ] && echo PASS || echo FAIL) · audio $([ $a -eq 0 ] && echo PASS || echo FAIL)"
+[ $v -eq 0 ] && [ $a -eq 0 ]
