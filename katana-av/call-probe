@@ -175,7 +175,7 @@ async def main(argv=None) -> int:
             fh = open(a.out, "a") if a.out else None
             while time.time() < end:
                 s = json.loads(await c.evaluate(STATS) or "{}")
-                s.pop("text", None); s["t"] = time.strftime("%T")
+                s["text"] = (s.get("text") or "")[:160].replace("\n", " | "); s["t"] = time.strftime("%T")
                 samples.append(s)
                 line = json.dumps(s)
                 print(line, flush=True)
