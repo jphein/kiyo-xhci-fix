@@ -1,0 +1,13 @@
+[Unit]
+Description=audio-watchdog: keep katana call audio on the Scarlett at 48 kHz, every call app on Mic 1 (kiyo-xhci-fix/katana-av)
+After=pipewire.service wireplumber.service
+
+[Service]
+Type=simple
+ExecStart=%h/Projects/kiyo-xhci-fix/katana-av/audio-watchdog.sh
+Restart=always
+RestartSec=5
+Nice=-2
+
+[Install]
+WantedBy=default.target

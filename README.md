@@ -230,6 +230,14 @@ pw-top ERR on the Scarlett nodes; audio-watchdog's log size; OBS `Kiyo-Call` at
 equal to the module on disk. `--log` writes `scratch/selfcheck/<host>-audio*` and notifies
 only when the set of failures changes. Tests: `tests/test-audio-selfcheck.sh`.
 
+`katana-av/audio-watchdog.sh` (user unit `audio-watchdog.service`, from `katana-av/install.sh`;
+moved here from `~/Projects/audio-watchdog` on 2026-11-08) re-pins all of that every 2 s:
+Scarlett profile, 48 kHz / forced quantum, default sink and source, Signal playback on the
+Scarlett, and every call app's mic (`CALL_APPS`: Signal, browsers, Zoom, Slack, Teams, Discord,
+Linphone) on Mic 1, except a stream that reads a monitor (screen-share audio). States
+are logged once per change, the log rotates at 5 MB, `audio-watchdog.sh why [min]` explains
+a chop. `mic-keeper.sh` is retired into it. Tests: `tests/test-audio-watchdog.sh`.
+
 ## Testing
 
 ### Reproducers
