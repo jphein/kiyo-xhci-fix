@@ -244,6 +244,17 @@ dropouts (exact-zero runs ≥ 2 ms inside the signal; the zero-filled buffer of 
 resuming from suspend is reported apart), and pw-top ERR before/after. The audio stays in
 `$XDG_RUNTIME_DIR` and is deleted; only numbers are printed. Tests: `tests/test-mic-measure.sh`.
 
+`katana-av/cam-measure [seconds] [WxH@fps] [MJPG|YUYV|H264]` opens the Kiyo once at one mode and
+streams it continuously: frames vs expected, first-frame latency, steady fps, gaps, kernel stall
+markers, and whether the camera still has a node afterwards. One mode per run on purpose: the
+firmware wedge is triggered by stop + reconfigure, so a ladder of modes tests the trigger, not the
+mode. It never opens a camera another app holds. Tests: `tests/test-cam-measure.sh`.
+
+`katana-av/call-probe <jitsi-room-url>` (runs on familiar) joins a Jitsi room as a second participant
+(fake camera, muted mic) through realmwatch's SocksGate and logs the inbound WebRTC stats of the
+other side every 10 s: resolution, fps, freezes, packet loss, audio concealment. Use a no-login
+instance (meet.ffmuc.net); meet.jit.si needs a moderator login. Tests: `tests/test-call-probe.sh`.
+
 ## Testing
 
 ### Reproducers
