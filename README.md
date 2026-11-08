@@ -238,6 +238,12 @@ Linphone) on Mic 1, except a stream that reads a monitor (screen-share audio). S
 are logged once per change, the log rotates at 5 MB, `audio-watchdog.sh why [min]` explains
 a chop. `mic-keeper.sh` is retired into it. Tests: `tests/test-audio-watchdog.sh`.
 
+`katana-av/mic-measure [seconds=60]` records the Scarlett Mic 1 as a second reader and
+reports what a call would have received: frames delivered vs wall clock, per-second peak,
+dropouts (exact-zero runs ≥ 2 ms inside the signal; the zero-filled buffer of a source
+resuming from suspend is reported apart), and pw-top ERR before/after. The audio stays in
+`$XDG_RUNTIME_DIR` and is deleted; only numbers are printed. Tests: `tests/test-mic-measure.sh`.
+
 ## Testing
 
 ### Reproducers
