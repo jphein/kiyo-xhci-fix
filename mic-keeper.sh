@@ -1,4 +1,10 @@
 #!/bin/bash
+# RETIRED 2026-11-08 (luna-katana-av): it never had a unit, and its stream-moving now runs
+# inside katana-av/audio-watchdog.sh (every call app's mic onto Mic 1, never a monitor
+# stream). Its capture-and-suspend step is NOT carried over: it wrote its probe to a
+# /var/tmp path that need not exist, read the empty result as "Mic1 delivering nothing"
+# and would suspend the Scarlett (headphones too) every 15 s. A stall is measured by
+# katana-av/audio-selfcheck and stays report-only in the watchdog. Kept for history.
 # mic-keeper.sh — keep call apps attached to the Scarlett Mic1 across USB re-enumerations
 #
 # Born 2026-09-24 mid-call: each xHCI host death re-enumerates the Scarlett, PipeWire
