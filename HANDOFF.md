@@ -1,7 +1,19 @@
-# HANDOFF — updated 2026-11-06 (kiyo lane; plan: scratch/PLAN-2026-11-06.md, report: scratch/reports/2026-11-06.md)
+# HANDOFF — updated 2026-11-08 (luna-katana-av; results: scratch/results/2026-11-08-katana.md; earlier: scratch/PLAN-2026-11-06.md, scratch/reports/2026-11-06.md)
 
 ## Where things stand
 
+- **2026-11-08 (katana on 7.0.0-43, Kiyo A + Scarlett plugged in):** the 11-06 fix is verified on hardware:
+  quirks **0x410**, LPM attrs absent, SS 5000. A stall still happens on **stop + reconfigure to a new fps**
+  (13:42, `probe/commit control -110` → `can't set config -71` → camera boot-looped until replugged), so
+  LPM is ruled out as its cause on this kernel. Root ports have no VBUS: recovery needs hands unless the Kiyo
+  sits behind a PPPS hub again (card aa593953102c) and/or OBS holds it (card de7a5487154b).
+  The `1.1 probe control -32` line at plug and `exposure_dynamic_framerate=1` are camera-side (same on
+  wakizashi's Kiyo B with stock uvcvideo). 1080p60 MJPG delivers ~30 fps on BOTH units (29.77 / 29.79)
+  under aperture-priority exposure; September's true 60 came through OBS in YUYV.
+  Audio: Scarlett on katana, `katana-av/audio-selfcheck` PASS 17/17 (timer), Mic 1 0 dropouts / 0 xruns
+  over 60 s, 120 s with the camera at 1080p60 on the same controller, and 11 min.
+  New tools in `katana-av/` (PRs #11–#14): audio-selfcheck + av-selfcheck, audio-watchdog (moved here),
+  mic-measure, cam-measure, call-probe. The real call test is card f8679972c3d3 (JP never joined today).
 - **Two beds.** Kiyo Pro A on **katana** (JP's desktop; not plugged in on 11-06), Kiyo Pro B on
   **wakizashi** (Dell laptop, camera at `6-2.3.2` on the Thunderbolt dock's xHCI `0000:3b:00.0`).
   wakizashi is the control: the same stack there, clean = katana's remaining failures are katana's
@@ -27,18 +39,18 @@
   answer in 10 weeks; v8 patches 2/3 unapplied, no review since 04-27.
 
 ## Open items (owner · tracker)
-1. **Hardware run** — JP's card: plug the Kiyo into katana, reboot katana into -42 (GRUB fix +
-   gnome-shell), give the go. Then the protocol (scratch/PLAN-2026-11-06.md §Test protocol) on
-   both beds; results in `scratch/results/<date>-<host>.md`. (kiyo lane, on JP's go)
+1. **Hardware run** — steps 1–2 PASS on katana 2026-11-08, bus test done; 30-min stress (step 3)
+   not run (it can kill the controller that also carries JP's keyboard, mouse and Scarlett: needs his go);
+   real call = card f8679972c3d3; suspend (step 5) not run. (kiyo lane)
 2. **Reply v9** — correction of the 08-26 "regression" paragraph + status + the xhci-test ask;
    JP's send card. (kiyo lane; draft `kernel-patches/reply-v9.eml`, gitignored class)
 3. **wakizashi module swap** (`modprobe -r uvcvideo && modprobe uvcvideo`, nothing holding the
    nodes) in JP's window; then `kiyo-selfcheck` there must PASS. (kiyo lane, on JP's go)
 4. Decide PR #4's port block on katana after the protocol (retire or keep). (kiyo lane)
-5. Stale GRUB custom entries in `/etc/grub.d/40_custom` point at a 6.17.0-20 kernel that no longer
-   exists in /boot — harmless, remove in a /housekeep pass. (housekeep)
+5. Stale GRUB custom entries: DONE 2026-11-08 (both 6.17.0-20 entries removed, backups in /root, grub-script-check OK).
 6. 9 untracked auto-captures (09-23, 09-24, 11-01) — index + sha256, commit the <100 MB ones.
-7. `mic-keeper.sh` still has no unit; `obs-vcam` is disabled since ~09-25 (JP's call to re-enable).
+7. `mic-keeper.sh`: DONE 2026-11-08 (retired into katana-av/audio-watchdog.sh, PR #12). `obs-vcam` still
+   disabled since ~09-25: JP's card de7a5487154b (recommendation: on).
 8. Scarlett sink-disable: CLOSED (JP uses the output; guard stays).
 9. Oracle PR #6 finding 2 (latent): with two Kiyos on two controllers, after A's controller dies the
    watchdog's re-detection moves to B's and Level 2 would rebind the healthy one. Follow-up: take the
