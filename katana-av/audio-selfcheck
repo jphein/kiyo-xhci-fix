@@ -1,0 +1,265 @@
+#!/bin/bash
+# audio-selfcheck — is katana's call audio (and the OBS call camera path) actually IN EFFECT?
+#
+# Born 2026-11-08 (JP: "then we get sound and video working really well on katana").
+# The audio half of kiyo-selfcheck, same shape: every layer measured, PASS/FAIL/WARN
+# with the value seen. What "working" means comes from JP 2026-10-31 (memory
+# reference_katana_call_audio_setup): the Scarlett 2i2 is mic AND headphones,
+# always, at 48 kHz; audio-watchdog keeps it so; OBS's Kiyo-Call profile runs
+# 720p30 into the /dev/video9 "OBS Virtual Camera" every call app selects.
+# Each of those has drifted silently before: the Scarlett came up at 44.1 kHz
+# (10-31), its Mic 1 capture opened and delivered nothing (10-31), and it left
+# the host for wakizashi on 11-01 with nothing but a log line every 2 s to say so.
+#
+# Exit 0 = no FAIL (WARNs allowed), 1 = at least one FAIL, 2 = usage.
+#   --log       keep history in scratch/selfcheck/<host>-audio*.txt, notify on a changed FAIL set
+#   --no-probe  skip the 1-s Mic 1 test capture (it is a second reader; it never takes the mic)
+#
+# Overrides for tests/test-audio-selfcheck.sh: AUDIO_SYSFS, AUDIO_OBS_DIR,
+# AUDIO_WD_STATE, AUDIO_RUNTIME, SELFCHECK_HOST, and the commands pactl,
+# pw-metadata, pw-top, pw-record, systemctl, modinfo, lsusb, notify-send via PATH.
+set -u
+
+HERE="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+# shellcheck source-path=SCRIPTDIR source=../lib/kiyo-usb.sh
+. "$HERE/../lib/kiyo-usb.sh"   # KIYO_PROJECT_DIR
+
+export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+SYSFS="${AUDIO_SYSFS:-/sys}"
+OBS_DIR="${AUDIO_OBS_DIR:-$HOME/.config/obs-studio}"
+WD_STATE="${AUDIO_WD_STATE:-$HOME/.local/state/audio-watchdog}"
+RUNTIME="${AUDIO_RUNTIME:-$XDG_RUNTIME_DIR}"
+HOST="${SELFCHECK_HOST:-$(hostname)}"
+USER_UNITS="${AUDIO_USER_UNITS:-pipewire pipewire-pulse wireplumber audio-watchdog}"
+WANT_RATE=48000
+SCARLETT_PROFILE="HiFi (Line1, Line2, Mic1, Mic2)"
+OBS_PROFILE="Kiyo-Call"
+VCAM_NODE="video9"; VCAM_LABEL="OBS Virtual Camera"
+WD_LOG_MAX=$((20 * 1024 * 1024))
+
+LOG_MODE=0; PROBE=1
+for a in "$@"; do
+    case "$a" in
+        --log) LOG_MODE=1 ;;
+        --no-probe) PROBE=0 ;;
+        -h|--help) echo "usage: audio-selfcheck [--log] [--no-probe]"; exit 2 ;;
+        *) echo "usage: audio-selfcheck [--log] [--no-probe]" >&2; exit 2 ;;
+    esac
+done
+
+FAILS=0; WARNS=0; PASSES=0
+pass() { PASSES=$((PASSES+1)); printf 'PASS  %-24s %s\n' "$1" "$2"; }
+warn() { WARNS=$((WARNS+1));   printf 'WARN  %-24s %s\n' "$1" "$2"; }
+fail() { FAILS=$((FAILS+1));   printf 'FAIL  %-24s %s\n' "$1" "$2"; }
+info() {                       printf 'info  %-24s %s\n' "$1" "$2"; }
+
+_modinfo() { if command -v modinfo >/dev/null 2>&1; then modinfo "$@"; else /usr/sbin/modinfo "$@"; fi; }
+_lsusb()   { if command -v lsusb   >/dev/null 2>&1; then lsusb; else /usr/bin/lsusb; fi; }
+meta()     { pw-metadata -n settings 0 "$1" 2>/dev/null | grep -oE "value:'[^']*'" | sed "s/^value:'//; s/'$//"; }
+
+# Peak of pw-record's s16 WAV in dBFS ("-inf" for digital silence, "" if no samples).
+# Reads every byte after the "data" tag and ignores the declared sizes: pw-record
+# leaves them at 0 when its stdout is not a terminal (measured on katana 2026-11-08:
+# RIFF size 8 / data size 0 in front of 213 KB of real samples).
+wav_peak_dbfs() {
+    python3 -I - "$1" <<'PY' 2>/dev/null
+import sys, array, math
+b = open(sys.argv[1], "rb").read()
+i = b.find(b"data", 12)
+if b[:4] != b"RIFF" or i < 0: sys.exit(1)
+pcm = b[i + 8:]
+pcm = pcm[: len(pcm) - len(pcm) % 2]
+if not pcm: sys.exit(1)
+a = array.array("h", pcm)
+if sys.byteorder != "little": a.byteswap()
+p = max(abs(x) for x in a)
+print("-inf" if p == 0 else "%.1f" % (20 * math.log10(p / 32768)))
+PY
+}
+
+run_checks() {
+    echo "audio-selfcheck  host=$HOST  kernel=$(uname -r)  $(date '+%Y-%m-%d %H:%M:%S %Z')"
+
+    # ---- 1. The audio stack's user units ----
+    local u act en
+    for u in $USER_UNITS; do
+        act=$(systemctl --user is-active "$u" 2>/dev/null); en=$(systemctl --user is-enabled "$u" 2>/dev/null)
+        if [ "$act" = "active" ] && [ "$en" = "enabled" ]; then
+            pass "unit[$u]" "active, enabled"
+        else
+            fail "unit[$u]" "${act:-?}, ${en:-?} — systemctl --user enable --now $u"
+        fi
+    done
+
+    # ---- 2. One clock for calls: 48 kHz, nothing forcing another rate ----
+    local rate allowed force
+    rate=$(meta clock.rate); allowed=$(meta clock.allowed-rates); force=$(meta clock.force-rate)
+    if [ -z "$rate" ]; then
+        fail "clock" "pw-metadata settings unreadable — is PipeWire running for this user?"
+    elif [ "$rate" != "$WANT_RATE" ]; then
+        fail "clock" "clock.rate=$rate (want $WANT_RATE) — ~/.config/pipewire/pipewire.conf.d/10-call-clock.conf not in effect"
+    elif [ -n "$force" ] && [ "$force" != "0" ] && [ "$force" != "$WANT_RATE" ]; then
+        fail "clock" "clock.force-rate=$force overrides $WANT_RATE"
+    elif [ "$(echo "$allowed" | tr -d ' ')" != "[$WANT_RATE]" ]; then
+        warn "clock" "clock.rate=$rate but allowed-rates=$allowed — a 44.1 kHz device can switch the graph"
+    else
+        pass "clock" "clock.rate=$rate allowed-rates=$allowed force-rate=${force:-0}"
+    fi
+
+    # ---- 3. The Scarlett: here, one card, the right profile ----
+    local card usbdev
+    card=$(pactl list cards short 2>/dev/null | awk '/Scarlett/{print $2; exit}')
+    usbdev=$(_lsusb 2>/dev/null | grep -i ' 1235:' | head -1)
+    if [ -z "$card" ]; then
+        if [ -n "$usbdev" ]; then
+            fail "scarlett-present" "on USB (${usbdev#*ID }) but no PipeWire card — snd-usb-audio did not bind or WirePlumber lost it (scarlett-storm-guard log; replug)"
+        else
+            warn "scarlett-present" "not plugged into $HOST — katana has no microphone; Scarlett checks skipped"
+        fi
+    else
+        pass "scarlett-present" "$card"
+        local prof
+        prof=$(pactl list cards 2>/dev/null | awk '/Name: .*Scarlett/{f=1} f&&/Active Profile:/{sub(/.*Active Profile: /,""); print; exit}')
+        if [ "$prof" = "$SCARLETT_PROFILE" ]; then
+            pass "scarlett-profile" "$prof"
+        else
+            fail "scarlett-profile" "'${prof:-?}' (want '$SCARLETT_PROFILE') — audio-watchdog should have re-pinned it; is it running?"
+        fi
+
+        # ---- 4. Mic AND headphones: the defaults, at 48 kHz ----
+        local sink src dsink dsrc spec
+        sink=$(pactl list short sinks 2>/dev/null | awk '$2 ~ /Scarlett.*Line1__sink$/{print $2; exit}')
+        src=$(pactl list short sources 2>/dev/null | awk '$2 ~ /Scarlett.*Mic1__source$/{print $2; exit}')
+        dsink=$(pactl get-default-sink 2>/dev/null); dsrc=$(pactl get-default-source 2>/dev/null)
+        if [ -z "$sink" ]; then fail "headphones" "no Scarlett Line1 sink (profile without Line1?)"
+        elif [ "$dsink" = "$sink" ]; then pass "headphones" "default sink = Scarlett Line1"
+        else fail "headphones" "default sink is $dsink, not Scarlett Line1"; fi
+        if [ -z "$src" ]; then fail "mic" "no Scarlett Mic1 source"
+        elif [ "$dsrc" = "$src" ]; then pass "mic" "default source = Scarlett Mic1"
+        else fail "mic" "default source is $dsrc, not Scarlett Mic1"; fi
+        local role n
+        for role in headphones mic; do
+            n=$sink; [ "$role" = mic ] && n=$src
+            [ -n "$n" ] || continue
+            spec=$( { pactl list short sinks; pactl list short sources; } 2>/dev/null | awk -v n="$n" '$2==n{print $4, $5, $6; exit}')
+            case "$spec" in
+                *" ${WANT_RATE}Hz") pass "rate[$role]" "$spec" ;;
+                *) fail "rate[$role]" "${spec:-?} — not ${WANT_RATE} Hz (the 10-31 chop: Scarlett at 44.1 kHz against a 48 kHz graph)" ;;
+            esac
+        done
+
+        # ---- 5. Mic 1 delivers samples (measure the output, not the node) ----
+        if [ "$PROBE" -eq 1 ] && [ -n "$src" ]; then
+            local f sz peak
+            f=$(mktemp "$RUNTIME/audio-selfcheck.XXXXXX.wav" 2>/dev/null)
+            if [ -z "$f" ]; then
+                warn "mic-delivers" "cannot create a probe file in $RUNTIME — probe skipped"
+            else
+                # SIGINT lets pw-record finish the WAV header; a second reader never takes the mic from a call.
+                timeout -s INT -k 2 1.2 pw-record --target "$src" --rate "$WANT_RATE" --channels 2 --format s16 "$f" >/dev/null 2>&1
+                sz=$(stat -c %s "$f" 2>/dev/null || echo 0)
+                peak=$(wav_peak_dbfs "$f")
+                rm -f "$f"
+                if [ "$sz" -le 44 ] || [ -z "$peak" ]; then
+                    fail "mic-delivers" "1-s capture from Mic1 returned ${sz} bytes — the capture is open but stalled (the 10-31 failure; restart wireplumber when no call is up)"
+                elif [ "$peak" = "-inf" ]; then
+                    warn "mic-delivers" "${sz} bytes of digital silence — Mic 1 gain at zero, 48V/INST state, or nothing on input 1"
+                else
+                    pass "mic-delivers" "${sz} bytes, peak ${peak} dBFS"
+                fi
+            fi
+        else
+            info "mic-delivers" "probe skipped"
+        fi
+
+        # ---- 6. Xruns on the Scarlett nodes since they started (pw-top ERR) ----
+        local errs
+        errs=$(pw-top -b -n 2 2>/dev/null | awk '/^S +ID/{blk++} blk>=2 && $2 != "ID" && $NF ~ /Scarlett/ {e += $9} END{print e+0}')
+        if [ "${errs:-0}" -gt 0 ]; then
+            warn "xruns" "pw-top ERR=$errs on the Scarlett nodes since they started — check audio-watchdog.sh why"
+        else
+            pass "xruns" "ERR=0 on the Scarlett nodes"
+        fi
+    fi
+
+    # ---- 7. audio-watchdog's own log stays bounded ----
+    local wsz
+    wsz=$(stat -c %s "$WD_STATE/log" 2>/dev/null || echo 0)
+    if [ "$wsz" -gt "$WD_LOG_MAX" ]; then
+        warn "watchdog-log" "$WD_STATE/log is $((wsz / 1024 / 1024)) MB — the watchdog is logging every pass"
+    else
+        pass "watchdog-log" "$((wsz / 1024)) KB"
+    fi
+
+    # ---- 8. OBS Kiyo-Call profile: 720p30 (the 1080p60 raw feed cost Signal half a core) ----
+    local ini cx cy ox oy fps
+    ini="$OBS_DIR/basic/profiles/$OBS_PROFILE/basic.ini"
+    if [ ! -r "$ini" ]; then
+        fail "obs-profile" "$ini missing — the Kiyo-Call profile is gone"
+    else
+        cx=$(awk -F= '$1=="BaseCX"{print $2; exit}' "$ini");   cy=$(awk -F= '$1=="BaseCY"{print $2; exit}' "$ini")
+        ox=$(awk -F= '$1=="OutputCX"{print $2; exit}' "$ini"); oy=$(awk -F= '$1=="OutputCY"{print $2; exit}' "$ini")
+        fps=$(awk -F= '$1=="FPSCommon"{print $2; exit}' "$ini")
+        if [ "$ox" = 1280 ] && [ "$oy" = 720 ] && [ "$fps" = 30 ]; then
+            pass "obs-profile" "$OBS_PROFILE base ${cx}x${cy} → output ${ox}x${oy} @ ${fps}"
+        else
+            fail "obs-profile" "$OBS_PROFILE output ${ox:-?}x${oy:-?} @ ${fps:-?} (want 1280x720 @ 30)"
+        fi
+    fi
+
+    # ---- 9. The virtual camera every call app selects ----
+    local label loaded ondisk
+    label=$(cat "$SYSFS/class/video4linux/$VCAM_NODE/name" 2>/dev/null)
+    if [ "$label" = "$VCAM_LABEL" ]; then
+        pass "vcam-node" "/dev/$VCAM_NODE \"$label\""
+    else
+        fail "vcam-node" "/dev/$VCAM_NODE is '${label:-absent}' (want \"$VCAM_LABEL\") — v4l2loopback not loaded with /etc/modprobe.d/v4l2loopback.conf"
+    fi
+    loaded=$(cat "$SYSFS/module/v4l2loopback/srcversion" 2>/dev/null)
+    ondisk=$(_modinfo -F srcversion v4l2loopback 2>/dev/null)
+    if [ -z "$loaded" ]; then
+        fail "v4l2loopback" "module not loaded"
+    elif [ "$loaded" = "$ondisk" ]; then
+        pass "v4l2loopback" "loaded $loaded == module on disk for $(uname -r)"
+    else
+        fail "v4l2loopback" "loaded ${loaded} != on disk ${ondisk:-?} — reload it when no app holds /dev/$VCAM_NODE, or reboot"
+    fi
+    act=$(systemctl --user is-active obs-vcam 2>/dev/null); en=$(systemctl --user is-enabled obs-vcam 2>/dev/null)
+    info "obs-vcam" "${act:-?}, ${en:-?} (off since ~09-25 by JP's call; OBS is started by hand for calls)"
+
+    echo
+    if [ "$FAILS" -gt 0 ]; then
+        echo "RESULT: FAIL ($FAILS failed, $WARNS warnings, $PASSES passed)"
+        return 1
+    fi
+    echo "RESULT: PASS ($PASSES passed, $WARNS warnings)"
+    return 0
+}
+
+if [ "$LOG_MODE" -eq 0 ]; then
+    run_checks
+    exit $?
+fi
+
+# --log: one-line history, the full last run, and a notification only when the
+# SET of failures changes (same rule as kiyo-selfcheck: repeated nags are noise).
+LOGDIR="$KIYO_PROJECT_DIR/scratch/selfcheck"
+mkdir -p "$LOGDIR"
+out=$(run_checks 2>&1); rc=$?
+printf '%s\n' "$out" > "$LOGDIR/$HOST-audio-last.txt"
+printf '%s  %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$(printf '%s\n' "$out" | tail -1)" >> "$LOGDIR/$HOST-audio.log"
+fails_now=$(printf '%s\n' "$out" | grep '^FAIL' | cut -c7- | sed 's/ \{2,\}.*//' | sort)
+fails_prev=$(cat "$LOGDIR/$HOST-audio-fails.txt" 2>/dev/null)
+printf '%s\n' "$fails_now" > "$LOGDIR/$HOST-audio-fails.txt"
+if [ "$rc" -ne 0 ]; then
+    f="$LOGDIR/FAIL-$HOST-audio-$(date -u +%Y%m%dT%H%M%SZ).txt"
+    printf '%s\n' "$out" > "$f"
+    printf '%s\n' "$out" | grep '^FAIL' | logger -t audio-selfcheck 2>/dev/null
+    if [ "$fails_now" != "$fails_prev" ]; then
+        notify-send -u critical -a audio-selfcheck "Call audio FAIL on $HOST" \
+            "$(printf '%s\n' "$out" | grep '^FAIL' | cut -c7-70 | head -4)
+$f" 2>/dev/null
+    fi
+fi
+printf '%s\n' "$out"
+exit "$rc"

@@ -213,6 +213,23 @@ units; the capture directory on disk. `--log` keeps `scratch/selfcheck/<host>.lo
 the last full run, a `FAIL-*` file and a critical desktop notification on FAIL.
 Tests: `tests/test-selfcheck.sh` (fixture trees + command shims).
 
+### Call audio + the OBS camera path (katana)
+
+```bash
+katana-av/audio-selfcheck   # PASS/FAIL/WARN per layer; --no-probe skips the 1-s mic capture
+katana-av/av-selfcheck      # kiyo-selfcheck + audio-selfcheck: "is katana ready for a call?"
+katana-av/install.sh        # user timer audio-selfcheck.timer: 3 min after boot + daily, --log
+```
+Checks: pipewire / pipewire-pulse / wireplumber / audio-watchdog units; the PipeWire
+clock at 48 kHz with nothing forcing another rate; the Scarlett 2i2 present (WARN when it
+is on another host, FAIL when it is on USB with no card), its `HiFi (Line1, Line2, Mic1, Mic2)`
+profile, default sink = Line1 and default source = Mic1, both nodes at 48 kHz; a 1-s Mic 1
+capture that must return samples (a second reader; it never takes the mic from a call);
+pw-top ERR on the Scarlett nodes; audio-watchdog's log size; OBS `Kiyo-Call` at
+1280x720 @ 30; `/dev/video9` labelled "OBS Virtual Camera" and the loaded v4l2loopback
+equal to the module on disk. `--log` writes `scratch/selfcheck/<host>-audio*` and notifies
+only when the set of failures changes. Tests: `tests/test-audio-selfcheck.sh`.
+
 ## Testing
 
 ### Reproducers
