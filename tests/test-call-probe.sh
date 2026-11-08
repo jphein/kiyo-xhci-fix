@@ -27,6 +27,9 @@ check("fps min 29 avg 29.5", s["video"]["fps_min"] == 29.0 and s["video"]["fps_a
 check("freezes and loss from the last sample", s["video"]["freezes"] == 1 and s["video"]["lost"] == 4)
 check("audio concealed 0.2 %", s["audio"]["concealed_pct"] == 0.2)
 check("audio jitter 12 ms", s["audio"]["jitter_ms_last"] == 12.0)
+for h in ("localhost", "10.0.6.1", "100.100.100.100", "169.254.1.1", "fd00::1", "::ffff:127.0.0.1"):
+    check(f"public_only refuses {h}", m.public_only(h, 443) == ["127.0.0.1"])
+check("public_only passes a public literal", m.public_only("1.1.1.1", 443) == ["1.1.1.1"])
 check("empty series summarises without error", m.summarise([]) == {"samples": 0, "with_video": 0, "with_audio": 0})
 print(); print(f"fail={fail}"); sys.exit(1 if fail else 0)
 PY

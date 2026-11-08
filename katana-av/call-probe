@@ -88,6 +88,10 @@ def launch(profile: Path, socks_port: int) -> tuple[subprocess.Popen, int]:
                              "--force-webrtc-ip-handling-policy=disable_non_proxied_udp",
                              "--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream",
                              "--autoplay-policy=no-user-gesture-required", "--window-size=1280,720",
+                             # xreview 2026-11-08 (gpt-6.1-sol) #1: Chrome must never resolve names itself
+                             # (DNS prefetch would reach a loopback stub resolver); SOCKS5 resolves at the gate.
+                             "--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE 127.0.0.1",
+                             "--dns-prefetch-disable",
                              "--password-store=basic", "--use-mock-keychain", "--disable-dev-shm-usage",
                              "--remote-debugging-address=127.0.0.1", "--remote-debugging-port=0",
                              f"--user-data-dir={profile}", "about:blank"],
@@ -100,6 +104,25 @@ def launch(profile: Path, socks_port: int) -> tuple[subprocess.Popen, int]:
         time.sleep(0.1)
     os.killpg(proc.pid, signal.SIGKILL)
     raise RuntimeError("chrome did not open a DevTools port")
+
+
+def public_only(host: str, port: int) -> list[str]:
+    """Resolver for SocksGate: a call page needs the public internet only. xreview 2026-11-08 #2: the
+    shared gate allows RFC1918/ULA (gui-sweep needs LAN GUIs); here any non-global answer (RFC1918, ULA,
+    CGNAT/Tailscale, link-local, familiar's own LAN address) is reported as loopback, which the gate
+    refuses and records in .refusals."""
+    import ipaddress, socket
+    try:
+        ips = sorted({a[4][0] for a in socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)})
+    except OSError:
+        return []
+    for ip in ips:
+        a = ipaddress.ip_address(ip.split("%")[0])
+        if a.version == 6 and a.ipv4_mapped:
+            a = a.ipv4_mapped
+        if not a.is_global:
+            return ["127.0.0.1"]
+    return ips
 
 
 def summarise(samples: list[dict]) -> dict:
@@ -126,7 +149,7 @@ async def main(argv=None) -> int:
     ap.add_argument("--out"); ap.add_argument("--check", action="store_true")
     a = ap.parse_args(argv)
     import websockets
-    gate = await SocksGate().start()
+    gate = await SocksGate(resolve=public_only).start()
     profile = Path(tempfile.mkdtemp(prefix="call-probe-", dir=os.environ.get("XDG_RUNTIME_DIR") or None))
     proc = None
     samples: list[dict] = []
@@ -147,7 +170,7 @@ async def main(argv=None) -> int:
             print(json.dumps({"t": time.strftime("%T"), "joined_pcs": first.get("pcs"), "needs_login_or_host": needs_login,
                               "page_text": text[:200], "gate_refused": gate.refused[:5]}), flush=True)
             if a.check:
-                return 0 if (first.get("pcs") and not needs_login) else 1
+                return 0 if not needs_login else 1   # joined (alone is fine); a login/host wall is the failure
             end = time.time() + a.minutes * 60
             fh = open(a.out, "a") if a.out else None
             while time.time() < end:
