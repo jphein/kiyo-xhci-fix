@@ -1,0 +1,84 @@
+#!/bin/bash
+# cam-measure — open the Kiyo ONCE at one mode and stream it continuously for N seconds,
+# then report frames delivered vs expected, the achieved fps, kernel stall markers seen
+# during the run, and whether the camera still has a video node afterwards.
+#
+# One open, one mode, no reconfigure: the documented trigger of the Kiyo firmware wedge
+# is a stream stop + reconfigure (SET_INTERFACE alt0 + COMMIT; memory
+# project_obs_virtual_camera), so a ladder of modes in one sitting tests the trigger,
+# not the mode. Run one mode per fresh camera, or behind OBS.
+#
+# Usage: cam-measure [seconds=60] [WxH@fps=1920x1080@60] [MJPG|YUYV|H264] [--dev /dev/videoN]
+# Exit 0 = >= 95 % of the expected frames and no markers, 1 = short/markers/camera lost, 2 = usage.
+set -u
+SYS="${CAM_SYSFS:-/sys}"   # tests point this at a fixture tree
+SECS=60; MODE=1920x1080@60; FMT=MJPG; DEV=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --dev) DEV="${2:-}"; shift 2 ;;
+        *x*@*) MODE="$1"; shift ;;
+        MJPG|YUYV|H264) FMT="$1"; shift ;;
+        ''|*[!0-9]*) echo "usage: cam-measure [seconds] [WxH@fps] [MJPG|YUYV|H264] [--dev /dev/videoN]" >&2; exit 2 ;;
+        *) SECS="$1"; shift ;;
+    esac
+done
+W=${MODE%%x*}; R=${MODE#*x}; H=${R%%@*}; FPS=${MODE#*@}
+port=$(for d in "$SYS"/bus/usb/devices/*; do [ "$(cat "$d/idVendor" 2>/dev/null):$(cat "$d/idProduct" 2>/dev/null)" = "1532:0e05" ] && basename "$d"; done | head -1)
+[ -n "$port" ] || { echo "cam-measure: no Kiyo (1532:0e05) on $(hostname)" >&2; exit 2; }
+if [ -z "$DEV" ]; then
+    DEV=$(for v in "$SYS"/bus/usb/devices/"$port"/"$port":1.0/video4linux/video*; do [ -e "$v" ] && echo "/dev/$(basename "$v")"; done | sort -V | head -1)
+fi
+[ -n "$DEV" ] || { echo "cam-measure: Kiyo at $port has no video node (unconfigured: replug or watchdog)" >&2; exit 1; }
+holders=$(fuser "$DEV" 2>/dev/null | tr -s ' ')
+[ -z "$holders" ] || { echo "cam-measure: $DEV is held by pid(s)$holders — not opening a second reader" >&2; exit 2; }
+
+markers='Failed to set UVC (probe|commit) control : -110|still [0-9]+ active urbs|HC died|not responding|USB disconnect|can.t set config'
+since=$(date '+%Y-%m-%d %H:%M:%S')
+want=$(( SECS * FPS ))
+echo "cam-measure  host=$(hostname)  kernel=$(uname -r)  uvcvideo=$(cat "$SYS"/module/uvcvideo/srcversion 2>/dev/null)  $(date '+%F %T %Z')"
+echo "camera      $port speed=$(cat "$SYS"/bus/usb/devices/"$port"/speed) quirks=$(cat "$SYS"/bus/usb/devices/"$port"/quirks) dev=$DEV"
+echo "mode        ${W}x${H} $FMT @ $FPS fps for ${SECS}s (want $want frames)"
+tl=$(mktemp "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/cam-measure.XXXXXX") || exit 2
+trap 'rm -f "$tl"' EXIT
+t0=$(date +%s.%N)
+# v4l2-ctl prints one "<" per dequeued frame; through a pipe it block-buffers them (0 frames counted on
+# 11-08 until stdbuf -o0 — a positive control counted 60/60), so stdbuf is required; the "<" markers go to STDERR, hence 2>&1. Stamp each one as it arrives so a
+# slow start, a mid-run stall and a steady-but-slow rate are told apart.
+timeout -k 5 $(( SECS + 15 )) stdbuf -o0 v4l2-ctl -d "$DEV" --set-fmt-video=width="$W",height="$H",pixelformat="$FMT" \
+    --set-parm="$FPS" --stream-mmap=4 --stream-count="$want" --stream-to=/dev/null 2>&1 \
+  | python3 -I -u -c '
+import os, sys, time
+out = open(sys.argv[1], "w")
+while True:
+    b = os.read(0, 65536)
+    if not b: break
+    now = time.time()
+    for _ in range(b.count(b"<")): out.write("%.4f\n" % now)
+    out.flush()' "$tl"
+rc=${PIPESTATUS[0]}
+t1=$(date +%s.%N)
+hits=$(journalctl -k --since "$since" --no-pager -o cat 2>/dev/null | grep -E "$markers")
+# alive = the camera still exposes a video node (under a fixture tree the /dev node cannot exist)
+alive=no
+if { [ -e "$DEV" ] || [ -n "${CAM_SYSFS:-}" ]; } && [ -n "$(ls "$SYS"/bus/usb/devices/"$port"/"$port":1.0/video4linux 2>/dev/null)" ]; then alive=yes; fi
+got=$(wc -l < "$tl")
+python3 -I - "$tl" "$want" "$t0" "$t1" "$FPS" <<'PY'
+import sys
+ts = [float(x) for x in open(sys.argv[1]) if x.strip()]
+want, t0, t1, fps = int(sys.argv[2]), float(sys.argv[3]), float(sys.argv[4]), int(sys.argv[5])
+el = t1 - t0
+print(f"frames      {len(ts)} / {want} in {el:.1f} s wall ({100*len(ts)/want if want else 0:.1f} %)")
+if ts:
+    span = ts[-1] - ts[0]
+    gaps = [b - a for a, b in zip(ts, ts[1:])]
+    # frames arrive in bursts from a pipe; a gap counts when it exceeds 3 frame intervals and 100 ms
+    big = [g for g in gaps if g > max(3.0 / fps, 0.1)]
+    print(f"timeline    first frame after {ts[0]-t0:.2f} s · last frame {t1-ts[-1]:.2f} s before the end · "
+          f"steady {(len(ts)-1)/span if span > 0 else 0:.2f} fps over {span:.1f} s")
+    print(f"gaps        {len(big)} gap(s) > {max(3.0/fps,0.1)*1000:.0f} ms, longest {max(gaps)*1000 if gaps else 0:.0f} ms")
+PY
+echo "v4l2-ctl    rc=$rc (124 = still waiting for frames at the deadline)"
+if [ -n "$hits" ]; then echo "markers     $(printf '%s\n' "$hits" | wc -l):"; printf '%s\n' "$hits" | sed 's/^/            /' | head -8; else echo "markers     none"; fi
+echo "camera      after run: video node present=$alive"
+if [ "$got" -ge $(( want * 95 / 100 )) ] && [ -z "$hits" ] && [ "$alive" = yes ]; then echo "RESULT: PASS"; exit 0; fi
+echo "RESULT: FAIL"; exit 1

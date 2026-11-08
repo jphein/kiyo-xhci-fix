@@ -1,0 +1,199 @@
+#!/usr/bin/env python3
+"""call-probe — join a Jitsi room as a second participant from familiar and log what we RECEIVE.
+
+Born 2026-11-08 (JP: "like we are doing a video call" / "can we do a test video call somehow?").
+JP joins the room from Brave on katana with the Kiyo + Scarlett; this joins headless from familiar
+with a fake camera and a MUTED fake mic (no beep in his headphones), and every INTERVAL s logs the
+inbound WebRTC stats of his media: video width/height/fps, frames dropped, freezes, packet loss,
+jitter; audio packet loss, jitter, concealed samples (= glitches the far end would hear).
+
+Safety (memory reference_headless_chrome_loopback_websocket_exposure): a third-party page in headless
+Chrome on familiar could reach familiar's own 127.0.0.1 services. All Chrome traffic therefore goes
+through realmwatch's SocksGate (refuses loopback/link-local, dials the address it checked), with
+--proxy-bypass-list=<-loopback> and WebRTC UDP outside the proxy disabled, so media rides TURN/TCP.
+DBUS_SESSION_BUS_ADDRESS is stripped (memory reference_familiar_headless_chrome_dbus_hang).
+
+Stats come from RTCPeerConnection objects captured by a wrapper installed before the page runs, so
+nothing depends on Jitsi internals. Output: one JSON line per sample to --out, a summary at the end.
+
+Usage: call-probe <room-url> [--minutes 10] [--interval 10] [--out FILE] [--check]
+  --check   join, report whether the room needs a login / waits for a moderator, leave (no stats loop)
+"""
+from __future__ import annotations
+
+import argparse, asyncio, json, os, shutil, signal, subprocess, sys, tempfile, time, urllib.request
+from pathlib import Path
+
+GATE_DIR = Path.home() / "Projects/realmwatch/plugins/gui-sweep"
+sys.path.insert(0, str(GATE_DIR))
+from gui_sweep import SocksGate  # noqa: E402  (realmwatch's audited egress gate)
+
+CHROME = shutil.which("google-chrome") or "/usr/bin/google-chrome"
+HASH = ("#config.prejoinConfig.enabled=false&config.prejoinPageEnabled=false&config.startWithAudioMuted=true"
+        "&config.startWithVideoMuted=false&config.p2p.enabled=false&config.disableDeepLinking=true"
+        "&userInfo.displayName=%22Familiar%20(test%20probe)%22")
+WRAP = r"""(() => { const O = window.RTCPeerConnection; if (!O || window.__pcs) return; window.__pcs = [];
+  window.RTCPeerConnection = function(...a) { const pc = new O(...a); window.__pcs.push(pc); return pc; };
+  window.RTCPeerConnection.prototype = O.prototype; Object.setPrototypeOf(window.RTCPeerConnection, O); })();"""
+STATS = r"""(async () => { const out = {pcs: (window.__pcs||[]).length, video: [], audio: [], pair: null};
+  for (const pc of (window.__pcs||[])) { if (pc.connectionState === 'closed') continue;
+    const r = await pc.getStats();
+    r.forEach(s => {
+      if (s.type === 'inbound-rtp' && s.kind === 'video' && (s.framesDecoded||0) > 0) out.video.push({
+        w: s.frameWidth, h: s.frameHeight, fps: s.framesPerSecond, decoded: s.framesDecoded, dropped: s.framesDropped,
+        freezes: s.freezeCount, freeze_s: s.totalFreezesDuration, lost: s.packetsLost, rx: s.packetsReceived,
+        jitter: s.jitter, bytes: s.bytesReceived, codec: s.codecId, mid: s.mid});
+      if (s.type === 'inbound-rtp' && s.kind === 'audio' && (s.packetsReceived||0) > 0) out.audio.push({
+        lost: s.packetsLost, rx: s.packetsReceived, jitter: s.jitter, concealed: s.concealedSamples,
+        samples: s.totalSamplesReceived, concealment_events: s.concealmentEvents, level: s.audioLevel});
+      if (s.type === 'candidate-pair' && s.nominated && s.state === 'succeeded') out.pair = {rtt: s.currentRoundTripTime};
+    }); }
+  out.text = (document.body && document.body.innerText || '').slice(0, 400);
+  return JSON.stringify(out); })()"""
+
+
+class CDP:
+    def __init__(self, ws):
+        self.ws, self.n, self.waiting = ws, 0, {}
+        self.reader = asyncio.ensure_future(self._read())
+
+    async def _read(self):
+        async for raw in self.ws:
+            m = json.loads(raw)
+            f = self.waiting.pop(m.get("id"), None)
+            if f and not f.done():
+                f.set_result(m)
+
+    async def send(self, method, **params):
+        self.n += 1
+        f = asyncio.get_running_loop().create_future()
+        self.waiting[self.n] = f
+        await self.ws.send(json.dumps({"id": self.n, "method": method, "params": params}))
+        m = await asyncio.wait_for(f, 30)
+        if "error" in m:
+            raise RuntimeError(f"{method}: {m['error']}")
+        return m.get("result", {})
+
+    async def evaluate(self, expr):  # CDP Runtime.evaluate of our own constant JS (WRAP/STATS), not Python eval
+        r = await self.send("Runtime.evaluate", expression=expr, awaitPromise=True, returnByValue=True)
+        return (r.get("result") or {}).get("value")
+
+
+def launch(profile: Path, socks_port: int) -> tuple[subprocess.Popen, int]:
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("DBUS_SESSION_BUS_ADDRESS",) and k.lower() not in ("http_proxy", "https_proxy", "all_proxy")}
+    proc = subprocess.Popen([CHROME, "--headless=new", "--disable-gpu", "--no-first-run", "--mute-audio",
+                             "--no-default-browser-check", f"--proxy-server=socks5://127.0.0.1:{socks_port}",
+                             "--proxy-bypass-list=<-loopback>", "--disable-quic",
+                             "--force-webrtc-ip-handling-policy=disable_non_proxied_udp",
+                             "--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream",
+                             "--autoplay-policy=no-user-gesture-required", "--window-size=1280,720",
+                             # xreview 2026-11-08 (gpt-6.1-sol) #1: Chrome must never resolve names itself
+                             # (DNS prefetch would reach a loopback stub resolver); SOCKS5 resolves at the gate.
+                             "--host-resolver-rules=MAP * ~NOTFOUND , EXCLUDE 127.0.0.1",
+                             "--dns-prefetch-disable",
+                             "--password-store=basic", "--use-mock-keychain", "--disable-dev-shm-usage",
+                             "--remote-debugging-address=127.0.0.1", "--remote-debugging-port=0",
+                             f"--user-data-dir={profile}", "about:blank"],
+                            env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    pf = profile / "DevToolsActivePort"
+    for _ in range(150):
+        txt = pf.read_text().strip() if pf.exists() else ""
+        if txt and txt.split()[0].isdigit():
+            return proc, int(txt.split()[0])
+        time.sleep(0.1)
+    os.killpg(proc.pid, signal.SIGKILL)
+    raise RuntimeError("chrome did not open a DevTools port")
+
+
+def public_only(host: str, port: int) -> list[str]:
+    """Resolver for SocksGate: a call page needs the public internet only. xreview 2026-11-08 #2: the
+    shared gate allows RFC1918/ULA (gui-sweep needs LAN GUIs); here any non-global answer (RFC1918, ULA,
+    CGNAT/Tailscale, link-local, familiar's own LAN address) is reported as loopback, which the gate
+    refuses and records in .refusals."""
+    import ipaddress, socket
+    try:
+        ips = sorted({a[4][0] for a in socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)})
+    except OSError:
+        return []
+    for ip in ips:
+        a = ipaddress.ip_address(ip.split("%")[0])
+        if a.version == 6 and a.ipv4_mapped:
+            a = a.ipv4_mapped
+        if not a.is_global:
+            return ["127.0.0.1"]
+    return ips
+
+
+def summarise(samples: list[dict]) -> dict:
+    v = [s["video"][0] for s in samples if s.get("video")]
+    a = [s["audio"][0] for s in samples if s.get("audio")]
+    out = {"samples": len(samples), "with_video": len(v), "with_audio": len(a)}
+    if v:
+        fps = [x["fps"] for x in v if x.get("fps") is not None]
+        out["video"] = {"res_last": f'{v[-1].get("w")}x{v[-1].get("h")}',
+                        "res_seen": sorted({f'{x.get("w")}x{x.get("h")}' for x in v}),
+                        "fps_min": min(fps) if fps else None, "fps_avg": round(sum(fps) / len(fps), 1) if fps else None,
+                        "freezes": v[-1].get("freezes"), "freeze_s": v[-1].get("freeze_s"),
+                        "dropped": v[-1].get("dropped"), "lost": v[-1].get("lost"), "rx": v[-1].get("rx")}
+    if a:
+        conc, smp = a[-1].get("concealed") or 0, a[-1].get("samples") or 0
+        out["audio"] = {"lost": a[-1].get("lost"), "rx": a[-1].get("rx"), "concealed_pct": round(100 * conc / smp, 2) if smp else None,
+                        "concealment_events": a[-1].get("concealment_events"), "jitter_ms_last": round(1000 * (a[-1].get("jitter") or 0), 1)}
+    return out
+
+
+async def main(argv=None) -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("url"); ap.add_argument("--minutes", type=float, default=10); ap.add_argument("--interval", type=float, default=10)
+    ap.add_argument("--out"); ap.add_argument("--check", action="store_true")
+    a = ap.parse_args(argv)
+    import websockets
+    gate = await SocksGate(resolve=public_only).start()
+    profile = Path(tempfile.mkdtemp(prefix="call-probe-", dir=os.environ.get("XDG_RUNTIME_DIR") or None))
+    proc = None
+    samples: list[dict] = []
+    try:
+        proc, port = launch(profile, gate.port)
+        req = urllib.request.Request(f"http://127.0.0.1:{port}/json/new?about:blank", method="PUT")
+        with urllib.request.build_opener(urllib.request.ProxyHandler({})).open(req, timeout=10) as r:
+            target = json.loads(r.read())
+        async with websockets.connect(target["webSocketDebuggerUrl"], max_size=32 * 1024 * 1024) as ws:
+            c = CDP(ws)
+            await c.send("Page.enable")
+            await c.send("Page.addScriptToEvaluateOnNewDocument", source=WRAP)
+            await c.send("Page.navigate", url=a.url.split("#")[0] + HASH)
+            await asyncio.sleep(20)
+            first = json.loads(await c.evaluate(STATS) or "{}")
+            text = first.get("text", "")
+            needs_login = any(k in text.lower() for k in ("log-in", "log in", "sign in", "waiting for the host", "waiting for a moderator", "authentication"))
+            print(json.dumps({"t": time.strftime("%T"), "joined_pcs": first.get("pcs"), "needs_login_or_host": needs_login,
+                              "page_text": text[:200], "gate_refused": gate.refused[:5]}), flush=True)
+            if a.check:
+                return 0 if not needs_login else 1   # joined (alone is fine); a login/host wall is the failure
+            end = time.time() + a.minutes * 60
+            fh = open(a.out, "a") if a.out else None
+            while time.time() < end:
+                s = json.loads(await c.evaluate(STATS) or "{}")
+                s.pop("text", None); s["t"] = time.strftime("%T")
+                samples.append(s)
+                line = json.dumps(s)
+                print(line, flush=True)
+                if fh: fh.write(line + "\n"); fh.flush()
+                await asyncio.sleep(a.interval)
+            c.reader.cancel()
+    finally:
+        if proc:
+            try: os.killpg(proc.pid, signal.SIGTERM); proc.wait(5)
+            except Exception:
+                try: os.killpg(proc.pid, signal.SIGKILL)
+                except Exception: pass
+        await gate.close()
+        shutil.rmtree(profile, ignore_errors=True)
+    summ = summarise(samples)
+    print("SUMMARY " + json.dumps(summ), flush=True)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(asyncio.run(main()))
