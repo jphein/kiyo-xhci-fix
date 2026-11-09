@@ -1,0 +1,23 @@
+#!/bin/bash
+# igd-enable — after JP's "igd on": point GNOME's Brave launcher at brave-vaapi, only if igd-selfcheck
+# passes (the launcher check itself may still WARN: that is what this installs). Idempotent.
+# igd-disable undoes it. Neither restarts Brave: the flags apply at Brave's next start (JP's call; his
+# tabs come back with "Continue where you left off").
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+APPS="$HOME/.local/share/applications"; DESK="$APPS/brave-browser.desktop"; SRC=/usr/share/applications/brave-browser.desktop
+case "$(basename "$0")" in
+  igd-disable)
+    if [ -f "$DESK.bak-before-igd" ]; then mv -f "$DESK.bak-before-igd" "$DESK"; echo "restored the previous $DESK"
+    else rm -f "$DESK"; echo "removed $DESK (the system launcher applies again)"; fi
+    update-desktop-database "$APPS" 2>/dev/null || true; exit 0 ;;
+esac
+out=$("$HERE/igd-selfcheck" 2>&1) || { printf '%s\n' "$out"; echo "igd-enable: selfcheck FAILED — nothing changed"; exit 1; }
+printf '%s\n' "$out" | tail -1
+mkdir -p "$APPS"
+[ -f "$DESK" ] && ! grep -q brave-vaapi "$DESK" && cp -p "$DESK" "$DESK.bak-before-igd"
+sed "s|^Exec=/usr/bin/brave-browser-stable|Exec=$HERE/brave-vaapi|" "$SRC" > "$DESK.tmp"
+grep -q "Exec=$HERE/brave-vaapi" "$DESK.tmp" || { rm -f "$DESK.tmp"; echo "igd-enable: could not rewrite Exec= in $SRC"; exit 1; }
+mv -f "$DESK.tmp" "$DESK"
+update-desktop-database "$APPS" 2>/dev/null || true
+echo "installed $DESK → $HERE/brave-vaapi (takes effect at Brave's next start)"
