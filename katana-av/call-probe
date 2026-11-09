@@ -21,7 +21,7 @@ Usage: call-probe <room-url> [--minutes 10] [--interval 10] [--out FILE] [--chec
 """
 from __future__ import annotations
 
-import argparse, asyncio, json, os, shutil, signal, subprocess, sys, tempfile, time, urllib.request
+import argparse, asyncio, json, os, shutil, signal, socket, subprocess, sys, tempfile, time, urllib.request
 from pathlib import Path
 
 GATE_DIR = Path.home() / "Projects/realmwatch/plugins/gui-sweep"
@@ -35,6 +35,24 @@ HASH = ("#config.prejoinConfig.enabled=false&config.prejoinPageEnabled=false&con
 WRAP = r"""(() => { const O = window.RTCPeerConnection; if (!O || window.__pcs) return; window.__pcs = [];
   window.RTCPeerConnection = function(...a) { const pc = new O(...a); window.__pcs.push(pc); return pc; };
   window.RTCPeerConnection.prototype = O.prototype; Object.setPrototypeOf(window.RTCPeerConnection, O); })();"""
+# --hd: keep the target participant on stage at up to 1080p. Re-applied every sample on purpose: on 2026-11-09 a
+# one-shot setReceiverConstraints was overwritten by Jitsi's own tile-view constraints the moment another participant
+# joined (07:07:21: 1080p → 320x180 at this receiver while a second, pinned receiver got 1080p30 from the same sender).
+# App level (tile view off, pin, preferred 1080) + lib level (receiver constraints with the target on stage). The name
+# arrives as a JSON string literal, never as code.
+HD = r"""((want) => { try {
+  const s = APP.store, st = s.getState(), out = [];
+  if ((st['features/video-layout'] || {}).tileViewEnabled !== false) { s.dispatch({type: 'SET_TILE_VIEW', enabled: false}); out.push('tile-off'); }
+  s.dispatch({type: 'SET_PREFERRED_VIDEO_QUALITY', preferredVideoQuality: 1080});
+  const ps = (st['features/base/participants'] || {}).remote;
+  const t = ps ? [...ps.values()].find(p => p.name && p.name.toLowerCase().startsWith(want.toLowerCase())) : null;
+  if (!t) return 'hd: no participant named ' + want + '*';
+  if ((st['features/large-video'] || {}).participantId !== t.id) { s.dispatch({type: 'PIN_PARTICIPANT', participant: {id: t.id}}); out.push('pinned'); }
+  const src = t.id + '-v0';
+  APP.conference._room.setReceiverConstraints({lastN: -1, defaultConstraints: {maxHeight: 180},
+    constraints: {[src]: {maxHeight: 1080}}, onStageSources: [src], selectedSources: [src]});
+  return 'hd ' + t.name + (out.length ? ' (' + out.join(',') + ')' : '');
+} catch (e) { return 'hd-err ' + e.message; } })"""
 STATS = r"""(async () => { const out = {pcs: (window.__pcs||[]).length, video: [], audio: [], pair: null};
   for (const pc of (window.__pcs||[])) { if (pc.connectionState === 'closed') continue;
     const r = await pc.getStats();
@@ -147,7 +165,10 @@ async def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("url"); ap.add_argument("--minutes", type=float, default=10); ap.add_argument("--interval", type=float, default=10)
     ap.add_argument("--out"); ap.add_argument("--check", action="store_true")
+    ap.add_argument("--hd", nargs="?", const="JP", default=None, metavar="NAME",
+                    help="keep the participant whose name starts with NAME (default JP) on stage at up to 1080p, re-applied every sample")
     a = ap.parse_args(argv)
+    probe_id = f"{socket.gethostname()}:{os.getpid()}"   # two probes appending to one --out file stay apart (2026-11-09)
     import websockets
     gate = await SocksGate(resolve=public_only).start()
     profile = Path(tempfile.mkdtemp(prefix="call-probe-", dir=os.environ.get("XDG_RUNTIME_DIR") or None))
@@ -174,8 +195,12 @@ async def main(argv=None) -> int:
             end = time.time() + a.minutes * 60
             fh = open(a.out, "a") if a.out else None
             while time.time() < end:
+                if a.hd:
+                    hd_state = await c.evaluate(HD + "(" + json.dumps(a.hd) + ")")
                 s = json.loads(await c.evaluate(STATS) or "{}")
-                s["text"] = (s.get("text") or "")[:160].replace("\n", " | "); s["t"] = time.strftime("%T")
+                s["text"] = (s.get("text") or "")[:160].replace("\n", " | "); s["t"] = time.strftime("%T"); s["probe"] = probe_id
+                if a.hd:
+                    s["hd"] = hd_state
                 samples.append(s)
                 line = json.dumps(s)
                 print(line, flush=True)
