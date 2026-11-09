@@ -30,6 +30,15 @@ check("audio jitter 12 ms", s["audio"]["jitter_ms_last"] == 12.0)
 for h in ("localhost", "10.0.6.1", "100.100.100.100", "169.254.1.1", "fd00::1", "::ffff:127.0.0.1"):
     check(f"public_only refuses {h}", m.public_only(h, 443) == ["127.0.0.1"])
 check("public_only passes a public literal", m.public_only("1.1.1.1", 443) == ["1.1.1.1"])
+import argparse, json as _j
+src = open(sys.argv[1]).read()
+check("--hd defaults to JP, takes a name, absent = off", '"--hd", nargs="?", const="JP", default=None' in src)
+check("--hd re-applied every sample (inside the sample loop)", "if a.hd:\n                    hd_state = await c.evaluate(HD" in src)
+check("HD sets tile view off, pins, prefers 1080, and sets receiver constraints", all(k in m.HD for k in ("SET_TILE_VIEW", "PIN_PARTICIPANT", "SET_PREFERRED_VIDEO_QUALITY", "setReceiverConstraints", "onStageSources")))
+evil = 'JP"); fetch("http://127.0.0.1:8085/"); ("'
+call = m.HD + "(" + _j.dumps(evil) + ")"
+check("target name enters the page as one JSON string literal", call.endswith("(" + _j.dumps(evil) + ")") and _j.loads(call[len(m.HD) + 1:-1]) == evil)
+check("every sample is stamped with a probe id", 's["probe"] = probe_id' in src)
 check("empty series summarises without error", m.summarise([]) == {"samples": 0, "with_video": 0, "with_audio": 0})
 print(); print(f"fail={fail}"); sys.exit(1 if fail else 0)
 PY
