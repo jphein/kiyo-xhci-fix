@@ -53,9 +53,165 @@ HD = r"""((want) => { try {
     constraints: {[src]: {maxHeight: 1080}}, onStageSources: [src], selectedSources: [src]});
   return 'hd ' + t.name + (out.length ? ' (' + out.join(',') + ')' : '');
 } catch (e) { return 'hd-err ' + e.message; } })"""
+# --login / --admit (2026-11-09, meet.realm.watch: secure domain + lobby). Hardened after xreview (gpt-6.1-sol):
+# - credentials go ONLY to an allowlisted https origin, checked before the vault is read and again before typing;
+# - the dialog must exist and inputs are scoped to it; each credential is SET on the element's own handle by one
+#   Runtime.callFunctionOn that checks origin, field kind and dialog membership in the same synchronous task (xreview
+#   pass 2: separate check-then-type calls left navigation/focus races); it is a call argument, never JS source;
+# - helpers return fixed status codes and every page-derived output value is reduced to a fixed code;
+# - login runs omit page text from every output line (a page could echo a typed value back).
+# Residual risk (stated, not solved): the strings live in this process's memory and in Chrome until exit; "never
+# printed, logged or written" covers this program's outputs, not a privileged reader of process memory.
+LOGIN_ORIGINS = {"https://meet.realm.watch"}
+ORIGIN = r"""(() => location.origin)()"""
+OPEN_LOGIN = r"""(() => { const b = [...document.querySelectorAll('button,[role=button],a')].find(x =>
+  /i am the host|log[- ]?in|sign in/i.test((x.innerText || x.getAttribute('aria-label') || '').trim()));
+  if (!b) return 'no-host-button'; b.click(); return 'clicked'; })()"""
+DIALOG = r"""[...document.querySelectorAll('[role=dialog],.modal-dialog,[aria-modal=true]')].find(d =>
+  d.querySelector('input[type=password]'))"""
+FIELD = r"""((kind) => { const d = """ + DIALOG + r""";
+  if (!d) return null;
+  const vis = e => e && !e.disabled && e.offsetParent !== null;
+  const e = kind === 'password' ? d.querySelector('input[type=password]')
+                                : [...d.querySelectorAll('input')].find(i => ['text', 'email', ''].includes(i.type) && vis(i));
+  return vis(e) ? e : null; })"""
+# Runs ON the element handle (Runtime.callFunctionOn), in the document the handle came from, as ONE synchronous task:
+# origin, element kind and dialog membership are checked and the value is set without yielding to other tasks (a page
+# that redefines built-ins or installs synchronous setters on our own origin is out of scope: meet.realm.watch is ours).
+# A navigation destroys the handle, so the call fails instead of reaching a new page. The secret is an argument.
+SET_VALUE = r"""function (v, kind, origins) {
+  if (!origins.includes(location.origin)) return 'refused-origin';
+  if (!this.isConnected || !this.closest('[role=dialog],.modal-dialog,[aria-modal=true]')) return 'not-in-dialog';
+  if (kind === 'password' ? this.type !== 'password' : this.type === 'password') return 'wrong-field';
+  Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(this, v);
+  this.dispatchEvent(new Event('input', {bubbles: true}));
+  return 'ok'; }"""
+SUBMIT = r"""(() => { const d = """ + DIALOG + r""";
+  if (!d) return 'no-dialog';
+  const b = [...d.querySelectorAll('button,[role=button]')].find(x =>
+    /^(log[- ]?in|ok|sign in|submit)$/i.test((x.innerText || x.getAttribute('aria-label') || '').trim()));
+  if (!b) return 'no-submit'; b.click(); return 'submitted'; })()"""
+ROLE = r"""(() => { try { const l = APP.store.getState()['features/base/participants'].local || {}; return (l.role || '?') + (APP.conference._room && APP.conference._room.isModerator && APP.conference._room.isModerator() ? ' (isModerator)' : ''); } catch (e) { return 'role-err ' + e.message; } })()"""
+ADMIT = r"""((want) => { try {
+  const st = APP.store.getState()['features/lobby'] || {}; const k = st.knockingParticipants || [];
+  const go = k.filter(p => (p.name || '').toLowerCase().startsWith(want.toLowerCase()));
+  go.forEach(p => APP.conference._room.lobbyApproveAccess(p.id));
+  return go.length ? 'admitted ' + go.length : k.length + ' knocking';
+} catch (e) { return 'admit-err'; } })"""
+
+
+async def vault_get(field: str, item: str) -> str:
+    """One `bw get` into memory; async so a signal can cancel it (and the child is killed)."""
+    proc = await asyncio.create_subprocess_exec("bw", "get", field, item, stdout=asyncio.subprocess.PIPE,
+                                                stderr=asyncio.subprocess.DEVNULL)
+    try:
+        out, _ = await asyncio.wait_for(proc.communicate(), 60)
+    except BaseException:
+        if proc.returncode is None:
+            proc.kill()
+            try:
+                await asyncio.wait_for(asyncio.shield(proc.wait()), 5)
+            except BaseException:
+                pass
+        raise
+    if proc.returncode != 0:
+        raise SystemExit("call-probe: `bw get` failed (vault locked or item missing)")
+    return out.decode().rstrip("\n")
+
+
+async def vault_login(item: str) -> tuple[str, str]:
+    """(username, password) of a vault item, straight from `bw` into memory; never printed."""
+    u = (await vault_get("username", item)).strip()
+    p = await vault_get("password", item)
+    if not u or not p:
+        raise SystemExit(f"call-probe: vault item {item!r} has no username/password (is the vault unlocked?)")
+    return u, p
+
+
+async def host_login(c, item: str) -> str:
+    """Sign in as host. Returns a fixed status code; aborts (sets nothing) on any unexpected state."""
+    if await c.evaluate(ORIGIN) not in LOGIN_ORIGINS:
+        return "refused-origin"                       # before the vault is even read
+    if await c.evaluate(OPEN_LOGIN) != "clicked":
+        return "no-host-button"
+    await asyncio.sleep(3)
+    handles = {}
+    for kind in ("username", "password"):
+        r = await c.send("Runtime.evaluate", expression=FIELD + "(" + json.dumps(kind) + ")")
+        oid = (r.get("result") or {}).get("objectId")
+        if not oid:
+            return f"aborted-{kind}-no-field"
+        handles[kind] = oid
+    u, p = await vault_login(item)
+    try:
+        for kind, text in (("username", u), ("password", p)):
+            try:
+                r = await c.send("Runtime.callFunctionOn", objectId=handles[kind], functionDeclaration=SET_VALUE,
+                                 arguments=[{"value": text}, {"value": kind}, {"value": sorted(LOGIN_ORIGINS)}],
+                                 returnByValue=True)
+            except RuntimeError:
+                return f"aborted-{kind}-handle-gone"   # navigated: the handle died with its document
+            st = (r.get("result") or {}).get("value")
+            if st != "ok":
+                return f"aborted-{kind}-{st if st in ('refused-origin', 'not-in-dialog', 'wrong-field') else 'other'}"
+        return "submitted" if await c.evaluate(SUBMIT) == "submitted" else "no-submit"
+    finally:
+        u = p = None
+
+
+def code(kind: str, v) -> str:
+    """Page-derived values reach output only as fixed codes (a page could echo a typed value back)."""
+    v = v if isinstance(v, str) else ""
+    if kind == "role":
+        return "moderator" if v.startswith("moderator") else ("participant" if v.startswith(("participant", "none")) else "other")
+    if kind == "hd":
+        return "hd-on" if v.startswith("hd ") else ("hd-no-target" if v.startswith("hd: no participant") else "hd-other")
+    if kind == "admit":
+        import re as _re
+        if v == "admitted":
+            return "admitted"
+        m = _re.fullmatch(r"(admitted) ([0-9]{1,2})|([0-9]{1,2}) knocking", v, flags=_re.ASCII)
+        if not m:
+            return "admit-other"
+        return f"admitted {int(m.group(2))}" if m.group(1) else f"{int(m.group(3))} knocking"   # rebuilt, never echoed
+    return "other"
+
+
+_NUM = (int, float)
+_CAND = {"host", "srflx", "prflx", "relay"}
+_PROTO = {"udp", "tcp", "tls"}
+_VKEYS = ("w", "h", "fps", "decoded", "dropped", "freezes", "freeze_s", "lost", "rx", "jitter", "bytes")
+_AKEYS = ("lost", "rx", "jitter", "concealed", "samples", "concealment_events", "level")
+
+
+def _num(v):
+    return v if isinstance(v, _NUM) and not isinstance(v, bool) and 0 <= v < 1e13 else None
+
+
+def clean_stats(raw) -> dict:
+    """Rebuild a sample from an explicit schema: known keys, bounded numbers, enumerated candidate types. The page's
+    own object (it ran in the page's realm) is never serialized (xreview pass 3)."""
+    raw = raw if isinstance(raw, dict) else {}
+    lst = lambda x: x if isinstance(x, list) else []
+    enum = lambda x, ok: x if isinstance(x, str) and x in ok else None
+    out = {"pcs": _num(raw.get("pcs")) or 0, "video": [], "audio": [], "pair": None}
+    for v in lst(raw.get("video"))[:4]:
+        if isinstance(v, dict):
+            out["video"].append({k: _num(v.get(k)) for k in _VKEYS})
+    for a in lst(raw.get("audio"))[:4]:
+        if isinstance(a, dict):
+            out["audio"].append({k: _num(a.get(k)) for k in _AKEYS})
+    pr = raw.get("pair")
+    if isinstance(pr, dict):
+        out["pair"] = {"rtt": _num(pr.get("rtt")), "local": enum(pr.get("local"), _CAND), "remote": enum(pr.get("remote"), _CAND),
+                       "local_proto": enum(pr.get("local_proto"), _PROTO), "remote_proto": enum(pr.get("remote_proto"), _PROTO),
+                       "relay_proto": enum(pr.get("relay_proto"), _PROTO)}
+    return out
+
+
 STATS = r"""(async () => { const out = {pcs: (window.__pcs||[]).length, video: [], audio: [], pair: null};
   for (const pc of (window.__pcs||[])) { if (pc.connectionState === 'closed') continue;
-    const r = await pc.getStats();
+    const r = await pc.getStats(); const byId = {}; r.forEach(x => { byId[x.id] = x; });
     r.forEach(s => {
       if (s.type === 'inbound-rtp' && s.kind === 'video' && (s.framesDecoded||0) > 0) out.video.push({
         w: s.frameWidth, h: s.frameHeight, fps: s.framesPerSecond, decoded: s.framesDecoded, dropped: s.framesDropped,
@@ -64,7 +220,10 @@ STATS = r"""(async () => { const out = {pcs: (window.__pcs||[]).length, video: [
       if (s.type === 'inbound-rtp' && s.kind === 'audio' && (s.packetsReceived||0) > 0) out.audio.push({
         lost: s.packetsLost, rx: s.packetsReceived, jitter: s.jitter, concealed: s.concealedSamples,
         samples: s.totalSamplesReceived, concealment_events: s.concealmentEvents, level: s.audioLevel});
-      if (s.type === 'candidate-pair' && s.nominated && s.state === 'succeeded') out.pair = {rtt: s.currentRoundTripTime};
+      if (s.type === 'candidate-pair' && s.nominated && s.state === 'succeeded') {
+        const lc = byId[s.localCandidateId] || {}, rc = byId[s.remoteCandidateId] || {};
+        out.pair = {rtt: s.currentRoundTripTime, local: lc.candidateType, local_proto: lc.protocol,
+                    relay_proto: lc.relayProtocol, remote: rc.candidateType, remote_proto: rc.protocol}; }
     }); }
   out.text = (document.body && document.body.innerText || '').slice(0, 400);
   return JSON.stringify(out); })()"""
@@ -165,9 +324,25 @@ async def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("url"); ap.add_argument("--minutes", type=float, default=10); ap.add_argument("--interval", type=float, default=10)
     ap.add_argument("--out"); ap.add_argument("--check", action="store_true")
+    ap.add_argument("--login", metavar="VAULT_ITEM", help="sign in as the room's host with this vault item (secure-domain Jitsi)")
+    ap.add_argument("--admit", metavar="NAME", help="every sample, admit lobby knockers whose name starts with NAME "
+                    "(a convenience, not identity: a knocker can pick any name)")
     ap.add_argument("--hd", nargs="?", const="JP", default=None, metavar="NAME",
                     help="keep the participant whose name starts with NAME (default JP) on stage at up to 1080p, re-applied every sample")
     a = ap.parse_args(argv)
+    if a.admit is not None and not a.admit.strip():
+        ap.error("--admit needs a non-empty name prefix (an empty prefix would admit everyone; names are impersonable)")
+    # SIGTERM/SIGHUP (TaskStop, a closed tmux pane) cancel this task so the finally below still kills Chrome and removes the
+    # profile: without it a killed probe left headless Chromes sitting in the room as ghost participants (2026-11-09).
+    me, loop = asyncio.current_task(), asyncio.get_running_loop()
+    stopping = []
+
+    def on_signal():                                   # cancel once; later signals cannot interrupt the cleanup
+        if not stopping:
+            stopping.append(True)
+            me.cancel()
+    for sig in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
+        loop.add_signal_handler(sig, on_signal)
     probe_id = f"{socket.gethostname()}:{os.getpid()}"   # two probes appending to one --out file stay apart (2026-11-09)
     import websockets
     gate = await SocksGate(resolve=public_only).start()
@@ -185,22 +360,37 @@ async def main(argv=None) -> int:
             await c.send("Page.addScriptToEvaluateOnNewDocument", source=WRAP)
             await c.send("Page.navigate", url=a.url.split("#")[0] + HASH)
             await asyncio.sleep(20)
-            first = json.loads(await c.evaluate(STATS) or "{}")
-            text = first.get("text", "")
+            login_state = None
+            if a.login:
+                login_state = await host_login(c, a.login)
+                await asyncio.sleep(8)
+            first_raw = json.loads(await c.evaluate(STATS) or "{}")
+            first_raw = first_raw if isinstance(first_raw, dict) else {}
+            text = first_raw.get("text") if isinstance(first_raw.get("text"), str) else ""
+            first = clean_stats(first_raw)
             needs_login = any(k in text.lower() for k in ("log-in", "log in", "sign in", "waiting for the host", "waiting for a moderator", "authentication"))
+            shown = "[omitted: login run]" if a.login else text[:200]
             print(json.dumps({"t": time.strftime("%T"), "joined_pcs": first.get("pcs"), "needs_login_or_host": needs_login,
-                              "page_text": text[:200], "gate_refused": gate.refused[:5]}), flush=True)
+                              "page_text": shown, "gate_refused": gate.refused[:5], "login": login_state, "role": code("role", await c.evaluate(ROLE))}), flush=True)
             if a.check:
                 return 0 if not needs_login else 1   # joined (alone is fine); a login/host wall is the failure
             end = time.time() + a.minutes * 60
             fh = open(a.out, "a") if a.out else None
             while time.time() < end:
+                if a.admit:
+                    admit_state = await c.evaluate(ADMIT + "(" + json.dumps(a.admit) + ")")
                 if a.hd:
                     hd_state = await c.evaluate(HD + "(" + json.dumps(a.hd) + ")")
-                s = json.loads(await c.evaluate(STATS) or "{}")
-                s["text"] = (s.get("text") or "")[:160].replace("\n", " | "); s["t"] = time.strftime("%T"); s["probe"] = probe_id
+                raw = json.loads(await c.evaluate(STATS) or "{}")
+                raw = raw if isinstance(raw, dict) else {}
+                s = clean_stats(raw)
+                rt = raw.get("text") if isinstance(raw.get("text"), str) else ""
+                s["text"] = "[omitted: login run]" if a.login else rt[:160].replace("\n", " | ")
+                s["t"] = time.strftime("%T"); s["probe"] = probe_id
                 if a.hd:
-                    s["hd"] = hd_state
+                    s["hd"] = code("hd", hd_state)
+                if a.admit:
+                    s["admit"] = code("admit", admit_state)
                 samples.append(s)
                 line = json.dumps(s)
                 print(line, flush=True)
@@ -208,6 +398,9 @@ async def main(argv=None) -> int:
                 await asyncio.sleep(a.interval)
             c.reader.cancel()
     finally:
+        # A second signal during cleanup must not cancel the cleanup itself (xreview #4): ignore them from here.
+        for sig in (signal.SIGTERM, signal.SIGHUP, signal.SIGINT):
+            loop.add_signal_handler(sig, lambda: None)
         if proc:
             try: os.killpg(proc.pid, signal.SIGTERM); proc.wait(5)
             except Exception:
