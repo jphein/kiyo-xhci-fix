@@ -104,5 +104,12 @@ fx="$T/w8"; build "$fx"; echo alsa_input.usb-Razer_Inc_Razer_Kiyo_Pro-02.iec958-
 grep -q "^set-default-source 71$" "$fx/actions" && ok "default source restored" || bad "actions: $(cat "$fx/actions" 2>/dev/null)"
 [ "$(cat "$fx/meta.clock.force-rate")" = 48000 ] && ok "force-rate 48000" || bad "force-rate $(cat "$fx/meta.clock.force-rate")"
 
+echo "W9 sustained I/O pressure during a call → logged, never a desktop toast (2026-11-09 false alarm)"
+fx="$T/w9"; build "$fx"; outputs "$fx" "305 71 Zoom"
+printf 'some avg10=60.00 avg60=60.00 avg300=60.00 total=1\nfull avg10=55.00 avg60=55.00 avg300=55.00 total=1\n' > "$fx/psi"
+PSI_IO="$fx/psi" run_wd "$fx" 4
+grep -q "IO pressure full=55 during call" "$fx/state/log" && ok "pressure logged" || bad "pressure not logged: $(tail -3 "$fx/state/log")"
+grep -q "I/O pressure" "$fx/notify" 2>/dev/null && bad "toasted: $(cat "$fx/notify")" || ok "no toast"
+
 echo; echo "fail=$fail"
 [ "$fail" -eq 0 ]

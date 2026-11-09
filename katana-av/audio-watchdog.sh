@@ -13,6 +13,7 @@ export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 INTERVAL="${INTERVAL:-2}"; DRY="${DRY:-0}"
 LOGDIR="${AUDIO_WD_STATE:-$HOME/.local/state/audio-watchdog}"; mkdir -p "$LOGDIR"; LOG="$LOGDIR/log"
 LOG_MAX="${LOG_MAX:-5242880}"
+PSI_IO="${PSI_IO:-/proc/pressure/io}"   # tests point this at a fixture
 SCARLETT_PROFILE="HiFi (Line1, Line2, Mic1, Mic2)"
 WANT_RATE=48000; WANT_QUANTUM="${WANT_QUANTUM:-4096}"; MIC_PREF="${MIC_PREF:-scarlett}"  # kiyo|scarlett: the Scarlett 2i2 4th-gen capture stalled in 10–20 s stretches on kernel 7.0 (2026-10-31); its playback is fine
 CALL_APPS="${CALL_APPS:-ringrtc|brave|chrom|firefox|zoom|slack|teams|discord|linphone}"
@@ -78,7 +79,7 @@ pass(){
   if [ "$incall" = 1 ]; then
     local sinkq sinkr micb psi cpuwa sigcpu obscpu xr
     read -r sinkq sinkr micb < <(pwtop_last | awk '$1=="R" && $NF=="ringrtc" && $3+0>0 {q=$3; r=$4} $1=="R" && (index($NF,"Mic1__source") || index($NF,"Kiyo")) && !index($NF,".split") && !index($NF,"monitor") {b=$6} END{print q+0, r+0, b}')
-    psi=$(awk '/^full/{split($2,a,"="); print a[2]}' /proc/pressure/io 2>/dev/null)
+    psi=$(awk '/^full/{split($2,a,"="); print a[2]}' "$PSI_IO" 2>/dev/null)
     cpuwa=$(awk '/^cpu /{t=$2+$3+$4+$5+$6+$7+$8; print $6, t}' /proc/stat)
     sigcpu=$(ps -o pcpu= -C signal-desktop --sort=-pcpu 2>/dev/null | head -1 | tr -d ' ')
     obscpu=$(ps -o pcpu= -C obs 2>/dev/null | head -1 | tr -d ' ')
@@ -92,13 +93,16 @@ pass(){
   elif [ "$incall" = 0 ] && [ "$call_mode" = 1 ]; then
     act "call mode OFF: governor powersave" && { for c in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do echo powersave | sudo -n tee "$c" >/dev/null 2>&1; done; call_mode=0; }
   fi
-  # 7. I/O pressure from a terminal window (GPU wait) during a call: report, never kill
+  # 7. I/O pressure from a terminal window (GPU wait) during a call: LOG only, never kill, never toast.
+  #    2026-11-09: 8 of these during JP's test call (full 41-49 %, top = the Ghostty "Seneschal" window, io.stat empty =
+  #    GPU wait, no disk) while Mic 1 measured 0 dropouts / 0 xruns over 18 min: the toast told him his audio was at
+  #    risk when it was not. The log line stays for `why`.
   if [ "$incall" = 1 ]; then
-    local full; full=$(awk '/^full/{split($2,a,"="); print int(a[2])}' /proc/pressure/io 2>/dev/null)
+    local full; full=$(awk '/^full/{split($2,a,"="); print int(a[2])}' "$PSI_IO" 2>/dev/null)
     if (( ${full:-0} > 40 )); then psi_count=$((psi_count+1)); else psi_count=0; fi
     if (( psi_count == 3 )); then
       local hog; hog=$(for f in /sys/fs/cgroup/user.slice/user-*/user@*/app.slice/*/io.pressure; do printf '%s %s\n' "$(awk '/^some/{split($2,a,"="); print int(a[2])}' "$f")" "$(basename "$(dirname "$f")")"; done 2>/dev/null | sort -rn | head -1)
-      log "IO pressure full=$full during call; top cgroup: $hog"; toast "Call audio at risk: I/O pressure $full% from ${hog#* }. Minimise heavy terminal windows."
+      log "IO pressure full=$full during call; top cgroup: $hog (log only; no toast since 2026-11-09)"
     fi
   fi
 }
