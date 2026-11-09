@@ -1,0 +1,69 @@
+#!/bin/bash
+# igd-selfcheck — is katana's Intel iGPU (UHD 630 in the i7-9700K) ready to hardware-encode Brave's calls?
+#
+# Born 2026-11-09 (JP: "yes make sure we enable that intel on the next reboot"). katana's NVIDIA VA-API
+# driver is decode-only, so Brave encoded the 11-09 test call in software (66→82 % CPU, then the far end
+# fell to low layers). With the iGPU on (BIOS: IGD Multi-Monitor = Enabled, PEG stays primary) the iHD
+# VA-API driver gives H.264/VP8/VP9 encode. This measures every layer, PASS/FAIL/WARN, same shape as
+# kiyo-selfcheck / audio-selfcheck. Exit 0 = no FAIL, 1 = FAIL, 2 = usage.
+#
+# Overrides for tests: IGD_SYSFS, IGD_DEV (the /dev/dri root), and lspci/vainfo/dpkg-query via PATH.
+set -u
+SYS="${IGD_SYSFS:-/sys}"; DRI="${IGD_DEV:-/dev/dri}"
+PCI="0000:00:02.0"
+WRAPPER="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/brave-vaapi"
+case "${1:-}" in "") ;; -h|--help) echo "usage: igd-selfcheck"; exit 2 ;; *) echo "usage: igd-selfcheck" >&2; exit 2 ;; esac
+
+FAILS=0; WARNS=0; PASSES=0
+pass() { PASSES=$((PASSES+1)); printf 'PASS  %-20s %s\n' "$1" "$2"; }
+warn() { WARNS=$((WARNS+1));   printf 'WARN  %-20s %s\n' "$1" "$2"; }
+fail() { FAILS=$((FAILS+1));   printf 'FAIL  %-20s %s\n' "$1" "$2"; }
+
+echo "igd-selfcheck  host=$(hostname)  kernel=$(uname -r)  $(date '+%F %T %Z')"
+dev="$SYS/bus/pci/devices/$PCI"
+if [ ! -e "$dev" ]; then
+    fail "igd-present" "no PCI device at $PCI — the iGPU is off in the BIOS (IGD Multi-Monitor = Enabled, primary display stays PEG)"
+else
+    pass "igd-present" "$PCI $(cat "$dev/vendor" 2>/dev/null):$(cat "$dev/device" 2>/dev/null)"
+    drv=$(basename "$(readlink -f "$dev/driver" 2>/dev/null)" 2>/dev/null)
+    case "$drv" in
+        i915|xe) pass "igd-driver" "$drv bound" ;;
+        *) fail "igd-driver" "no i915/xe bound to $PCI (driver='${drv:-none}') — check: modprobe.d blacklist, nomodeset" ;;
+    esac
+    bv=$(cat "$dev/boot_vga" 2>/dev/null)
+    if [ "$bv" = 1 ]; then
+        fail "primary-gpu" "the iGPU is boot_vga: the BIOS made it the PRIMARY display — GNOME would render on Intel and copy to NVIDIA; set primary = PEG"
+    else
+        pass "primary-gpu" "NVIDIA stays boot_vga (iGPU boot_vga=${bv:-?})"
+    fi
+fi
+node=$(readlink -f "$DRI/by-path/pci-$PCI-render" 2>/dev/null)
+if [ -n "$node" ] && [ -e "$node" ]; then
+    pass "render-node" "$node"
+else
+    fail "render-node" "no $DRI/by-path/pci-$PCI-render"
+    node=""
+fi
+if dpkg-query -W -f='${Status}' intel-media-va-driver 2>/dev/null | grep -q "install ok installed"; then
+    pass "iHD-package" "intel-media-va-driver $(dpkg-query -W -f='${Version}\n' intel-media-va-driver 2>/dev/null | head -1)"
+else
+    fail "iHD-package" "intel-media-va-driver not installed"
+fi
+if [ -n "$node" ]; then
+    out=$(LIBVA_DRIVER_NAME=iHD vainfo --display drm --device "$node" 2>&1)
+    enc=$(printf '%s\n' "$out" | grep -E 'VAProfile(H264(Main|High|ConstrainedBaseline)|VP8Version0_3|VP9Profile0)[[:space:]]*:[[:space:]]*VAEntrypointEnc' \
+          | sed -E 's/^[[:space:]]*VAProfile([A-Za-z0-9_]+)[[:space:]]*:[[:space:]]*VAEntrypoint(Enc[A-Za-z]*).*/\1\/\2/' | sort -u | tr '\n' ' ')
+    if printf '%s' "$enc" | grep -q 'H264'; then
+        pass "va-encode" "iHD on $node: $enc"
+    else
+        fail "va-encode" "iHD on $node lists no H.264 encode entrypoint ($(printf '%s\n' "$out" | grep -m1 -E 'error|failed' || echo 'see vainfo'))"
+    fi
+fi
+if [ -x "$WRAPPER" ]; then pass "brave-wrapper" "$WRAPPER"; else warn "brave-wrapper" "$WRAPPER missing or not executable"; fi
+desk="$HOME/.local/share/applications/brave-browser.desktop"
+if grep -q "brave-vaapi" "$desk" 2>/dev/null; then pass "brave-launcher" "$desk → brave-vaapi"
+else warn "brave-launcher" "Brave still launches without the wrapper (igd-enable installs it after this check passes)"; fi
+
+echo
+if [ "$FAILS" -gt 0 ]; then echo "RESULT: FAIL ($FAILS failed, $WARNS warnings, $PASSES passed)"; exit 1; fi
+echo "RESULT: PASS ($PASSES passed, $WARNS warnings)"; exit 0

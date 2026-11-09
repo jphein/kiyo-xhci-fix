@@ -1,0 +1,22 @@
+#!/bin/bash
+# brave-vaapi — launch Brave with VA-API encode + decode on katana's Intel iGPU, for Brave only.
+#
+# Why a wrapper: Brave's launcher (/opt/brave.com/brave/brave-browser) passes only "$@" — it never reads
+# ~/.config/brave-flags.conf, so the decode flags there were never live (measured 2026-11-09: the main
+# process ran with no flags). The VA-API env (LIBVA_DRIVER_NAME=iHD) is set here only, so mpv, OBS and
+# everything else keep the NVIDIA defaults. If the Intel render node is missing (iGPU off in the BIOS),
+# Brave starts exactly as before: plain, no flags, no env.
+set -u
+PCI="0000:00:02.0"
+BRAVE="${BRAVE_BIN:-/usr/bin/brave-browser-stable}"
+LOG="${XDG_STATE_HOME:-$HOME/.local/state}/brave-vaapi.log"; mkdir -p "$(dirname "$LOG")"
+node=$(readlink -f "/dev/dri/by-path/pci-$PCI-render" 2>/dev/null)
+if [ -n "$node" ] && [ -e "$node" ]; then
+    printf '%s intel %s → VA-API on\n' "$(date '+%F %T')" "$node" >> "$LOG"
+    export LIBVA_DRIVER_NAME=iHD
+    exec "$BRAVE" --render-node-override="$node" --ignore-gpu-blocklist \
+        --enable-features=AcceleratedVideoEncoder,VaapiVideoEncoder,VaapiVideoDecoder,VaapiVideoDecodeLinuxGL,VaapiIgnoreDriverChecks \
+        "$@"
+fi
+printf '%s no Intel render node → plain Brave\n' "$(date '+%F %T')" >> "$LOG"
+exec "$BRAVE" "$@"
