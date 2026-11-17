@@ -159,6 +159,8 @@ class H(http.server.BaseHTTPRequestHandler):
     def log_message(self, *a): pass
     def do_POST(self):
         open(out, "a").write(self.path + "\n"); self.send_response(200); self.end_headers()
+    def do_GET(self):                       # a restarted Companion: every variable reads back EMPTY
+        self.send_response(200); self.end_headers(); self.wfile.write(b"")
 http.server.HTTPServer(("127.0.0.1", port), H).serve_forever()
 PYEOF
 CSRV=$!
@@ -171,6 +173,11 @@ grep -q "pad_mic/value?value=%3F" "$FX/companion" && ok "first push sends every 
 n0=$(wc -l < "$FX/companion")
 curl -s -o /dev/null -X POST "http://127.0.0.1:$PORT/do/none"; sleep 0.3
 [ "$(wc -l < "$FX/companion")" = "$n0" ] && ok "no change -> nothing re-sent" || bad "re-sent: $(cat $FX/companion)"
+kill $SRV; wait $SRV 2>/dev/null
+: > "$FX/companion"
+PATH="$SHIM:$PATH" FX="$FX" COMPANION_URL="http://127.0.0.1:$CPORT" OBS_MACRO_PAD_PUSH_S=0.2 OBS_MACRO_PAD_RESYNC_N=2 "$PAD" serve --bind "127.0.0.1:$PORT" --dry-run > "$FX/daemon" 2>&1 &
+SRV=$!; sleep 1.5
+[ "$(grep -c 'pad_mic/value' "$FX/companion")" -ge 3 ] && ok "a Companion whose variables read back empty is re-sent on the resync cycle" || bad "$(cat $FX/companion)"
 kill $CSRV; wait $CSRV 2>/dev/null
 kill $SRV; wait $SRV 2>/dev/null
 PATH="$SHIM:$PATH" FX="$FX" COMPANION_URL="http://127.0.0.1:$CPORT" OBS_MACRO_PAD_PUSH_S=0.2 "$PAD" serve --bind "127.0.0.1:$PORT" --dry-run > "$FX/daemon" 2>&1 &
