@@ -257,6 +257,13 @@ rate is the proof. A camera with no frames after the reopen gets `reset-camera.s
 (the reset restores the stored mode, HDR on). Refuses while a call reads the camera (`--force` overrides). Measured
 2026-11-17: fast 59 fps (358 distinct / 6 s), hdr 30 (170-179). `katana-av/kando-camera-menu` adds a Camera submenu
 (60 fps / HDR / Which mode?) to Kando, each button a notification with that line. Tests: `tests/test-camera-mode.sh`.
+`~/.local/bin/camera-mode` is a symlink: the script resolves it and finds `kiyo-hdr` and `../reset-camera.sh` next
+to the real file (until 2026-11-17 13:2x it looked in `~/.local/bin`, so every menu switch failed "kiyo-hdr off failed").
+A failed `kiyo-hdr` prints its own last error line.
+
+`katana-av/obs-vcam.service` (+ `obs-vcam-after-nvpoca.conf`, installed as its `10-after-nvpoca.conf` drop-in) is
+the OBS virtual-camera unit, vendored 2026-11-17. `Restart=on-failure`: quitting OBS stays quit, a crash restarts it.
+`install.sh` copies it and does not restart OBS (that would drop a call).
 
 `katana-av/call-probe <jitsi-room-url>` (runs on familiar) joins a Jitsi room as a second participant
 (fake camera, muted mic) through realmwatch's SocksGate and logs the inbound WebRTC stats of the

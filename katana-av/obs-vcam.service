@@ -1,0 +1,22 @@
+[Unit]
+Description=OBS Studio — always-on Razer Kiyo Pro virtual camera (Kiyo-Call collection)
+# The Kiyo firmware wedges on stream stop/reconfigure and takes the xHCI host with it.
+# OBS opens the camera once at login, streams forever, and republishes it as
+# /dev/video9 "OBS Virtual Camera" — apps never touch the real device.
+PartOf=graphical-session.target
+After=graphical-session.target pipewire.service wireplumber.service
+
+[Service]
+Type=simple
+ExecStartPre=/bin/sh -c 'for i in $(seq 1 30); do [ -e /dev/video9 ] && exit 0; sleep 1; done; exit 1'
+ExecStart=/usr/bin/obs --collection Kiyo-Call --profile Kiyo-Call --startvirtualcam --minimize-to-tray --disable-shutdown-check
+# on-failure, not always: quitting OBS (a clean exit) stays quit; a crash still restarts it, and camera-up starts it
+# (JP 2026-11-17 13:1x: "quitting OBS restarts it in 5 s").
+Restart=on-failure
+RestartSec=5
+# Never let a wedged OBS hold the camera open across a hang
+TimeoutStopSec=15
+KillMode=mixed
+
+[Install]
+WantedBy=graphical-session.target
