@@ -1,0 +1,17 @@
+[Unit]
+Description=OBS macro pad: grab the 10-key USB pad and run call-stack verbs (katana-av/obs-macro-pad)
+Documentation=file:///home/jp/Projects/kiyo-xhci-fix/docs/superpowers/specs/2026-11-17-obs-macro-pad.md
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+# Installed DISABLED by install.sh: the pad keeps typing into windows until JP approves the key map on his card.
+ExecStart=%h/Projects/kiyo-xhci-fix/katana-av/obs-macro-pad run
+Restart=on-failure
+RestartSec=3
+# The grab dies with the process: a stopped or crashed daemon never leaves the pad stuck.
+KillMode=process
+
+[Install]
+WantedBy=graphical-session.target

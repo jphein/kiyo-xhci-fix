@@ -19,6 +19,13 @@ ln -sfn "$HERE/av-selfcheck" "$HOME/.local/bin/av-selfcheck"
 ln -sfn "$HERE/camera-mode" "$HOME/.local/bin/camera-mode"
 ln -sfn "$HERE/camera-scene" "$HOME/.local/bin/camera-scene"
 ln -sfn "$HERE/camera-up" "$HOME/.local/bin/camera-up"
+# obs-macro-pad: unit + default map installed, NOT enabled (the pad keeps typing until JP approves the map on his card;
+# then `systemctl --user enable --now obs-macro-pad.service`). Needs evdev in the obsws venv:
+#   uv pip install --python ~/.venvs/obsws/bin/python evdev   (done 2026-11-17; the venv has no pip)
+ln -sfn "$HERE/obs-macro-pad" "$HOME/.local/bin/obs-macro-pad"
+cp "$HERE/obs-macro-pad.service" "$UNITDIR/"
+mkdir -p "$HOME/.config/obs-macro-pad"
+[ -e "$HOME/.config/obs-macro-pad/map.json" ] || cp "$HERE/obs-macro-pad.json" "$HOME/.config/obs-macro-pad/map.json"
 # nvpoca.service: copied, never restarted here (a restart reopens the Kiyo = the wedge trigger, and drops a call).
 # It runs ~/.local/opt/nvpoca with nvpoca-patches/0001+0002 applied (README). /dev/video12 needs v4l2loopback.conf in
 # /etc/modprobe.d (sudo, by hand) or `sudo v4l2loopback-ctl add -n "nvpoca Room" -x 1 -b 2 /dev/video12` live.
@@ -29,4 +36,4 @@ systemctl --user restart audio-watchdog.service
 systemctl --user enable --now audio-selfcheck.timer
 systemctl --user --no-pager --lines=0 status audio-watchdog.service | head -3
 systemctl --user list-timers audio-selfcheck.timer --no-pager
-echo "installed: audio-watchdog.service -> $HERE/audio-watchdog.sh; ~/.local/bin/{audio,av}-selfcheck, camera-mode; audio-selfcheck.timer; obs-vcam.service (not restarted)"
+echo "installed: audio-watchdog.service -> $HERE/audio-watchdog.sh; ~/.local/bin/{audio,av}-selfcheck, camera-mode, obs-macro-pad (unit installed, not enabled); audio-selfcheck.timer; obs-vcam.service (not restarted)"
