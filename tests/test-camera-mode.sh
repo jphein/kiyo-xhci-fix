@@ -146,5 +146,15 @@ FX_EN_BEFORE=false FX_EN_AFTER=true FX_FRAMES_AT=99 run "$T/m19b" hdr
 [ "$RC" = 3 ] && echo "$LOG" | grep -q "^busctl set Enabled false$" && ok "restored after no-frames exit" || bad "exit $RC: $LOG"
 [ "$(grep -c 'busctl set' "$T/m14/log")" = 1 ] && ok "success path sets it once (trap is idempotent)" || bad "m14 sets: $(grep -c 'busctl set' "$T/m14/log")"
 
+echo "M20 a fractional median is compared exactly: 49x3 50x3 -> 49.5 not fast; 19x3 20x3 -> 19.5 not hdr"
+FX_FPS_SEQ="49 49 49 50 50 50" run "$T/m20a" fast
+[ "$RC" = 1 ] && echo "$OUT" | grep -q "fast: 49.5 fps" && ok "49.5 -> not proven" || bad "exit $RC: $OUT"
+FX_FPS_SEQ="19 19 19 20 20 20" run "$T/m20b" hdr
+[ "$RC" = 1 ] && echo "$OUT" | grep -q "hdr: 19.5 fps" && ok "19.5 -> not proven" || bad "exit $RC: $OUT"
+FX_FPS_SEQ="35 35 35 36 36 36" run "$T/m20c" hdr
+[ "$RC" = 1 ] && echo "$OUT" | grep -q "hdr: 35.5 fps" && ok "35.5 -> above the HDR band" || bad "exit $RC: $OUT"
+FX_FPS_SEQ="49 49 49 50 50 50" FX_FRAMES_AT=0 run "$T/m20d" status
+echo "$OUT" | grep -q "49.5 fps .* = hdr (HDR on)" && ok "status 49.5 -> not fast" || bad "$OUT"
+
 [ "$fail" = 0 ] && echo "ok: camera-mode tests pass" || echo "FAILED: $fail"
 exit "$fail"

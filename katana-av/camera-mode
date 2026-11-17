@@ -90,7 +90,8 @@ rate() {           # median of nvpoca's per-second "fps=N" lines over the last S
     journalctl --user -u nvpoca --since "-${SECS}s" --no-pager -o cat 2>/dev/null \
         | sed -n 's/^fps= *\([0-9][0-9]*\) .*/\1/p' | sort -n \
         | awk '{a[NR]=$1} END {if (!NR) {print "0 0"; exit}
-               m = (NR % 2) ? a[(NR + 1) / 2] : (a[NR / 2] + a[NR / 2 + 1]) / 2; printf "%d %d\n", m + 0.5, NR}'
+               m2 = (NR % 2) ? 2 * a[(NR + 1) / 2] : a[NR / 2] + a[NR / 2 + 1]; print m2, NR}'
+    # prints TWICE the median (exact, an integer) and the sample count: no rounding before the thresholds
 }
 
 note=""
@@ -120,14 +121,15 @@ if [ "$mode" != status ]; then
     sleep 3        # let the rate settle past the first second
 fi
 
-read -r fps n <<< "$(rate)"
+read -r m2 n <<< "$(rate)"     # m2 = 2 x median fps, so a median of 49.5 is 99 and never passes ">= 50"
+fps=$((m2 / 2))$([ $((m2 % 2)) = 1 ] && echo .5)
 MIN_SAMPLES=4     # of the SECS per-second lines: one stale line must never prove a mode (a camera that stopped)
 case "$mode" in
-    fast) [ "$n" -ge "$MIN_SAMPLES" ] && [ "$fps" -ge 50 ] && rc=0 || rc=1; hdr="HDR off" ;;
-    hdr)  [ "$n" -ge "$MIN_SAMPLES" ] && [ "$fps" -ge 20 ] && [ "$fps" -le 35 ] && rc=0 || rc=1; hdr="HDR on" ;;
+    fast) [ "$n" -ge "$MIN_SAMPLES" ] && [ "$m2" -ge 100 ] && rc=0 || rc=1; hdr="HDR off" ;;
+    hdr)  [ "$n" -ge "$MIN_SAMPLES" ] && [ "$m2" -ge 40 ] && [ "$m2" -le 70 ] && rc=0 || rc=1; hdr="HDR on" ;;
     status) rc=0
         if [ "$n" -lt "$MIN_SAMPLES" ]; then hdr="no steady frames (only $n of ${SECS} samples)"; rc=1
-        elif [ "$fps" -ge 50 ]; then hdr="fast (HDR off)"; elif [ "$fps" -ge 20 ]; then hdr="hdr (HDR on)"; else hdr="no steady frames"; rc=1; fi ;;
+        elif [ "$m2" -ge 100 ]; then hdr="fast (HDR off)"; elif [ "$m2" -ge 40 ]; then hdr="hdr (HDR on)"; else hdr="no steady frames"; rc=1; fi ;;
 esac
 verdict=$([ "$rc" = 0 ] && echo proven || echo "NOT what the mode should give")
 if [ "$mode" = status ]; then
