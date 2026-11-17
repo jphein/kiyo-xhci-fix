@@ -1,0 +1,24 @@
+{
+  "_comment": "obs-macro-pad key map (spec docs/superpowers/specs/2026-11-17-obs-macro-pad.md §4). device = the by-id prefix of the one pad; keys = evdev key name -> verb. install.sh copies this to ~/.config/obs-macro-pad/map.json once; edit that copy.",
+  "device": "usb-Hailuck_Co._Ltd_USB_KEYBOARD_SN:0009",
+  "keys": {
+    "KEY_KP1": "scene plain",
+    "KEY_KP2": "scene brand",
+    "KEY_KP3": "none",
+    "KEY_KP4": "none",
+    "KEY_KP5": "mic toggle",
+    "KEY_KP6": "camera toggle",
+    "KEY_KP7": "record toggle",
+    "KEY_KP8": "stream toggle",
+    "KEY_KP9": "camera-mode toggle",
+    "KEY_KP0": "safe",
+    "KEY_KPDOT": "status",
+    "KEY_KPENTER": "none",
+    "KEY_KPPLUS": "none",
+    "KEY_KPMINUS": "none",
+    "KEY_KPASTERISK": "none",
+    "KEY_KPSLASH": "none",
+    "KEY_BACKSPACE": "none",
+    "KEY_NUMLOCK": "none"
+  }
+}

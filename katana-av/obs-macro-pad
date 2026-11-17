@@ -1,0 +1,379 @@
+#!/home/jp/.venvs/obsws/bin/python
+"""obs-macro-pad run|do <verb> [arg]|status|map — the 10-key USB pad drives the call stack (spec
+docs/superpowers/specs/2026-11-17-obs-macro-pad.md, JP 2026-11-17 11:2x).
+
+GNOME on Wayland delivers OBS global hotkeys only while OBS is focused, so a hotkey pad fails exactly in a meeting.
+This grabs the pad exclusively (EVIOCGRAB: it stops typing into windows) and runs each key's verb itself: the stack's
+own tools (`camera-scene`, `camera-mode`, `wpctl`) or an obs-websocket request. Rules from ha, the stack owner:
+every OBS WRITE and every nvpoca touch runs under `flock -n ~/.local/state/camera-stack.lock` and backs off when it
+is held; the program scene is never set here, only through `camera-scene brand|plain`.
+
+  run   [--device /dev/input/eventN …] [--dry-run]   the daemon: wait for the pad, grab every interface, dispatch
+  do    <verb> [arg] [--dry-run]                     one verb now (Companion, HA and tests call this)
+  status                                             one line: scene, mic, camera, record, mode (reads only)
+  map                                                the effective key map
+
+Verbs: scene plain|brand · mic toggle|mute|unmute · camera toggle|hide|show · record toggle · stream toggle ·
+camera-mode toggle|hdr|fast · safe · status · none.
+Map: ~/.config/obs-macro-pad/map.json (or $OBS_MACRO_PAD_MAP), else the vendored default next to this file.
+Exit (do): 0 done · 1 not as asked · 2 usage / unknown verb · 3 OBS not answering · 4 backed off (lock held).
+"""
+import argparse
+import fcntl
+import glob
+import json
+import os
+import pathlib
+import queue
+import selectors
+import subprocess
+import sys
+import threading
+import time
+
+HERE = pathlib.Path(os.path.realpath(__file__)).parent
+HOME = pathlib.Path.home()
+LOCK = pathlib.Path(os.environ.get("CAMERA_STACK_LOCK", HOME / ".local/state/camera-stack.lock"))
+STATE = pathlib.Path(os.environ.get("OBS_MACRO_PAD_STATE", HOME / ".local/state/obs-macro-pad.json"))
+MAP_FILE = pathlib.Path(os.environ.get("OBS_MACRO_PAD_MAP", HOME / ".config/obs-macro-pad/map.json"))
+DEFAULT_MAP = HERE / "obs-macro-pad.json"
+CAMERA_SOURCES = ("Kiyo Pro", "Room (raw camera)")   # the person and the room; hiding both = privacy, output keeps running
+VERBS = {"scene": ("plain", "brand"), "mic": ("toggle", "mute", "unmute"), "camera": ("toggle", "hide", "show"),
+         "record": ("toggle",), "stream": ("toggle",), "camera-mode": ("toggle", "hdr", "fast"),
+         "safe": (), "status": (), "none": ()}
+
+
+def log(msg):
+    print(msg, flush=True)
+
+
+def load_map():
+    path = MAP_FILE if MAP_FILE.exists() else DEFAULT_MAP
+    m = json.loads(path.read_text())
+    for key, verb in m.get("keys", {}).items():
+        parse_verb(verb)   # raises on an unknown verb: the map is checked before any grab
+    m["_path"] = str(path)
+    return m
+
+
+def parse_verb(verb):
+    parts = verb.split()
+    if not parts or parts[0] not in VERBS:
+        raise ValueError(f"unknown verb {verb!r}")
+    name, args = parts[0], parts[1:]
+    allowed = VERBS[name]
+    if allowed and (len(args) != 1 or args[0] not in allowed):
+        raise ValueError(f"verb {name!r} takes one of {allowed}, got {args}")
+    if not allowed and args:
+        raise ValueError(f"verb {name!r} takes no argument")
+    return name, (args[0] if args else None)
+
+
+class BackedOff(Exception):
+    pass
+
+
+class Lock:
+    """`flock -n` on the camera-stack lock: the same kernel lock ha takes with `flock -x` during its restart window."""
+    def __enter__(self):
+        LOCK.parent.mkdir(parents=True, exist_ok=True)
+        self.fd = os.open(LOCK, os.O_RDWR | os.O_CREAT, 0o644)
+        try:
+            fcntl.flock(self.fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            os.close(self.fd)
+            raise BackedOff("lock held")
+        return self
+
+    def __exit__(self, *_):
+        fcntl.flock(self.fd, fcntl.LOCK_UN)
+        os.close(self.fd)
+
+
+class Actions:
+    def __init__(self, dry_run=False):
+        self.dry_run = dry_run
+        self._cl = None
+
+    # -- helpers ------------------------------------------------------------------------------------------------
+    def obs(self):
+        if self._cl is None:
+            import obsws_python as obs
+            cfg = json.loads((HOME / ".config/obs-studio/plugin_config/obs-websocket/config.json").read_text())
+            self._cl = obs.ReqClient(host="127.0.0.1", port=cfg.get("server_port", 4455),
+                                     password=cfg.get("server_password", ""), timeout=5)
+        return self._cl
+
+    def sh(self, *argv, timeout=120):
+        if self.dry_run:
+            return 0, f"would run: {' '.join(argv)}"
+        p = subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
+        return p.returncode, (p.stdout + p.stderr).strip()
+
+    def state(self):
+        try:
+            return json.loads(STATE.read_text())
+        except (OSError, ValueError):
+            return {}
+
+    def save_state(self, **kw):
+        s = dict(self.state(), **kw)
+        STATE.parent.mkdir(parents=True, exist_ok=True)
+        tmp = STATE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(s))
+        os.replace(tmp, STATE)
+
+    # -- verbs --------------------------------------------------------------------------------------------------
+    def scene(self, which):
+        with Lock():
+            rc, out = self.sh("camera-scene", which)
+        return rc, out
+
+    def mic(self, how):
+        if how in ("toggle", "mute", "unmute"):
+            arg = {"toggle": "toggle", "mute": "1", "unmute": "0"}[how]
+            rc, out = self.sh("wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", arg)
+            if rc:
+                return rc, out
+        return 0, "mic " + ("muted" if self.mic_muted() else "live")
+
+    def mic_muted(self):
+        if self.dry_run:
+            return None
+        rc, out = self.sh("wpctl", "get-volume", "@DEFAULT_AUDIO_SOURCE@")
+        return "MUTED" in out
+
+    def camera(self, how):
+        if self.dry_run:
+            return 0, f"would {how} {CAMERA_SOURCES} in the program scene"
+        cl = self.obs()
+        with Lock():
+            scene = cl.get_current_program_scene().current_program_scene_name
+            items = [i for i in cl.get_scene_item_list(scene).scene_items if i["sourceName"] in CAMERA_SOURCES]
+            if not items:
+                return 1, f"no camera source in '{scene}'"
+            shown = any(i["sceneItemEnabled"] for i in items)
+            want = {"toggle": not shown, "hide": False, "show": True}[how]
+            for i in items:
+                cl.set_scene_item_enabled(scene, i["sceneItemId"], want)
+        return 0, f"camera {'shown' if want else 'hidden'} in '{scene}'"
+
+    def record(self, _):
+        if self.dry_run:
+            return 0, "would ToggleRecord"
+        with Lock():
+            active = self.obs().toggle_record().output_active
+        return 0, "recording" if active else "record stopped"
+
+    def stream(self, _):
+        if self.dry_run:
+            return 0, "would ToggleStream (if a stream service exists)"
+        cl = self.obs()
+        s = cl.get_stream_service_settings().stream_service_settings or {}
+        if not s.get("server") or not s.get("key"):
+            return 1, "no stream service configured; stream key does nothing"
+        with Lock():
+            active = cl.toggle_stream().output_active
+        return 0, "streaming" if active else "stream stopped"
+
+    def camera_mode(self, which):
+        if which == "toggle":
+            last = self.state().get("camera_mode")
+            if last not in ("hdr", "fast"):
+                rc, out = self.sh("camera-mode", "status")
+                last = "fast" if "camera-mode fast" in out else "hdr"
+            which = "hdr" if last == "fast" else "fast"
+        with Lock():
+            rc, out = self.sh("camera-mode", which, timeout=180)
+        if rc == 0 and not self.dry_run:
+            self.save_state(camera_mode=which)
+        return rc, out
+
+    def safe(self, _):
+        outs, worst = [], 0
+        for fn, arg in ((self.scene, "plain"), (self.camera, "show"), (self.mic, "unmute")):
+            try:
+                rc, out = fn(arg)
+            except BackedOff:
+                rc, out = 4, f"{fn.__name__}: backed off (lock held)"
+            worst = max(worst, rc)
+            outs.append(out)
+        return worst, " · ".join(outs)
+
+    def status(self, _):
+        if self.dry_run:
+            return 0, "would read status"
+        try:
+            cl = self.obs()
+            scene = cl.get_current_program_scene().current_program_scene_name
+            items = [i for i in cl.get_scene_item_list(scene).scene_items if i["sourceName"] in CAMERA_SOURCES]
+            cam = "shown" if any(i["sceneItemEnabled"] for i in items) else ("hidden" if items else "none")
+            rec = "on" if cl.get_record_status().output_active else "off"
+            vcam = "on" if cl.get_virtual_cam_status().output_active else "OFF"
+        except Exception as e:   # noqa: BLE001 — the status line names the failure instead of a traceback
+            return 3, f"OBS not answering ({type(e).__name__})"
+        mic = "muted" if self.mic_muted() else "live"
+        mode = self.state().get("camera_mode", "?")
+        return 0, f"scene '{scene}' · mic {mic} · camera {cam} · record {rec} · vcam {vcam} · camera-mode {mode}"
+
+    def none(self, _):
+        return 0, "unmapped"
+
+    def do(self, verb):
+        name, arg = parse_verb(verb)
+        fn = getattr(self, name.replace("-", "_"))
+        t0 = time.monotonic()
+        try:
+            rc, out = fn(arg)
+        except BackedOff:
+            rc, out = 4, "backed off (lock held)"
+        except Exception as e:   # noqa: BLE001 — one line per press, never a traceback in the journal
+            rc, out = 3, f"{type(e).__name__}: {e}"
+        return rc, out, int((time.monotonic() - t0) * 1000)
+
+
+# -- the pad ----------------------------------------------------------------------------------------------------
+def find_devices(prefix):
+    """Every event interface of the one pad, by its by-id serial prefix (never 'a keyboard')."""
+    return sorted(p for p in glob.glob(f"/dev/input/by-id/{prefix}*") if "event" in os.path.basename(p))
+
+
+class Pad:
+    def __init__(self, paths, keymap, actions):
+        import evdev
+        self.evdev, self.paths, self.keymap, self.actions = evdev, paths, keymap, actions
+        self.devs, self.sel = [], selectors.DefaultSelector()
+        self.q = queue.Queue(maxsize=1)
+        self.worker = threading.Thread(target=self._work, daemon=True)
+        self.worker.start()
+
+    def grab(self):
+        for p in self.paths:
+            d = self.evdev.InputDevice(p)
+            d.grab()
+            self.devs.append(d)
+            self.sel.register(d.fd, selectors.EVENT_READ, d)
+            log(f"grabbed {os.path.realpath(p)} ({d.name})")
+        self._led()
+
+    def release(self):
+        for d in self.devs:
+            try:
+                self.sel.unregister(d.fd)
+                d.ungrab()
+                d.close()
+            except OSError:
+                pass
+        self.devs = []
+
+    def _led(self):
+        muted = self.actions.mic_muted()
+        for d in self.devs:
+            try:
+                d.set_led(self.evdev.ecodes.LED_NUML, 1 if muted else 0)   # NumLock LED on = mic muted
+            except OSError:
+                pass
+
+    def _work(self):
+        while True:
+            key, verb = self.q.get()
+            rc, out, ms = self.actions.do(verb)
+            log(f"key={key} verb={verb!r} rc={rc} {ms}ms {out}")
+            if verb.split()[0] in ("mic", "safe"):
+                self._led()
+
+    def press(self, key):
+        verb = self.keymap.get(key)
+        if not verb or verb == "none":
+            log(f"key={key} unmapped")
+            return
+        try:
+            self.q.put_nowait((key, verb))
+        except queue.Full:
+            log(f"key={key} verb={verb!r} dropped (busy)")
+
+    def loop(self):
+        """Read until a device goes away (unplug); the caller re-waits for the pad."""
+        while True:
+            for sk, _ in self.sel.select(timeout=1.0):
+                d = sk.data
+                try:
+                    events = list(d.read())
+                except OSError:
+                    return
+                for e in events:
+                    if e.type == self.evdev.ecodes.EV_KEY and e.value == 1:   # key down only: no repeat, no release
+                        name = self.evdev.ecodes.KEY.get(e.code, str(e.code))
+                        if isinstance(name, list):
+                            name = name[0]
+                        self.press(name)
+
+
+def run(args, keymap, actions):
+    prefix = keymap.get("device", "")
+    waited = False
+    while True:
+        paths = list(args.device) if args.device else find_devices(prefix)
+        if not paths:
+            if not waited:
+                log(f"pad not plugged in (by-id {prefix}*); waiting")
+                waited = True
+            time.sleep(2)
+            continue
+        waited = False
+        pad = Pad(paths, keymap["keys"], actions)
+        try:
+            pad.grab()
+            pad.loop()
+        except OSError as e:
+            log(f"pad error ({type(e).__name__}: {e}); waiting for it")
+        finally:
+            pad.release()
+        log("pad gone; waiting")
+        time.sleep(2)
+
+
+def main(argv):
+    ap = argparse.ArgumentParser(prog="obs-macro-pad", add_help=False)
+    ap.add_argument("cmd", nargs="?", default="")
+    ap.add_argument("rest", nargs="*")
+    ap.add_argument("--device", action="append", default=[])
+    ap.add_argument("--dry-run", action="store_true")
+    a = ap.parse_args(argv[1:])
+    if a.cmd not in ("run", "do", "status", "map"):
+        print(__doc__.split("\n\n")[0], file=sys.stderr)
+        print("usage: obs-macro-pad run|do <verb> [arg]|status|map", file=sys.stderr)
+        return 2
+    try:
+        keymap = load_map()
+    except (OSError, ValueError) as e:
+        print(f"obs-macro-pad: bad map: {e}", file=sys.stderr)
+        return 2
+    actions = Actions(dry_run=a.dry_run)
+    if a.cmd == "map":
+        print(f"map {keymap['_path']} · device by-id {keymap.get('device')}*")
+        for k, v in keymap["keys"].items():
+            print(f"  {k:16s} {v}")
+        return 0
+    if a.cmd == "status":
+        rc, out, _ = actions.do("status")
+        print(f"obs-macro-pad: {out}")
+        return rc
+    if a.cmd == "do":
+        if not a.rest:
+            print("usage: obs-macro-pad do <verb> [arg]", file=sys.stderr)
+            return 2
+        try:
+            parse_verb(" ".join(a.rest))
+        except ValueError as e:
+            print(f"obs-macro-pad: {e}", file=sys.stderr)
+            return 2
+        rc, out, ms = actions.do(" ".join(a.rest))
+        print(f"obs-macro-pad: {out} ({ms}ms)")
+        return rc
+    run(a, keymap, actions)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
