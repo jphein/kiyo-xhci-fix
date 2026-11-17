@@ -28,8 +28,8 @@ RO = {"width", "height", "sourceWidth", "sourceHeight"}   # read-only transform 
 
 
 def client():
-    cfg = json.loads((pathlib.Path.home() / ".config/obs-studio/plugin_config/obs-websocket/config.json").read_text())
     try:
+        cfg = json.loads((pathlib.Path.home() / ".config/obs-studio/plugin_config/obs-websocket/config.json").read_text())
         return obs.ReqClient(host="127.0.0.1", port=cfg.get("server_port", 4455),
                              password=cfg.get("server_password", ""), timeout=5)
     except Exception as e:
@@ -49,7 +49,7 @@ def placeholder(w, h):
     BRAND_FILE.parent.mkdir(parents=True, exist_ok=True)
     tmp = BRAND_FILE.with_suffix(".tmp.png")
     subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-f", "lavfi",
-                    "-i", f"gradients=s={w}x{h}:c0=0x1d3557:c1=0x2a9d8f:x0=0:y0=0:x1={w}:y1={h}:speed=0",
+                    "-i", f"color=c=0x1d3557:s={w}x{h}",   # flat: gradients' speed=0 is out of range on FFmpeg 6.0
                     "-frames:v", "1", str(tmp)], check=True)
     os.replace(tmp, BRAND_FILE)
 

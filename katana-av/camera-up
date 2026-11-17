@@ -35,7 +35,7 @@ for i in $(seq 1 60); do "$OBSWS_PY" "$CTL" status >/dev/null 2>&1 && break; sle
 
 # 3. virtual camera on, background removed
 state=$("$OBSWS_PY" "$CTL" start) || fail "virtual cam" "OBS refused to start the virtual camera ($state)"
-"$HOME/.local/bin/bg-toggle" on >/dev/null 2>&1 || true
+"${BG_TOGGLE:-$HOME/.local/bin/bg-toggle}" on >/dev/null 2>&1 || fail "background" "bg-toggle on failed: the background is NOT removed"
 for i in $(seq 1 10); do grep -q . /sys/devices/virtual/video4linux/video9/format 2>/dev/null && break; sleep 1; done
 grep -q . /sys/devices/virtual/video4linux/video9/format 2>/dev/null || fail "no output" "OBS says the virtual cam is on but /dev/video9 has no writer"
 
