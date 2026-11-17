@@ -1,0 +1,19 @@
+[Unit]
+Description=nvpoca virtual camera — owns the Razer Kiyo Pro (opened once, never released), RVM matting on the 2080 Ti -> /dev/video11 "nvpoca Cam"
+Documentation=file://%h/.local/opt/nvpoca/README.md
+After=graphical-session.target
+Before=obs-vcam.service
+
+[Service]
+Type=dbus
+BusName=org.nvpoca.Daemon
+WorkingDirectory=%h/.local/opt/nvpoca
+ExecStartPre=/bin/sh -c 'for i in $(seq 1 30); do [ -e /dev/video0 ] && [ -e /dev/video11 ] && exit 0; sleep 1; done; exit 1'
+ExecStart=%h/.local/opt/nvpoca/.venv/bin/python -m nvpoca --input /dev/video0 --input-format yuyv --output /dev/video11 --size 1920x1080 --fps 60 --variant resnet50 --ratio 0.375 --mode green --blur 6 --always-on --room-output /dev/video12
+Restart=always
+RestartSec=5
+TimeoutStopSec=15
+KillMode=mixed
+
+[Install]
+WantedBy=default.target

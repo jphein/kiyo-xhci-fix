@@ -1,0 +1,158 @@
+diff --git a/nvpoca/__main__.py b/nvpoca/__main__.py
+index c537b98..b4e4775 100644
+--- a/nvpoca/__main__.py
++++ b/nvpoca/__main__.py
+@@ -4,6 +4,7 @@ the VRAM), and serves the settings over D-Bus (org.nvpoca.Daemon on the session
+ No torch/CUDA in this process, so it stays small while idle."""
+ 
+ import asyncio
++import contextlib
+ import json
+ import os
+ import select
+@@ -58,9 +59,11 @@ def watch_readers(out: Device, on_change) -> None:
+ 
+ 
+ class Supervisor:
+-    def __init__(self, args, worker_argv: list[str], settings: dict, out: Device, black: bytes):
++    def __init__(self, args, worker_argv: list[str], settings: dict, out: Device, black: bytes,
++                 room: Device | None = None):
+         self.args, self.worker_argv, self.settings = args, worker_argv, settings
+         self.out, self.out_fd, self.black = out, out.fileno(), black
++        self.room_fd = room.fileno() if room else None
+         self.worker = None
+         self.spawning = False
+         self.unload = None
+@@ -106,7 +109,9 @@ class Supervisor:
+         try:
+             self.worker = await asyncio.create_subprocess_exec(
+                 sys.executable, "-m", "nvpoca.worker", *self.worker_argv, "--out-fd", str(self.out_fd),
+-                stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, pass_fds=(self.out_fd,),
++                *(["--room-fd", str(self.room_fd)] if self.room_fd is not None else []),
++                stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
++                pass_fds=tuple(fd for fd in (self.out_fd, self.room_fd) if fd is not None),
+             )
+         finally:
+             self.spawning = False
+@@ -142,6 +147,8 @@ class Supervisor:
+                 self.unload = None
+         if not self.worker:
+             os.write(self.out_fd, self.black)  # don't leave a reader on the last processed frame
++            if self.room_fd is not None:
++                os.write(self.room_fd, self.black)
+             self.loaded = self.active = False
+             self.fps = self.latency = 0.0
+             self.changed("Loaded", "Active", "Fps", "Latency")
+@@ -278,11 +285,23 @@ def main():
+ 
+     w, h = args.width, args.height
+     black = bytes([16, 128]) * (w * h)  # YUYV black
+-    with Device(args.output) as out:
+-        out.set_format(BufferType.VIDEO_OUTPUT, w, h, "YUYV")
+-        out.set_fps(BufferType.VIDEO_OUTPUT, args.fps)
+-        os.write(out.fileno(), black)  # a frame up front so a new reader gets an image while the worker loads
+-        sup = Supervisor(args, sys.argv[1:], settings, out, black)
++    with contextlib.ExitStack() as stack:
++        out = stack.enter_context(Device(args.output))
++        room = None
++        if args.room_output:
++            try:  # optional: a missing room device must never take the camera down
++                room = stack.enter_context(Device(args.room_output))
++                room.set_format(BufferType.VIDEO_OUTPUT, w, h, "YUYV")
++            except OSError as e:
++                print(f"room output {args.room_output} unavailable ({e}); continuing without it", flush=True)
++                room = None
++        for dev in (out, room):
++            if dev is None:
++                continue
++            dev.set_format(BufferType.VIDEO_OUTPUT, w, h, "YUYV")
++            dev.set_fps(BufferType.VIDEO_OUTPUT, args.fps)
++            os.write(dev.fileno(), black)  # a frame up front so a new reader gets an image while the worker loads
++        sup = Supervisor(args, sys.argv[1:], settings, out, black, room)
+         try:
+             asyncio.run(serve(sup))
+         except KeyboardInterrupt:
+diff --git a/nvpoca/common.py b/nvpoca/common.py
+index 59655a4..b24da3d 100644
+--- a/nvpoca/common.py
++++ b/nvpoca/common.py
+@@ -26,6 +26,9 @@ def parser() -> argparse.ArgumentParser:
+     p.add_argument("--input-format", choices=["mjpg", "yuyv"], default="mjpg",
+                    help="camera pixel format: mjpg (USB webcam, nvJPEG decode) or yuyv (raw, e.g. a v4l2loopback fed by OBS)")
+     p.add_argument("--output", default="/dev/video10")
++    p.add_argument("--room-output", metavar="DEV",
++                   help="also write each camera frame UNPROCESSED (YUYV) to this v4l2loopback, so a compositor "
++                        "(OBS) can lay a translucent background over the real room under the matted person")
+     p.add_argument("--size", default="1920x1080")
+     p.add_argument("--fps", type=int, default=30)
+     p.add_argument("--always-on", action="store_true",
+diff --git a/nvpoca/worker.py b/nvpoca/worker.py
+index e102d9c..cb5f228 100644
+--- a/nvpoca/worker.py
++++ b/nvpoca/worker.py
+@@ -99,7 +99,19 @@ def write_frame(fd: int, frame) -> None:
+         raise OSError("short write to the loopback device")
+ 
+ 
+-def stream(args, ctl: Control, effect: Effect, out_buf: torch.Tensor, recent: deque | None) -> None:
++def write_room(args, raw, src, room_buf: torch.Tensor | None) -> None:
++    """--room-output: the camera frame before any effect. yuyv input is already the loopback format (bytes as
++    captured); mjpg input is converted from the decoded frame."""
++    if args.input_format == "yuyv":
++        if os.write(args.room_fd, raw) != len(raw):
++            raise OSError("short write to the room loopback device")
++    else:
++        room_buf.copy_(gpu.to_yuyv(src))
++        write_frame(args.room_fd, room_buf.numpy())
++
++
++def stream(args, ctl: Control, effect: Effect, out_buf: torch.Tensor, recent: deque | None,
++           room_buf: torch.Tensor | None = None) -> None:
+     with Device(args.input) as cam:
+         configure_camera(cam, args.width, args.height, args.fps, args.input_format.upper())
+         log(f"camera {args.input} open, {time.monotonic() - STARTED:.1f} s after worker start")
+@@ -135,6 +147,9 @@ def stream(args, ctl: Control, effect: Effect, out_buf: torch.Tensor, recent: de
+                     t = time.perf_counter()
+                     continue
+                 lap("decode")
++                if args.room_fd is not None:
++                    write_room(args, raw, src, room_buf)
++                    lap("room", sync=args.input_format != "yuyv")
+                 fgr, pha, _ = effect.matte(src)
+                 lap("infer")
+                 yuyv = gpu.to_yuyv(effect.compose(src, fgr, pha))
+@@ -163,6 +178,7 @@ def stream(args, ctl: Control, effect: Effect, out_buf: torch.Tensor, recent: de
+ def main():
+     p = parser()
+     p.add_argument("--out-fd", type=int, required=True)
++    p.add_argument("--room-fd", type=int)
+     args = finish_args(p, p.parse_args())
+     if args.mode == "passthrough":
+         args.mode = "blur"  # the supervisor switches modes at runtime; keep the model loaded
+@@ -176,6 +192,8 @@ def main():
+     out_buf = torch.empty(args.height, args.width * 2, dtype=torch.uint8, pin_memory=True)
+     black = torch.tensor([16, 128], dtype=torch.uint8).repeat(args.height, args.width).numpy()
+     recent = deque(maxlen=10 * args.fps) if args.record else None
++    room_buf = (torch.empty(args.height, args.width * 2, dtype=torch.uint8, pin_memory=True)
++                if args.room_fd is not None and args.input_format != "yuyv" else None)
+     log(f"worker ready in {time.monotonic() - STARTED:.1f} s")
+     send(ready=True)
+ 
+@@ -189,7 +207,7 @@ def main():
+                     continue
+             send(active=True)
+             try:
+-                stream(args, ctl, effect, out_buf, recent)
++                stream(args, ctl, effect, out_buf, recent, room_buf)
+             except OSError as e:
+                 if e.errno != errno.EBUSY:
+                     raise
+@@ -199,6 +217,8 @@ def main():
+             finally:
+                 effect.reset()
+                 write_frame(args.out_fd, black)
++                if args.room_fd is not None:
++                    write_frame(args.room_fd, black)
+                 send(active=False)
+                 log("camera closed")
+     finally:
