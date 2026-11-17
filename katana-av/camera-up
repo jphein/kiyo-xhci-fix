@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# camera-up — bring the call camera stack up (idempotent) and say what state it is in.
+# Stack: Razer Kiyo Pro (/dev/video0) -> nvpoca.service (RVM matting on the 2080 Ti, green matte)
+#        -> /dev/video11 "nvpoca Cam" -> OBS (Kiyo-Call, Chroma Key filter) -> /dev/video9 "OBS Virtual Camera",
+#        which is the device every call app picks.
+# Usage: camera-up [--no-notify] [--scene brand|plain]   Toggle the background afterwards with bg-toggle (Super+Shift+B).
+#   --scene brand   finish on OBS "Brand over room" (TechPorch brand, translucent, over the real room; camera-scene)
+#   --scene plain   finish on "Kiyo" (the default scene).  No --scene: the scene is left as it is.
+set -u
+NOTIFY=1; SCENE=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --no-notify) NOTIFY=0 ;;
+        --scene) case "${2:-}" in brand|plain) SCENE="$2"; shift ;; *) echo "usage: camera-up [--no-notify] [--scene brand|plain]" >&2; exit 2 ;; esac ;;
+        *) echo "usage: camera-up [--no-notify] [--scene brand|plain]" >&2; exit 2 ;;
+    esac
+    shift
+done
+case "$SCENE" in ""|brand|plain) ;; *) echo "usage: camera-up [--no-notify] [--scene brand|plain]" >&2; exit 2 ;; esac
+SCENE_TOOL="${SCENE_TOOL:-$HOME/.local/bin/camera-scene}"
+OBSWS_PY="$HOME/.venvs/obsws/bin/python"
+CTL="$HOME/.local/opt/obs-vcam-ctl.py"
+say()  { echo "$1: $2"; [ "$NOTIFY" = 1 ] && notify-send -a "Camera" -i camera-web "$1" "$2"; return 0; }
+fail() { say "Camera: $1" "$2"; exit 1; }
+
+# 1. nvpoca (matting daemon) must be writing /dev/video11
+systemctl --user is-active -q nvpoca.service || systemctl --user start nvpoca.service || fail "nvpoca failed" "journalctl --user -u nvpoca"
+for i in $(seq 1 30); do grep -q . /sys/devices/virtual/video4linux/video11/format 2>/dev/null && break; sleep 1; done
+grep -q . /sys/devices/virtual/video4linux/video11/format 2>/dev/null || fail "no matte" "nvpoca Cam (/dev/video11) has no writer"
+
+# 2. OBS: reuse a running instance, otherwise start the login service (which also starts the virtual cam)
+pgrep -x obs >/dev/null || systemctl --user start obs-vcam.service || fail "OBS failed" "journalctl --user -u obs-vcam"
+for i in $(seq 1 60); do "$OBSWS_PY" "$CTL" status >/dev/null 2>&1 && break; sleep 1; done
+"$OBSWS_PY" "$CTL" status >/dev/null 2>&1 || fail "OBS not answering" "obs-websocket on 127.0.0.1 did not come up in 60 s"
+
+# 3. virtual camera on, background removed
+state=$("$OBSWS_PY" "$CTL" start) || fail "virtual cam" "OBS refused to start the virtual camera ($state)"
+"$HOME/.local/bin/bg-toggle" on >/dev/null 2>&1 || true
+for i in $(seq 1 10); do grep -q . /sys/devices/virtual/video4linux/video9/format 2>/dev/null && break; sleep 1; done
+grep -q . /sys/devices/virtual/video4linux/video9/format 2>/dev/null || fail "no output" "OBS says the virtual cam is on but /dev/video9 has no writer"
+
+# 4. optional: the scene to finish on
+scene_note=""
+if [ -n "$SCENE" ]; then
+    line=$("$SCENE_TOOL" "$SCENE" 2>&1) || fail "scene" "${line:-camera-scene $SCENE failed}"
+    scene_note=" Scene: $([ "$SCENE" = brand ] && echo "Brand over room" || echo Kiyo)."
+fi
+
+fps=$(journalctl --user -u nvpoca.service -n 1 -o cat 2>/dev/null | sed -n 's/.*fps=\s*\([0-9]*\).*/\1/p')
+say "Camera ready" "OBS Virtual Camera (/dev/video9) live, background removed, matte ${fps:-?} fps. Super+Shift+B shows the room.${scene_note}"

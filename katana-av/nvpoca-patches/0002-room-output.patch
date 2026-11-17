@@ -1,0 +1,208 @@
+diff --git a/nvpoca/__main__.py b/nvpoca/__main__.py
+index c537b98..ca19e1f 100644
+--- a/nvpoca/__main__.py
++++ b/nvpoca/__main__.py
+@@ -4,6 +4,7 @@ the VRAM), and serves the settings over D-Bus (org.nvpoca.Daemon on the session
+ No torch/CUDA in this process, so it stays small while idle."""
+ 
+ import asyncio
++import contextlib
+ import json
+ import os
+ import select
+@@ -58,9 +59,11 @@ def watch_readers(out: Device, on_change) -> None:
+ 
+ 
+ class Supervisor:
+-    def __init__(self, args, worker_argv: list[str], settings: dict, out: Device, black: bytes):
++    def __init__(self, args, worker_argv: list[str], settings: dict, out: Device, black: bytes,
++                 room: Device | None = None):
+         self.args, self.worker_argv, self.settings = args, worker_argv, settings
+         self.out, self.out_fd, self.black = out, out.fileno(), black
++        self.room_fd = room.fileno() if room else None
+         self.worker = None
+         self.spawning = False
+         self.unload = None
+@@ -106,7 +109,9 @@ class Supervisor:
+         try:
+             self.worker = await asyncio.create_subprocess_exec(
+                 sys.executable, "-m", "nvpoca.worker", *self.worker_argv, "--out-fd", str(self.out_fd),
+-                stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, pass_fds=(self.out_fd,),
++                *(["--room-fd", str(self.room_fd)] if self.room_fd is not None else []),
++                stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
++                pass_fds=tuple(fd for fd in (self.out_fd, self.room_fd) if fd is not None),
+             )
+         finally:
+             self.spawning = False
+@@ -142,6 +147,11 @@ class Supervisor:
+                 self.unload = None
+         if not self.worker:
+             os.write(self.out_fd, self.black)  # don't leave a reader on the last processed frame
++            if self.room_fd is not None:
++                try:
++                    os.write(self.room_fd, self.black)
++                except OSError:
++                    pass  # optional output: best effort
+             self.loaded = self.active = False
+             self.fps = self.latency = 0.0
+             self.changed("Loaded", "Active", "Fps", "Latency")
+@@ -264,6 +274,30 @@ async def serve(sup: Supervisor) -> None:
+     await bus.wait_for_disconnect()
+ 
+ 
++def open_room(args, w: int, h: int, black: bytes) -> Device | None:
++    """--room-output is optional: ANY failure setting it up is logged and the daemon runs without it."""
++    room = None
++    try:
++        room = Device(args.room_output)
++        room.open()
++        os.set_blocking(room.fileno(), False)  # bounded: the first black write below must never wait on a reader
++        room.set_format(BufferType.VIDEO_OUTPUT, w, h, "YUYV")
++        try:
++            room.set_fps(BufferType.VIDEO_OUTPUT, args.fps)
++        except OSError:
++            pass  # rate is advisory on a loopback
++        os.write(room.fileno(), black)
++        return room
++    except Exception as e:  # noqa: BLE001: nothing about the optional output may stop the camera daemon
++        print(f"room output {args.room_output} unavailable ({e}); continuing without it", flush=True)
++        if room is not None:
++            try:
++                room.close()
++            except Exception:  # noqa: BLE001
++                pass
++        return None
++
++
+ def on_sigterm(*_):
+     raise KeyboardInterrupt  # systemd stop: same clean exit path as Ctrl+C
+ 
+@@ -278,11 +312,15 @@ def main():
+ 
+     w, h = args.width, args.height
+     black = bytes([16, 128]) * (w * h)  # YUYV black
+-    with Device(args.output) as out:
++    with contextlib.ExitStack() as stack:
++        out = stack.enter_context(Device(args.output))
+         out.set_format(BufferType.VIDEO_OUTPUT, w, h, "YUYV")
+         out.set_fps(BufferType.VIDEO_OUTPUT, args.fps)
+         os.write(out.fileno(), black)  # a frame up front so a new reader gets an image while the worker loads
+-        sup = Supervisor(args, sys.argv[1:], settings, out, black)
++        room = open_room(args, w, h, black) if args.room_output else None
++        if room is not None:
++            stack.callback(room.close)
++        sup = Supervisor(args, sys.argv[1:], settings, out, black, room)
+         try:
+             asyncio.run(serve(sup))
+         except KeyboardInterrupt:
+diff --git a/nvpoca/common.py b/nvpoca/common.py
+index 59655a4..b24da3d 100644
+--- a/nvpoca/common.py
++++ b/nvpoca/common.py
+@@ -26,6 +26,9 @@ def parser() -> argparse.ArgumentParser:
+     p.add_argument("--input-format", choices=["mjpg", "yuyv"], default="mjpg",
+                    help="camera pixel format: mjpg (USB webcam, nvJPEG decode) or yuyv (raw, e.g. a v4l2loopback fed by OBS)")
+     p.add_argument("--output", default="/dev/video10")
++    p.add_argument("--room-output", metavar="DEV",
++                   help="also write each camera frame UNPROCESSED (YUYV) to this v4l2loopback, so a compositor "
++                        "(OBS) can lay a translucent background over the real room under the matted person")
+     p.add_argument("--size", default="1920x1080")
+     p.add_argument("--fps", type=int, default=30)
+     p.add_argument("--always-on", action="store_true",
+diff --git a/nvpoca/worker.py b/nvpoca/worker.py
+index e102d9c..aafc4a6 100644
+--- a/nvpoca/worker.py
++++ b/nvpoca/worker.py
+@@ -99,7 +99,40 @@ def write_frame(fd: int, frame) -> None:
+         raise OSError("short write to the loopback device")
+ 
+ 
+-def stream(args, ctl: Control, effect: Effect, out_buf: torch.Tensor, recent: deque | None) -> None:
++def write_room(args, raw, src, room_buf: torch.Tensor | None) -> None:
++    """--room-output: the camera frame before any effect. yuyv input is already the loopback format (bytes as
++    captured); mjpg input is converted from the decoded frame. OPTIONAL output: it must never stop the stream (that
++    closes the camera, and the Kiyo wedges on reopen). The fd is non-blocking: a full loopback drops this room frame;
++    any other error logs once and turns the room output off for the life of this worker."""
++    if args.room_fd is None:
++        return
++    try:
++        if args.input_format == "yuyv":
++            data = raw
++        else:
++            room_buf.copy_(gpu.to_yuyv(src))
++            data = room_buf.numpy()
++        n = os.write(args.room_fd, data)
++        if n != len(memoryview(data).cast("B")):
++            raise OSError(f"short write ({n} bytes) to the room loopback device")
++    except BlockingIOError:
++        pass  # no room in the loopback right now: drop this room frame, never wait
++    except (OSError, RuntimeError) as e:
++        log(f"room output disabled: {e}")
++        args.room_fd = None
++
++
++def room_black(args, black) -> None:
++    if args.room_fd is None:
++        return
++    try:
++        os.write(args.room_fd, black)
++    except OSError:
++        pass  # best effort, like every room write
++
++
++def stream(args, ctl: Control, effect: Effect, out_buf: torch.Tensor, recent: deque | None,
++           room_buf: torch.Tensor | None = None) -> None:
+     with Device(args.input) as cam:
+         configure_camera(cam, args.width, args.height, args.fps, args.input_format.upper())
+         log(f"camera {args.input} open, {time.monotonic() - STARTED:.1f} s after worker start")
+@@ -135,6 +168,9 @@ def stream(args, ctl: Control, effect: Effect, out_buf: torch.Tensor, recent: de
+                     t = time.perf_counter()
+                     continue
+                 lap("decode")
++                if args.room_fd is not None:
++                    write_room(args, raw, src, room_buf)
++                    lap("room", sync=args.input_format != "yuyv" and args.room_fd is not None)
+                 fgr, pha, _ = effect.matte(src)
+                 lap("infer")
+                 yuyv = gpu.to_yuyv(effect.compose(src, fgr, pha))
+@@ -163,6 +199,7 @@ def stream(args, ctl: Control, effect: Effect, out_buf: torch.Tensor, recent: de
+ def main():
+     p = parser()
+     p.add_argument("--out-fd", type=int, required=True)
++    p.add_argument("--room-fd", type=int)
+     args = finish_args(p, p.parse_args())
+     if args.mode == "passthrough":
+         args.mode = "blur"  # the supervisor switches modes at runtime; keep the model loaded
+@@ -176,6 +213,15 @@ def main():
+     out_buf = torch.empty(args.height, args.width * 2, dtype=torch.uint8, pin_memory=True)
+     black = torch.tensor([16, 128], dtype=torch.uint8).repeat(args.height, args.width).numpy()
+     recent = deque(maxlen=10 * args.fps) if args.record else None
++    room_buf = None
++    if args.room_fd is not None:
++        try:  # optional output: a failure here turns it off, never the worker
++            os.set_blocking(args.room_fd, False)  # a stalled room reader must never hold the main feed
++            if args.input_format != "yuyv":
++                room_buf = torch.empty(args.height, args.width * 2, dtype=torch.uint8, pin_memory=True)
++        except (OSError, RuntimeError) as e:
++            log(f"room output disabled: {e}")
++            args.room_fd, room_buf = None, None
+     log(f"worker ready in {time.monotonic() - STARTED:.1f} s")
+     send(ready=True)
+ 
+@@ -189,7 +235,7 @@ def main():
+                     continue
+             send(active=True)
+             try:
+-                stream(args, ctl, effect, out_buf, recent)
++                stream(args, ctl, effect, out_buf, recent, room_buf)
+             except OSError as e:
+                 if e.errno != errno.EBUSY:
+                     raise
+@@ -199,6 +245,7 @@ def main():
+             finally:
+                 effect.reset()
+                 write_frame(args.out_fd, black)
++                room_black(args, black)
+                 send(active=False)
+                 log("camera closed")
+     finally:

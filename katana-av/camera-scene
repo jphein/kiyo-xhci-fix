@@ -1,0 +1,143 @@
+#!/home/jp/.venvs/obsws/bin/python
+"""camera-scene build|brand|plain|status — the "Brand over room" OBS scene (JP 2026-11-17 13:5x).
+
+JP wants the branded background SEMI-TRANSPARENT so the real room shows through. Zoom's virtual background can't blend
+(a transparent PNG shows black), so it is composited in OBS (Kiyo-Call collection), bottom to top:
+  1. "Room (raw camera)"  v4l2 /dev/video12 "nvpoca Room": nvpoca's --room-output, the camera frame before any matte
+  2. "Brand"              image ~/.local/share/camera-brand/brand.png, Color Correction filter "Opacity" at 0.55
+  3. "Kiyo Pro"           the existing matted person (nvpoca green matte + OBS chroma key), the same source as "Kiyo"
+Room and person take the person's transform from the "Kiyo" scene, so they line up exactly; the brand fills the canvas.
+
+  build   create or refresh the scene (idempotent; keeps a tuned opacity, never overwrites an existing brand.png,
+          writes a placeholder only when there is none). Never changes the program scene.
+  brand   program scene -> "Brand over room"     plain   program scene -> "Kiyo" (the default)
+  status  one line: program scene, room feed, opacity, brand file
+Swap the image: copy the new PNG over ~/.local/share/camera-brand/brand.png (OBS reloads a changed image file).
+Exit 0 ok · 1 not as asked · 2 usage · 3 OBS not answering.
+"""
+import json, os, pathlib, subprocess, sys, time
+
+import obsws_python as obs
+
+SCENE, PLAIN = "Brand over room", "Kiyo"
+ROOM, BRAND, PERSON = "Room (raw camera)", "Brand", "Kiyo Pro"
+ROOM_DEV = os.environ.get("ROOM_DEV", "/dev/video12")
+BRAND_FILE = pathlib.Path(os.environ.get("BRAND_FILE", pathlib.Path.home() / ".local/share/camera-brand/brand.png"))
+OPACITY, FILTER = 0.55, "Opacity"
+RO = {"width", "height", "sourceWidth", "sourceHeight"}   # read-only transform fields
+
+
+def client():
+    cfg = json.loads((pathlib.Path.home() / ".config/obs-studio/plugin_config/obs-websocket/config.json").read_text())
+    try:
+        return obs.ReqClient(host="127.0.0.1", port=cfg.get("server_port", 4455),
+                             password=cfg.get("server_password", ""), timeout=5)
+    except Exception as e:
+        print(f"camera-scene: OBS not answering ({type(e).__name__})", file=sys.stderr)
+        sys.exit(3)
+
+
+def item_id(cl, scene, source):
+    return cl.get_scene_item_id(scene, source).scene_item_id
+
+
+def has_item(cl, scene, source):
+    return any(i["sourceName"] == source for i in cl.get_scene_item_list(scene).scene_items)
+
+
+def placeholder(w, h):
+    BRAND_FILE.parent.mkdir(parents=True, exist_ok=True)
+    tmp = BRAND_FILE.with_suffix(".tmp.png")
+    subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-f", "lavfi",
+                    "-i", f"gradients=s={w}x{h}:c0=0x1d3557:c1=0x2a9d8f:x0=0:y0=0:x1={w}:y1={h}:speed=0",
+                    "-frames:v", "1", str(tmp)], check=True)
+    os.replace(tmp, BRAND_FILE)
+
+
+def build(cl):
+    v = cl.get_video_settings()
+    w, h = v.base_width, v.base_height
+    made = []
+    if not BRAND_FILE.exists():
+        placeholder(w, h)
+        made.append("placeholder brand.png")
+    if SCENE not in [s["sceneName"] for s in cl.get_scene_list().scenes]:
+        cl.create_scene(SCENE)
+        made.append("scene")
+    inputs = {i["inputName"] for i in cl.get_input_list().inputs}
+    room_settings = dict(cl.get_input_settings(PERSON).input_settings, device_id=ROOM_DEV)
+    if ROOM not in inputs:
+        cl.create_input(SCENE, ROOM, "v4l2_input", room_settings, True)
+        made.append("room source")
+    else:
+        cl.set_input_settings(ROOM, room_settings, True)
+        if not has_item(cl, SCENE, ROOM):
+            cl.create_scene_item(SCENE, ROOM, True)
+    if BRAND not in inputs:
+        cl.create_input(SCENE, BRAND, "image_source", {"file": str(BRAND_FILE)}, True)
+        made.append("brand source")
+    else:
+        cl.set_input_settings(BRAND, {"file": str(BRAND_FILE)}, True)
+        if not has_item(cl, SCENE, BRAND):
+            cl.create_scene_item(SCENE, BRAND, True)
+    if FILTER not in [f["filterName"] for f in cl.get_source_filter_list(BRAND).filters]:
+        cl.create_source_filter(BRAND, FILTER, "color_filter_v2", {"opacity": OPACITY})
+        made.append(f"opacity {OPACITY}")
+    if not has_item(cl, SCENE, PERSON):
+        cl.create_scene_item(SCENE, PERSON, True)
+    # transforms: room and person exactly where the person sits in the default scene; brand fills the canvas
+    t = cl.get_scene_item_transform(PLAIN, item_id(cl, PLAIN, PERSON)).scene_item_transform
+    t = {k: v for k, v in t.items() if k not in RO and not (k.startswith("bounds") and k != "boundsType"
+                                                            and t.get("boundsType") == "OBS_BOUNDS_NONE")}
+    for src in (ROOM, PERSON):
+        cl.set_scene_item_transform(SCENE, item_id(cl, SCENE, src), t)
+    cl.set_scene_item_transform(SCENE, item_id(cl, SCENE, BRAND), {
+        "positionX": 0, "positionY": 0, "alignment": 5, "rotation": 0,
+        "boundsType": "OBS_BOUNDS_STRETCH", "boundsWidth": w, "boundsHeight": h, "boundsAlignment": 0})
+    for idx, src in enumerate((ROOM, BRAND, PERSON)):   # 0 = bottom
+        cl.set_scene_item_index(SCENE, item_id(cl, SCENE, src), idx)
+    order = [i["sourceName"] for i in sorted(cl.get_scene_item_list(SCENE).scene_items, key=lambda i: i["sceneItemIndex"])]
+    print(f"camera-scene build: '{SCENE}' bottom->top {order}; made {', '.join(made) or 'nothing new'}; "
+          f"program scene unchanged ({cl.get_current_program_scene().current_program_scene_name})")
+    return 0 if order == [ROOM, BRAND, PERSON] else 1
+
+
+def status(cl):
+    prog = cl.get_current_program_scene().current_program_scene_name
+    op = None   # look the filter up in the lists first: obsws logs a traceback for every failed request
+    if BRAND in {i["inputName"] for i in cl.get_input_list().inputs} and \
+            FILTER in [f["filterName"] for f in cl.get_source_filter_list(BRAND).filters]:
+        op = cl.get_source_filter(BRAND, FILTER).filter_settings.get("opacity", OPACITY)
+    fmt = pathlib.Path(f"/sys/devices/virtual/video4linux/{os.path.basename(ROOM_DEV)}/format")
+    room = "fed" if fmt.exists() and fmt.read_text().strip() else "NO WRITER"
+    brand = BRAND_FILE.name + (f" {time.strftime('%m-%d %H:%M', time.localtime(BRAND_FILE.stat().st_mtime))}"
+                               if BRAND_FILE.exists() else " MISSING")
+    print(f"camera-scene: program '{prog}' · room {ROOM_DEV} {room} · brand opacity "
+          f"{'?' if op is None else f'{op:.2f}'} · {brand}")
+    return 0
+
+
+def switch(cl, target):
+    cl.set_current_program_scene(target)
+    time.sleep(0.3)
+    now = cl.get_current_program_scene().current_program_scene_name
+    print(f"camera-scene: program scene '{now}'" + ("" if now == target else f" (asked for '{target}')"))
+    return 0 if now == target else 1
+
+
+def main(argv):
+    verb = argv[1] if len(argv) > 1 else ""
+    if verb not in ("build", "brand", "plain", "status"):
+        print(__doc__.split("\n\n")[0], file=sys.stderr)
+        print("usage: camera-scene build|brand|plain|status", file=sys.stderr)
+        return 2
+    cl = client()
+    if verb == "build":
+        return build(cl)
+    if verb == "status":
+        return status(cl)
+    return switch(cl, SCENE if verb == "brand" else PLAIN)
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

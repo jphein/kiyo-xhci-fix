@@ -17,6 +17,12 @@ cp "$HERE/obs-vcam-after-nvpoca.conf" "$UNITDIR/obs-vcam.service.d/10-after-nvpo
 ln -sfn "$HERE/audio-selfcheck" "$HOME/.local/bin/audio-selfcheck"
 ln -sfn "$HERE/av-selfcheck" "$HOME/.local/bin/av-selfcheck"
 ln -sfn "$HERE/camera-mode" "$HOME/.local/bin/camera-mode"
+ln -sfn "$HERE/camera-scene" "$HOME/.local/bin/camera-scene"
+ln -sfn "$HERE/camera-up" "$HOME/.local/bin/camera-up"
+# nvpoca.service: copied, never restarted here (a restart reopens the Kiyo = the wedge trigger, and drops a call).
+# It runs ~/.local/opt/nvpoca with nvpoca-patches/0001+0002 applied (README). /dev/video12 needs v4l2loopback.conf in
+# /etc/modprobe.d (sudo, by hand) or `sudo v4l2loopback-ctl add -n "nvpoca Room" -x 1 -b 2 /dev/video12` live.
+cp "$HERE/nvpoca.service" "$UNITDIR/"
 systemctl --user daemon-reload
 systemctl --user enable audio-watchdog.service
 systemctl --user restart audio-watchdog.service

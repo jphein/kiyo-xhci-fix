@@ -265,6 +265,36 @@ A failed `kiyo-hdr` prints its own last error line.
 the OBS virtual-camera unit, vendored 2026-11-17. `Restart=on-failure`: quitting OBS stays quit, a crash restarts it.
 `install.sh` copies it and does not restart OBS (that would drop a call).
 
+**Brand over room** (JP 2026-11-17 13:5x): the TechPorch brand, translucent, over the real room, with JP matted on top.
+Zoom's virtual background cannot blend (a transparent PNG shows black), so the blend happens in OBS (Kiyo-Call),
+bottom to top: "Room (raw camera)" (v4l2 `/dev/video12` "nvpoca Room"), "Brand" (`~/.local/share/camera-brand/brand.png`
+with a Color Correction filter "Opacity", 0.55 to start; JP tunes it in OBS), "Kiyo Pro" (the matted person, the same
+source as the default "Kiyo" scene). Room and person carry the person's transform from "Kiyo", so they line up.
+- `katana-av/camera-scene build|brand|plain|status`: build/refresh the scene (idempotent; keeps a tuned opacity and an
+  existing brand.png; never changes the program scene), switch to it or back to "Kiyo", one status line. Swap the image
+  = copy a PNG over brand.png (OBS reloads a changed image file). luna's two versions are in
+  `~/Pictures/TechPorch-backgrounds/`: `techporch-obs-dark-field.png` (in use, for ~55%) and
+  `techporch-obs-transparent.png` (brand elements only; wants 80-100%).
+- Kando Camera submenu: "Brand over room" / "Plain background". `camera-up --scene brand|plain` finishes on that scene
+  (no `--scene`: the scene is left alone). The default stays "Kiyo" until JP picks.
+- The room feed is nvpoca's `--room-output /dev/video12` (`nvpoca-patches/0002-room-output.patch`): each camera frame
+  written unprocessed (YUYV input as captured; MJPG converted from the decoded frame), black when the worker stops. It
+  is OPTIONAL and can never stop the stream (a stop closes the Kiyo, and the Kiyo wedges on reopen): any setup failure
+  starts the daemon without it; the room fd is non-blocking, so a full loopback drops that room frame; any other write
+  error logs "room output disabled" once and the matting carries on with the camera open. `nvpoca-patches/0001` is the always-on + YUYV-input change
+  that ran on katana uncommitted until today. Apply both to upstream nvpoca e64aa2b in `~/.local/opt/nvpoca`
+  (`git apply 0001… 0002…`). `katana-av/nvpoca.service` is the unit (copied by install.sh, never restarted by it);
+  `katana-av/v4l2loopback.conf` is `/etc/modprobe.d/v4l2loopback.conf` with video12 (sudo cp by hand; live:
+  `sudo v4l2loopback-ctl add -n "nvpoca Room" -x 1 -b 2 /dev/video12`).
+- Tests: `tests/test-camera-scene.sh` (offline, fake obs-websocket in `tests/fixtures/obsws_fake`).
+  `nvpoca-patches/test-room-output.py` is the live GPU test (three spare loopbacks, a known 30-frame clip): `MODE=normal`: every room
+  frame must equal a clip frame byte for byte and no effect frame may; `MODE=fault` (room fd = a pipe with no
+  reader): the room turns off once, effect frames keep flowing, the camera opens once; `MODE=stall` (a frozen room
+  reader): the effect rate holds; `MODE=mjpg`: MJPG input, room converted, at rate and changing. `test-open-room.py`: the
+  supervisor room setup returns None for a missing or non-video device and a non-blocking fd for a real loopback. Feed it at 30 fps: at 60 a worker running at
+  ~57 fps lags and the 2-buffer input loopback tears its INPUT (`loopback-control.py` shows the loopback alone is clean
+  at 60 when the reader keeps up). The live Kiyo is a UVC device, not a loopback, so that overrun does not apply.
+
 `katana-av/call-probe <jitsi-room-url>` (runs on familiar) joins a Jitsi room as a second participant
 (fake camera, muted mic) through realmwatch's SocksGate and logs the inbound WebRTC stats of the
 other side every 10 s: resolution, fps, freezes, packet loss, audio concealment. Use a no-login

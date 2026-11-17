@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""kando-camera-menu — add (or refresh) a "Camera" submenu in Kando's first menu: 60 fps / HDR / which mode.
+"""kando-camera-menu — add (or refresh) a "Camera" submenu in Kando's first menu: 60 fps / HDR / which mode,
+and the OBS scene: Brand over room / Plain background (camera-scene brand|plain).
 
 Each button runs camera-mode and shows its one proof line as a desktop notification. Idempotent: an existing
 "Camera" submenu is replaced, nothing else is touched. Backs menus.json up next to itself first
@@ -9,10 +10,11 @@ import json, os, shutil, sys, time
 
 P = os.path.expanduser(os.environ.get("KANDO_MENUS", "~/.config/kando/menus.json"))
 CM = os.path.expanduser("~/.local/bin/camera-mode")
+CS = os.path.expanduser("~/.local/bin/camera-scene")
 
 
-def button(name, icon, key, arg):
-    cmd = f"bash -c 'notify-send -i camera-web \"Camera\" \"$({CM} {arg} 2>&1 | tail -1)\"'"
+def button(name, icon, key, arg, tool=CM):
+    cmd = f"bash -c 'notify-send -i camera-web \"Camera\" \"$({tool} {arg} 2>&1 | tail -1)\"'"
     return {"type": "button", "name": name, "icon": icon, "iconTheme": "material-symbols-rounded",
             "selectWorkflow": {"quickSelectKey": key, "actions": [
                 {"type": "close-menu"},
@@ -22,7 +24,9 @@ def button(name, icon, key, arg):
 SUB = {"type": "submenu", "name": "Camera", "icon": "videocam", "iconTheme": "material-symbols-rounded",
        "children": [button("60 fps (no HDR)", "speed", "F", "fast"),
                     button("HDR (30 fps)", "hdr_on", "H", "hdr"),
-                    button("Which mode?", "help", "S", "status")]}
+                    button("Which mode?", "help", "S", "status"),
+                    button("Brand over room", "wallpaper", "B", "brand", CS),
+                    button("Plain background", "person", "P", "plain", CS)]}
 
 
 def main() -> int:

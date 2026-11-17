@@ -1,0 +1,147 @@
+diff --git a/nvpoca/__main__.py b/nvpoca/__main__.py
+index aa80c8f..c537b98 100644
+--- a/nvpoca/__main__.py
++++ b/nvpoca/__main__.py
+@@ -93,11 +93,12 @@ class Supervisor:
+         """Bring the worker in line with the reader count; idempotent, so event order doesn't matter."""
+         if not self.worker:
+             return
+-        self.send(stream=bool(self.readers))
+-        if self.readers and self.unload:
++        wanted = bool(self.readers) or self.args.always_on
++        self.send(stream=wanted)
++        if wanted and self.unload:
+             self.unload.cancel()
+             self.unload = None
+-        elif not self.readers and not self.unload:
++        elif not wanted and not self.unload:
+             self.unload = asyncio.get_running_loop().call_later(self.args.unload_after, self.stop_worker)
+ 
+     async def start_worker(self) -> None:
+@@ -144,8 +145,10 @@ class Supervisor:
+             self.loaded = self.active = False
+             self.fps = self.latency = 0.0
+             self.changed("Loaded", "Active", "Fps", "Latency")
+-        if rc != 0 and self.readers:
++        if self.args.always_on or (rc != 0 and self.readers):
+             await asyncio.sleep(2)
++            if self.args.always_on and not self.worker and not self.spawning:
++                await self.start_worker()
+             await self.on_readers(self.readers)
+ 
+ 
+@@ -253,6 +256,9 @@ async def serve(sup: Supervisor) -> None:
+         args=(sup.out, lambda n: loop.call_soon_threadsafe(asyncio.ensure_future, sup.on_readers(n))),
+         daemon=True, name="readers",
+     ).start()
++    if sup.args.always_on:
++        await sup.start_worker()
++        sup.sync()
+     print(f"ready: {sup.args.output} {sup.args.width}x{sup.args.height} YUYV; "
+           f"GPU worker starts with the first reader, stops {sup.args.unload_after:g} s after the last", flush=True)
+     await bus.wait_for_disconnect()
+diff --git a/nvpoca/common.py b/nvpoca/common.py
+index 7aa62f4..59655a4 100644
+--- a/nvpoca/common.py
++++ b/nvpoca/common.py
+@@ -23,9 +23,14 @@ def parser() -> argparse.ArgumentParser:
+     p.add_argument("--blur", type=float, default=4, help="blur sigma in output pixels at 1080p (subtle 4, portrait ~5-10, heavy 16+)")
+     p.add_argument("--record", type=Path, metavar="CLIP", help="keep the last 10 s of raw camera MJPEG, write to CLIP on exit")
+     p.add_argument("--input", default="/dev/video0")
++    p.add_argument("--input-format", choices=["mjpg", "yuyv"], default="mjpg",
++                   help="camera pixel format: mjpg (USB webcam, nvJPEG decode) or yuyv (raw, e.g. a v4l2loopback fed by OBS)")
+     p.add_argument("--output", default="/dev/video10")
+     p.add_argument("--size", default="1920x1080")
+     p.add_argument("--fps", type=int, default=30)
++    p.add_argument("--always-on", action="store_true",
++                   help="open the camera at start and never release it, keep the GPU worker loaded with no readers "
++                        "(for a camera whose firmware wedges on stream stop; see obs-plugins/kiyo)")
+     p.add_argument("--unload-after", type=float, default=60, metavar="SECONDS",
+                    help="stop the GPU worker (frees VRAM) this long after the last app stopped reading (default 60)")
+     return p
+@@ -40,11 +45,14 @@ def finish_args(p: argparse.ArgumentParser, args: argparse.Namespace) -> argpars
+     return args
+ 
+ 
+-def configure_camera(cam: Device, w: int, h: int, fps: int) -> None:
+-    cam.set_format(BufferType.VIDEO_CAPTURE, w, h, "MJPG")
+-    cam.set_fps(BufferType.VIDEO_CAPTURE, fps)
++def configure_camera(cam: Device, w: int, h: int, fps: int, fourcc: str = "MJPG") -> None:
++    cam.set_format(BufferType.VIDEO_CAPTURE, w, h, fourcc)
++    try:
++        cam.set_fps(BufferType.VIDEO_CAPTURE, fps)
++    except OSError:
++        pass  # a loopback reader takes the writer's rate
+     if "exposure_dynamic_framerate" in cam.controls:
+         cam.controls.exposure_dynamic_framerate.value = False  # keep 30 fps in low light
+     fmt = cam.get_format(BufferType.VIDEO_CAPTURE)
+     if (fmt.width, fmt.height) != (w, h):
+-        raise SystemExit(f"camera refused {w}x{h} MJPG, got {fmt.width}x{fmt.height}")
++        raise SystemExit(f"camera refused {w}x{h} {fourcc}, got {fmt.width}x{fmt.height}")
+diff --git a/nvpoca/core.py b/nvpoca/core.py
+index fea7e9a..f408c80 100644
+--- a/nvpoca/core.py
++++ b/nvpoca/core.py
+@@ -13,6 +13,25 @@ from nvpoca.rvm.model import MattingNetwork
+ MODELS = Path(__file__).resolve().parent.parent / "models"
+ 
+ 
++def from_yuyv(data: torch.Tensor, h: int, w: int) -> torch.Tensor:
++    """Raw YUYV bytes (CPU uint8, BT.601 limited range) -> (1, 3, H, W) half on GPU; the inverse of gpu.to_yuyv."""
++    if data.numel() != h * w * 2:
++        raise RuntimeError(f"yuyv frame is {data.numel()} bytes, expected {h * w * 2}")
++    px = data.to(DEVICE, non_blocking=True).view(h, w // 2, 4).float()
++    y0, u, y1, v = px.unbind(-1)
++    y = torch.stack((y0, y1), dim=-1).flatten(-2)  # (h, w)
++    u = (u - 128).repeat_interleave(2, dim=-1) / 112
++    v = (v - 128).repeat_interleave(2, dim=-1) / 112
++    y = (y - 16) / 219
++    r = y + 0.701 * v
++    b = y + 0.886 * u
++    g = (y - 0.299 * r - 0.114 * b) / 0.587
++    return torch.stack((r, g, b))[None].clamp_(0, 1).half()
++
++
++DEVICE = "cuda"
++
++
+ def decode(data: torch.Tensor) -> torch.Tensor:
+     """MJPEG bytes (CPU uint8) -> (1, 3, H, W) half on GPU via nvJPEG. Raises RuntimeError on corrupt data."""
+     # torchvision's nvJPEG decoder runs on its own stream and can write into allocator blocks our
+diff --git a/nvpoca/worker.py b/nvpoca/worker.py
+index 364e017..e102d9c 100644
+--- a/nvpoca/worker.py
++++ b/nvpoca/worker.py
+@@ -30,7 +30,7 @@ from linuxpy.video.device import Device, VideoCapture
+ 
+ from nvpoca import gpu
+ from nvpoca.common import configure_camera, finish_args, parser
+-from nvpoca.core import Effect, decode, load_image
++from nvpoca.core import Effect, decode, from_yuyv, load_image
+ 
+ 
+ def send(**msg) -> None:
+@@ -101,7 +101,7 @@ def write_frame(fd: int, frame) -> None:
+ 
+ def stream(args, ctl: Control, effect: Effect, out_buf: torch.Tensor, recent: deque | None) -> None:
+     with Device(args.input) as cam:
+-        configure_camera(cam, args.width, args.height, args.fps)
++        configure_camera(cam, args.width, args.height, args.fps, args.input_format.upper())
+         log(f"camera {args.input} open, {time.monotonic() - STARTED:.1f} s after worker start")
+         stats, frames, dropped = defaultdict(float), 0, 0
+         report_at = time.monotonic() + 1
+@@ -124,8 +124,12 @@ def stream(args, ctl: Control, effect: Effect, out_buf: torch.Tensor, recent: de
+                 if recent is not None:
+                     recent.append(raw)
+                 try:
+-                    src = decode(torch.frombuffer(bytearray(raw), dtype=torch.uint8))  # JPEG upload happens inside
+-                except RuntimeError as e:  # corrupt MJPEG frames happen on USB hiccups
++                    buf = torch.frombuffer(bytearray(raw), dtype=torch.uint8)
++                    if args.input_format == "yuyv":
++                        src = from_yuyv(buf, args.height, args.width)
++                    else:
++                        src = decode(buf)  # JPEG upload happens inside
++                except RuntimeError as e:  # corrupt MJPEG frames on USB hiccups; short yuyv frames on a loopback
+                     log(f"skip frame: {e}")
+                     dropped += 1
+                     t = time.perf_counter()
