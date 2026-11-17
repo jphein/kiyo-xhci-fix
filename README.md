@@ -290,7 +290,8 @@ source as the default "Kiyo" scene). Room and person carry the person's transfor
   `nvpoca-patches/test-room-output.py` is the live GPU test (three spare loopbacks, a known 30-frame clip): `MODE=normal`: every room
   frame must equal a clip frame byte for byte and no effect frame may; `MODE=fault` (room fd = a pipe with no
   reader): the room turns off once, effect frames keep flowing, the camera opens once; `MODE=stall` (a frozen room
-  reader): the effect rate holds. Feed it at 30 fps: at 60 a worker running at
+  reader): the effect rate holds; `MODE=mjpg`: MJPG input, room converted, at rate and changing. `test-open-room.py`: the
+  supervisor room setup returns None for a missing or non-video device and a non-blocking fd for a real loopback. Feed it at 30 fps: at 60 a worker running at
   ~57 fps lags and the 2-buffer input loopback tears its INPUT (`loopback-control.py` shows the loopback alone is clean
   at 60 when the reader keeps up). The live Kiyo is a UVC device, not a loopback, so that overrun does not apply.
 

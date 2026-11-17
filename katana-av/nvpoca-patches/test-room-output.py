@@ -12,6 +12,8 @@ MODE=normal  every frame read from ROOM is one of the 30 clip frames byte for by
 MODE=fault   the room fd is a pipe whose reader is gone (EPIPE): the room output turns itself off with one log line,
              OUT keeps flowing, and the camera (IN) is opened exactly once (no stop/reopen = no Kiyo wedge)
 MODE=stall   a ROOM reader starts and is then frozen (SIGSTOP): OUT keeps its rate (>= 80 % of the feed)
+MODE=mjpg    MJPG input (live testsrc2, ffmpeg mjpeg into IN): ROOM is converted from the decoded frame, so it is
+             checked for rate and change (>= 80 % of the feed, every frame distinct-ish), not byte equality
 All modes: the worker exits 0 and opens the camera once. Exit 0 pass, 1 fail.
 usage (cwd = the patched nvpoca tree, nvpoca venv python): test-room-output.py [IN OUT ROOM]; CLIP=path to reuse a clip
 """
@@ -35,9 +37,13 @@ if not CLIP.exists() or CLIP.stat().st_size != N * FRAME:
 data = CLIP.read_bytes()
 clip_md5 = {hashlib.md5(data[i * FRAME:(i + 1) * FRAME]).hexdigest() for i in range(N)}
 
-feeder = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-re", "-stream_loop", "-1", "-f", "rawvideo",
-                           "-pix_fmt", "yuyv422", "-s", f"{W}x{H}", "-r", str(FEED), "-i", str(CLIP),
-                           "-f", "v4l2", "-pix_fmt", "yuyv422", IN], stdin=subprocess.DEVNULL)
+FMT = "mjpg" if MODE == "mjpg" else "yuyv"
+feeder = subprocess.Popen(
+    ["ffmpeg", "-loglevel", "error", "-re", "-f", "lavfi", "-i", f"testsrc2=s={W}x{H}:r={FEED}", "-c:v", "mjpeg",
+     "-q:v", "5", "-f", "v4l2", IN] if MODE == "mjpg" else
+    ["ffmpeg", "-loglevel", "error", "-re", "-stream_loop", "-1", "-f", "rawvideo", "-pix_fmt", "yuyv422",
+     "-s", f"{W}x{H}", "-r", str(FEED), "-i", str(CLIP), "-f", "v4l2", "-pix_fmt", "yuyv422", IN],
+    stdin=subprocess.DEVNULL)
 
 
 def hashes(dev, secs, into):
@@ -60,7 +66,7 @@ try:
             r, room_fd = os.pipe()
             os.close(r)   # nobody will ever read: every write gets EPIPE
         w = subprocess.Popen(
-            [sys.executable, "-m", "nvpoca.worker", "--input", IN, "--input-format", "yuyv", "--output", OUT,
+            [sys.executable, "-m", "nvpoca.worker", "--input", IN, "--input-format", FMT, "--output", OUT,
              "--room-output", ROOM, "--size", f"{W}x{H}", "--fps", str(FPS), "--variant", "resnet50",
              "--ratio", "0.375", "--mode", "blur", "--out-fd", str(out.fileno()), "--room-fd", str(room_fd)],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
@@ -79,7 +85,7 @@ try:
             time.sleep(1.5)
             stalled.send_signal(signal.SIGSTOP)
         time.sleep(2)
-        devs = (ROOM, OUT) if MODE == "normal" else (OUT,)
+        devs = (ROOM, OUT) if MODE in ("normal", "mjpg") else (OUT,)
         ts = [threading.Thread(target=hashes, args=(d, 4, got)) for d in devs]
         [t.start() for t in ts]
         [t.join() for t in ts]
@@ -102,6 +108,8 @@ fps_lines = [ln.strip() for ln in lines if ln.startswith("fps=")]
 print(f"MODE={MODE} feed {FEED} fps · effect frames in 4 s {len(ef)} · camera opens {opens} · worker exit {w.returncode}")
 print("worker:", fps_lines[-1] if fps_lines else "(no fps line)")
 ok = w.returncode == 0 and opens == 1 and len(ef) >= 0.8 * 4 * FEED and not set(ef) & clip_md5
+if MODE == "mjpg":
+    ok = ok and not set(ef) & set(got.get(ROOM, []))   # the effect is not the room
 if MODE == "normal":
     in_clip = sum(h in clip_md5 for h in rm)
     print(f"room frames that are clip frames byte for byte: {in_clip}/{len(rm)} ({len(set(rm))} distinct)")
@@ -109,6 +117,9 @@ if MODE == "normal":
 elif MODE == "fault":
     print("room:", disabled[:1] or "(never disabled)")
     ok = ok and len(disabled) == 1
+elif MODE == "mjpg":
+    print(f"room frames {len(rm)} ({len(set(rm))} distinct) from MJPG input")
+    ok = ok and len(rm) >= 0.8 * 4 * FEED and len(set(rm)) >= 0.8 * len(rm) and not disabled
 elif MODE == "stall":
     print("room disabled lines:", len(disabled))
     ok = ok and not disabled
