@@ -50,6 +50,17 @@ removal() {       # nvpoca's Enabled (background removal): true / false / "" (da
     busctl --user get-property "${NV[@]}" Enabled 2>/dev/null | awk '{print $2}'
 }
 
+was=""; restored=0
+restore_removal() {   # put nvpoca's Enabled back to what it was before the restart; idempotent, never fails the run
+    [ -n "$was" ] && [ "$restored" = 0 ] || return 0
+    local now i
+    for ((i = 0; i < 10; i++)); do now=$(removal); [ -n "$now" ] && break; sleep 1; done   # D-Bus comes up after a start
+    if [ -n "$now" ] && [ "$now" != "$was" ]; then
+        busctl --user set-property "${NV[@]}" Enabled b "$was" && restored=1
+    fi
+    return 0
+}
+
 frames_since() {   # nvpoca logs "fps=N" each second once frames flow
     journalctl --user -u nvpoca --since "@$1" --no-pager -o cat 2>/dev/null | grep -c "fps=[1-9]"
 }
@@ -77,7 +88,9 @@ rate() {           # median of nvpoca's per-second "fps=N" lines over the last S
     # (HDR on 30, off 59-60). Not a read of /dev/video11: while OBS streams it a second reader gets EBUSY (14:56).
     sleep "$SECS"
     journalctl --user -u nvpoca --since "-${SECS}s" --no-pager -o cat 2>/dev/null \
-        | sed -n 's/^fps= *\([0-9][0-9]*\) .*/\1/p' | sort -n | awk '{a[NR]=$1} END {print (NR ? a[int((NR + 1) / 2)] : 0) " " NR}'
+        | sed -n 's/^fps= *\([0-9][0-9]*\) .*/\1/p' | sort -n \
+        | awk '{a[NR]=$1} END {if (!NR) {print "0 0"; exit}
+               m = (NR % 2) ? a[(NR + 1) / 2] : (a[NR / 2] + a[NR / 2 + 1]) / 2; printf "%d %d\n", m + 0.5, NR}'
 }
 
 note=""
@@ -89,6 +102,7 @@ if [ "$mode" != status ]; then
     fi
     want=$([ "$mode" = fast ] && echo off || echo on)
     was=$(removal)   # a restart brings nvpoca up with removal ON; JP may have it off (14:56: ~20 s on green)
+    trap restore_removal EXIT   # every exit after the restart, failures included (M8, M12)
     apply "$want"
     if ! wait_frames "$t0"; then
         # the stop+reconfigure wedge: soft reset (back to the STORED mode, HDR on), then re-apply
@@ -102,19 +116,18 @@ if [ "$mode" != status ]; then
         fi
         note=" · recovered from a wedge with a soft reset"
     fi
-    now=$(removal)
-    if [ -n "$was" ] && [ -n "$now" ] && [ "$now" != "$was" ]; then
-        busctl --user set-property "${NV[@]}" Enabled b "$was" && note="$note · background removal kept $([ "$was" = true ] && echo on || echo off)"
-    fi
+    restore_removal && [ "$restored" = 1 ] && note="$note · background removal kept $([ "$was" = true ] && echo on || echo off)"
     sleep 3        # let the rate settle past the first second
 fi
 
 read -r fps n <<< "$(rate)"
+MIN_SAMPLES=4     # of the SECS per-second lines: one stale line must never prove a mode (a camera that stopped)
 case "$mode" in
-    fast) [ "$fps" -ge 50 ] && rc=0 || rc=1; hdr="HDR off" ;;
-    hdr)  [ "$fps" -ge 20 ] && [ "$fps" -le 35 ] && rc=0 || rc=1; hdr="HDR on" ;;
+    fast) [ "$n" -ge "$MIN_SAMPLES" ] && [ "$fps" -ge 50 ] && rc=0 || rc=1; hdr="HDR off" ;;
+    hdr)  [ "$n" -ge "$MIN_SAMPLES" ] && [ "$fps" -ge 20 ] && [ "$fps" -le 35 ] && rc=0 || rc=1; hdr="HDR on" ;;
     status) rc=0
-        if [ "$fps" -ge 50 ]; then hdr="fast (HDR off)"; elif [ "$fps" -ge 20 ]; then hdr="hdr (HDR on)"; else hdr="no steady frames"; rc=1; fi ;;
+        if [ "$n" -lt "$MIN_SAMPLES" ]; then hdr="no steady frames (only $n of ${SECS} samples)"; rc=1
+        elif [ "$fps" -ge 50 ]; then hdr="fast (HDR off)"; elif [ "$fps" -ge 20 ]; then hdr="hdr (HDR on)"; else hdr="no steady frames"; rc=1; fi ;;
 esac
 verdict=$([ "$rc" = 0 ] && echo proven || echo "NOT what the mode should give")
 if [ "$mode" = status ]; then

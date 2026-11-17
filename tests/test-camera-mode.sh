@@ -16,7 +16,7 @@ SHIM="$T/shim"; mkdir -p "$SHIM"
 printf '#!/bin/bash\necho "systemctl $*" >> "$FX/log"\n[ "$2" = start ] && echo x >> "$FX/starts"\nexit 0\n' > "$SHIM/systemctl"
 # journalctl: frames flow once the number of starts reaches FX_FRAMES_AT (default 1)
 # journalctl: once the number of starts reaches FX_FRAMES_AT (default 1), six per-second lines at FX_FPS (default 59)
-printf '#!/bin/bash\nn=$(wc -l < "$FX/starts" 2>/dev/null || echo 0)\n[ "$n" -ge "${FX_FRAMES_AT:-1}" ] && for i in 1 2 3 4 5 6; do echo "fps=${FX_FPS:-59} drop=0 ms: capture=5"; done\nexit 0\n' > "$SHIM/journalctl"
+printf '#!/bin/bash\nn=$(wc -l < "$FX/starts" 2>/dev/null || echo 0)\n[ "$n" -ge "${FX_FRAMES_AT:-1}" ] && for v in ${FX_FPS_SEQ:-$(for i in $(seq 1 ${FX_LINES:-6}); do echo ${FX_FPS:-59}; done)}; do echo "fps=$v drop=0 ms: capture=5"; done\nexit 0\n' > "$SHIM/journalctl"
 printf '#!/bin/bash\n[ -f "$FX/holder" ] && printf " %%s" $(cat "$FX/holder")\nexit 0\n' > "$SHIM/fuser"
 printf '#!/bin/bash\nif [ "${4:-}" = "${FX_CALL_PID:-none}" ]; then echo "chrome --type=renderer"; elif [ "${4:-}" = "${FX_OBS_PID:-none}" ]; then echo "/usr/bin/obs --collection Kiyo-Call --startvirtualcam"; else echo "python -m nvpoca --input /dev/video0"; fi\n' > "$SHIM/ps"
 # busctl: Enabled reads FX_EN_BEFORE until the first start, then FX_EN_AFTER (a restart resets it); set-property logged
@@ -24,7 +24,7 @@ printf '#!/bin/bash\nif [ "$2" = get-property ]; then n=$(wc -l < "$FX/starts" 2
 # ffmpeg must not be needed any more (the proof is nvpoca's rate): a call to it fails the run loudly
 printf '#!/bin/bash\necho "ffmpeg called" >> "$FX/log"\nexit 1\n' > "$SHIM/ffmpeg"
 printf '#!/bin/bash\nexit 0\n' > "$SHIM/sleep"
-printf '#!/bin/bash\necho "kiyo-hdr $*" >> "$FX/log"\nexit 0\n' > "$T/kiyo-hdr"
+printf '#!/bin/bash\necho "kiyo-hdr $*" >> "$FX/log"\n[ -n "${KIYO_HDR_FAIL:-}" ] && { echo "OSError: [Errno 5] Input/output error" >&2; exit 1; }\nexit 0\n' > "$T/kiyo-hdr"
 printf '#!/bin/bash\necho "reset" >> "$FX/log"\nexit 0\n' > "$T/reset"
 chmod +x "$SHIM"/* "$T/kiyo-hdr" "$T/reset"
 
@@ -124,6 +124,27 @@ FX_EN_AFTER=true run "$T/m15b" fast
 
 echo "M16 the proof never reads a video node (ffmpeg not called), status included"
 for m in m1 m2 m9 m13 m14; do grep -q "ffmpeg called" "$T/$m/log" && bad "$m called ffmpeg"; done; ok "no ffmpeg reads"
+
+echo "M17 too few fresh samples never prove a mode: 0, 1 and 3 lines (a camera that stopped mid-window) -> exit 1"
+for k in 1 3; do   # 0 lines in fast/hdr = no frames at all: the wedge path (M8), exit 3
+    FX_LINES=$k run "$T/m17-$k" fast
+    [ "$RC" = 1 ] && echo "$OUT" | grep -q "median of $k s" && ok "$k samples -> not proven" || bad "$k samples: exit $RC: $OUT"
+done
+for k in 0 1; do
+    FX_LINES=$k FX_FRAMES_AT=0 run "$T/m17s-$k" status
+    [ "$RC" = 1 ] && echo "$OUT" | grep -q "only $k of 6 samples" && ok "status with $k samples -> no steady frames" || bad "$OUT"
+done
+
+echo "M18 true median on an even count: 49 49 49 51 51 51 -> 50 (fast threshold 50 -> proven)"
+FX_FPS_SEQ="49 49 49 51 51 51" run "$T/m18" fast
+[ "$RC" = 0 ] && echo "$OUT" | grep -q "fast: 50 fps" && ok "median 50" || bad "exit $RC: $OUT"
+
+echo "M19 removal restored on FAILURE exits after the restart too (kiyo-hdr fails; no frames after the reset)"
+FX_EN_BEFORE=false FX_EN_AFTER=true KIYO_HDR_FAIL=1 run "$T/m19a" fast
+[ "$RC" = 3 ] && echo "$LOG" | grep -q "^busctl set Enabled false$" && ok "restored after kiyo-hdr failure" || bad "exit $RC: $LOG"
+FX_EN_BEFORE=false FX_EN_AFTER=true FX_FRAMES_AT=99 run "$T/m19b" hdr
+[ "$RC" = 3 ] && echo "$LOG" | grep -q "^busctl set Enabled false$" && ok "restored after no-frames exit" || bad "exit $RC: $LOG"
+[ "$(grep -c 'busctl set' "$T/m14/log")" = 1 ] && ok "success path sets it once (trap is idempotent)" || bad "m14 sets: $(grep -c 'busctl set' "$T/m14/log")"
 
 [ "$fail" = 0 ] && echo "ok: camera-mode tests pass" || echo "FAILED: $fail"
 exit "$fail"
