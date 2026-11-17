@@ -77,6 +77,9 @@ for args in "--scene" "--scene fancy" "--bogus"; do
     [ "$RC" = 2 ] && echo "$OUT" | grep -q "usage: camera-up" && ok "'$args' -> 2" || bad "'$args' -> $RC: $OUT"
 done
 
+OUT=$(bash "$ROOT/katana-av/camera-up" --scene "" 2>&1); RC=$?
+[ "$RC" = 2 ] && ok "--scene \"\" -> 2 (an empty value is not \"no scene\")" || bad "empty scene -> $RC: $OUT"
+
 echo "S8 kando-camera-menu: Camera submenu gets the two scene buttons, other menus untouched"
 echo '{"menus": [{"root": {"name": "Main", "children": [{"type": "button", "name": "Other"}]}}]}' > "$T/menus.json"
 KANDO_MENUS="$T/menus.json" python3 "$ROOT/katana-av/kando-camera-menu" >/dev/null || bad "kando run"

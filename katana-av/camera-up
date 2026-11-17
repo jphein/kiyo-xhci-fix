@@ -11,7 +11,7 @@ NOTIFY=1; SCENE=""
 while [ $# -gt 0 ]; do
     case "$1" in
         --no-notify) NOTIFY=0 ;;
-        --scene) [ $# -ge 2 ] || { echo "usage: camera-up [--no-notify] [--scene brand|plain]" >&2; exit 2; }; SCENE="$2"; shift ;;
+        --scene) case "${2:-}" in brand|plain) SCENE="$2"; shift ;; *) echo "usage: camera-up [--no-notify] [--scene brand|plain]" >&2; exit 2 ;; esac ;;
         *) echo "usage: camera-up [--no-notify] [--scene brand|plain]" >&2; exit 2 ;;
     esac
     shift
