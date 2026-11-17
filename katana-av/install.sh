@@ -9,8 +9,8 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 UNITDIR="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 mkdir -p "$UNITDIR" "$HOME/.local/bin"
 cp "$HERE/audio-watchdog.service" "$HERE/audio-selfcheck.service" "$HERE/audio-selfcheck.timer" "$UNITDIR/"
-# obs-vcam: the unit + its after-nvpoca drop-in. Not restarted here (that would drop a call); daemon-reload applies it
-# at the next start.
+# obs-vcam: the unit + its after-nvpoca drop-in. Not restarted here (that would drop a call). daemon-reload applies the
+# new Restart= policy to the running OBS at once; ExecStartPre changes apply at its next start.
 mkdir -p "$UNITDIR/obs-vcam.service.d"
 cp "$HERE/obs-vcam.service" "$UNITDIR/"
 cp "$HERE/obs-vcam-after-nvpoca.conf" "$UNITDIR/obs-vcam.service.d/10-after-nvpoca.conf"

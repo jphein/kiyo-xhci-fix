@@ -93,7 +93,8 @@ LOG="$(cat "$T/m11/log")"
     && ok "the real kiyo-hdr and reset-camera.sh ran" || bad "$LOG"
 
 echo "M12 kiyo-hdr fails -> exit 3, the message carries ITS error, nvpoca started again"
-printf '#!/bin/bash\necho "Traceback (most recent call last):" >&2\necho "OSError: [Errno 32] Broken pipe" >&2\nexit 1\n' > "$T/kiyo-hdr-bad"
+# stdout prints LAST: the message must hold stderr's last line only, never stdout
+printf '#!/bin/bash\necho "Traceback (most recent call last):" >&2\necho "OSError: [Errno 32] Broken pipe" >&2\necho "kiyo-hdr: camera 2-1 dev /dev/video0 unit 6"\nexit 1\n' > "$T/kiyo-hdr-bad"
 chmod +x "$T/kiyo-hdr-bad"; mkdir -p "$T/m12"; : > "$T/m12/log"
 OUT=$(PATH="$SHIM:$PATH" FX="$T/m12" KIYO_HDR="$T/kiyo-hdr-bad" KIYO_RESET="$T/reset" WAIT_S=3 \
       "$ROOT/katana-av/camera-mode" fast 2>&1); RC=$?
