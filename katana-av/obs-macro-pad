@@ -43,6 +43,7 @@ STATE = pathlib.Path(os.environ.get("OBS_MACRO_PAD_STATE", HOME / ".local/state/
 MAP_FILE = pathlib.Path(os.environ.get("OBS_MACRO_PAD_MAP", HOME / ".config/obs-macro-pad/map.json"))
 COMPANION_URL = os.environ.get("COMPANION_URL", "http://127.0.0.1:8000")   # '' = no push
 PUSH_EVERY = float(os.environ.get("OBS_MACRO_PAD_PUSH_S", "5"))
+RESYNC_EVERY = int(os.environ.get("OBS_MACRO_PAD_RESYNC_N", "6"))   # re-read Companion every 6th cycle (30 s)
 DEFAULT_MAP = HERE / "obs-macro-pad.json"
 CAMERA_SOURCES = ("Kiyo Pro", "Room (raw camera)")   # the person and the room; hiding both = privacy, output keeps running
 VERBS = {"scene": ("plain", "brand"), "mic": ("toggle", "mute", "unmute"), "camera": ("toggle", "hide", "show"),
@@ -359,7 +360,7 @@ class CompanionPush:
     (POST /api/custom-variable/<name>/value?value=…). Pushed after every verb and every PUSH_EVERY seconds; only
     changes are sent; a Companion that is down is logged once, never retried in a loop."""
     def __init__(self, actions, url=COMPANION_URL):
-        self.actions, self.url, self.last, self.down = actions, url.rstrip("/"), {}, False
+        self.actions, self.url, self.last, self.down, self.n = actions, url.rstrip("/"), {}, False, 0
 
     def push(self):
         if not self.url:
@@ -370,9 +371,13 @@ class CompanionPush:
             return
         vals = {"pad_mic": d.get("mic", "?"), "pad_mode": d.get("camera_mode", "?"), "pad_camera": d.get("camera", "?")}
         for name, value in vals.items():
-            if self.last.get(name) == value:
-                continue
-            try:
+            if self.last.get(name) == value and self.n % RESYNC_EVERY:
+                continue   # changes go at once; every RESYNC_EVERY cycles the value is re-read, since a Companion
+            try:           # restart empties its custom variables (measured 2026-11-17 15:2x) and 'unchanged' lies
+                if self.last.get(name) == value:
+                    cur = urllib.request.urlopen(f"{self.url}/api/custom-variable/{name}/value", timeout=2).read().decode()
+                    if cur == str(value):
+                        continue
                 req = urllib.request.Request(f"{self.url}/api/custom-variable/{name}/value?value="
                                              + urllib.parse.quote(str(value)), method="POST")
                 urllib.request.urlopen(req, timeout=2).read()
@@ -388,6 +393,7 @@ class CompanionPush:
 
     def run_forever(self):
         while True:
+            self.n += 1
             self.push()
             time.sleep(PUSH_EVERY)
 
