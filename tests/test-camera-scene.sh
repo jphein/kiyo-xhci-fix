@@ -89,5 +89,18 @@ names=$(python3 -c "import json; m=json.load(open('$T/menus.json')); r=m['menus'
 grep -q "camera-scene brand 2>&1" "$T/menus.json" && grep -q "camera-scene plain 2>&1" "$T/menus.json" \
     && ok "buttons run camera-scene brand|plain" || bad "commands"
 
+echo "S9 a missing obs-websocket config is 'OBS not answering' (exit 3), not a traceback"
+mv "$HOME/.config/obs-studio/plugin_config/obs-websocket/config.json" "$T/ws.json"
+OUT=$(cs status); RC=$?
+[ "$RC" = 3 ] && echo "$OUT" | grep -q "OBS not answering" && ! echo "$OUT" | grep -q Traceback && ok "exit 3" || bad "exit $RC: $OUT"
+mv "$T/ws.json" "$HOME/.config/obs-studio/plugin_config/obs-websocket/config.json"
+
+echo "S10 first build with no brand.png writes a placeholder PNG (real ffmpeg) and still builds"
+python3 -c "import json; p='$OBS_FAKE_STATE'; s=json.load(open(p)); s['down']=False; s['scenes'].pop('Brand over room'); [s['inputs'].pop(k) for k in ('Room (raw camera)','Brand')]; json.dump(s,open(p,'w'))"
+rm -f "$BRAND_FILE"
+OUT=$(cs build); RC=$?
+[ "$RC" = 0 ] && echo "$OUT" | grep -q "placeholder brand.png" && ok "built with placeholder" || bad "exit $RC: $OUT"
+[ "$(head -c 8 "$BRAND_FILE" | od -An -tx1 | tr -d ' ')" = 89504e470d0a1a0a ] && ok "brand.png is a PNG" || bad "not a PNG"
+
 [ "$fail" = 0 ] && echo "ok: camera-scene tests pass" || echo "FAILED: $fail"
 exit "$fail"

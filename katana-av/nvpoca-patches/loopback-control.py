@@ -11,10 +11,12 @@ for run in range(3):
     f = subprocess.Popen(["ffmpeg", "-loglevel", "error", "-re", "-stream_loop", "-1", "-f", "rawvideo",
                           "-pix_fmt", "yuyv422", "-s", f"{W}x{H}", "-r", "60", "-i", "tmp/room-test-clip.yuv",
                           "-f", "v4l2", "-pix_fmt", "yuyv422", DEV], stdin=subprocess.DEVNULL)
-    time.sleep(2)
-    p = subprocess.run(["ffmpeg", "-loglevel", "error", "-f", "v4l2", "-framerate", "60", "-i", DEV, "-t", "4", "-f", "framemd5", "-"],
-                       capture_output=True, text=True, timeout=30)
-    f.kill()
-    f.wait()
+    try:
+        time.sleep(2)
+        p = subprocess.run(["ffmpeg", "-loglevel", "error", "-f", "v4l2", "-framerate", "60", "-i", DEV, "-t", "4", "-f", "framemd5", "-"],
+                           capture_output=True, text=True, timeout=30)
+    finally:
+        f.kill()   # never leave the infinite feeder holding the loopback
+        f.wait()
     h = [ln.rsplit(",", 1)[1].strip() for ln in p.stdout.splitlines() if ln and not ln.startswith("#")]
     print(f"control (no nvpoca) {DEV}: {sum(x in clip for x in h)}/{len(h)} frames are clip frames")
