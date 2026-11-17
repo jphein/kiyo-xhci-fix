@@ -33,12 +33,16 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.parse
+import urllib.request
 
 HERE = pathlib.Path(os.path.realpath(__file__)).parent
 HOME = pathlib.Path.home()
 LOCK = pathlib.Path(os.environ.get("CAMERA_STACK_LOCK", HOME / ".local/state/camera-stack.lock"))
 STATE = pathlib.Path(os.environ.get("OBS_MACRO_PAD_STATE", HOME / ".local/state/obs-macro-pad.json"))
 MAP_FILE = pathlib.Path(os.environ.get("OBS_MACRO_PAD_MAP", HOME / ".config/obs-macro-pad/map.json"))
+COMPANION_URL = os.environ.get("COMPANION_URL", "http://127.0.0.1:8000")   # '' = no push
+PUSH_EVERY = float(os.environ.get("OBS_MACRO_PAD_PUSH_S", "5"))
 DEFAULT_MAP = HERE / "obs-macro-pad.json"
 CAMERA_SOURCES = ("Kiyo Pro", "Room (raw camera)")   # the person and the room; hiding both = privacy, output keeps running
 VERBS = {"scene": ("plain", "brand"), "mic": ("toggle", "mute", "unmute"), "camera": ("toggle", "hide", "show"),
@@ -349,11 +353,52 @@ def run(args, keymap, actions):
 RC_HTTP = {0: 200, 1: 500, 2: 400, 3: 502, 4: 423}   # 423 Locked = backed off (ha holds the camera-stack lock)
 
 
+class CompanionPush:
+    """Companion's own OBS module shows scene, record, vcam and source state; what it cannot see (the PipeWire mic,
+    camera-mode) goes into its custom variables pad_mic, pad_mode, pad_camera over its HTTP API
+    (POST /api/custom-variable/<name>/value?value=…). Pushed after every verb and every PUSH_EVERY seconds; only
+    changes are sent; a Companion that is down is logged once, never retried in a loop."""
+    def __init__(self, actions, url=COMPANION_URL):
+        self.actions, self.url, self.last, self.down = actions, url.rstrip("/"), {}, False
+
+    def push(self):
+        if not self.url:
+            return
+        try:
+            d = self.actions.status_dict()
+        except Exception:   # noqa: BLE001 — OBS away: nothing to push
+            return
+        vals = {"pad_mic": d.get("mic", "?"), "pad_mode": d.get("camera_mode", "?"), "pad_camera": d.get("camera", "?")}
+        for name, value in vals.items():
+            if self.last.get(name) == value:
+                continue
+            try:
+                req = urllib.request.Request(f"{self.url}/api/custom-variable/{name}/value?value="
+                                             + urllib.parse.quote(str(value)), method="POST")
+                urllib.request.urlopen(req, timeout=2).read()
+                self.last[name] = value
+                if self.down:
+                    log("companion back")
+                    self.down = False
+            except Exception as e:   # noqa: BLE001
+                if not self.down:
+                    log(f"companion push failed ({type(e).__name__}); will retry quietly")
+                    self.down = True
+                return
+
+    def run_forever(self):
+        while True:
+            self.push()
+            time.sleep(PUSH_EVERY)
+
+
 def serve(bind, actions):
     """Loopback only. One action at a time (a second POST while one runs gets 409), the same verbs and the same lock
     as the pad, so Companion, HA and the CYD deck never write OBS behind camera-scene's or ha's back."""
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
     busy = threading.Lock()
+    pusher = CompanionPush(actions)
+    threading.Thread(target=pusher.run_forever, daemon=True).start()
 
     class H(BaseHTTPRequestHandler):
         def log_message(self, *_):
@@ -392,6 +437,7 @@ def serve(bind, actions):
                 busy.release()
             log(f"http verb={verb!r} rc={rc} {ms}ms {out}")
             self._json(RC_HTTP.get(rc, 500), {"verb": verb, "rc": rc, "out": out, "ms": ms})
+            pusher.push()
 
     host, _, port = bind.rpartition(":")
     srv = ThreadingHTTPServer((host or "127.0.0.1", int(port)), H)
