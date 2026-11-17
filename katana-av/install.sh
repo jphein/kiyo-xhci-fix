@@ -11,10 +11,11 @@ mkdir -p "$UNITDIR" "$HOME/.local/bin"
 cp "$HERE/audio-watchdog.service" "$HERE/audio-selfcheck.service" "$HERE/audio-selfcheck.timer" "$UNITDIR/"
 ln -sfn "$HERE/audio-selfcheck" "$HOME/.local/bin/audio-selfcheck"
 ln -sfn "$HERE/av-selfcheck" "$HOME/.local/bin/av-selfcheck"
+ln -sfn "$HERE/camera-mode" "$HOME/.local/bin/camera-mode"
 systemctl --user daemon-reload
 systemctl --user enable audio-watchdog.service
 systemctl --user restart audio-watchdog.service
 systemctl --user enable --now audio-selfcheck.timer
 systemctl --user --no-pager --lines=0 status audio-watchdog.service | head -3
 systemctl --user list-timers audio-selfcheck.timer --no-pager
-echo "installed: audio-watchdog.service -> $HERE/audio-watchdog.sh; ~/.local/bin/{audio,av}-selfcheck; audio-selfcheck.timer"
+echo "installed: audio-watchdog.service -> $HERE/audio-watchdog.sh; ~/.local/bin/{audio,av}-selfcheck, camera-mode; audio-selfcheck.timer"
