@@ -18,7 +18,9 @@
 # One line out. Exit 0 the mode is proven · 1 the measured rate doesn't match the mode · 2 refused (a call, usage)
 # · 3 no frames even after a soft reset: replug the camera.
 set -uo pipefail
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Resolve the symlink first: install.sh links ~/.local/bin/camera-mode here, and kiyo-hdr / ../reset-camera.sh sit next to
+# the real file. Unresolved, HERE was ~/.local/bin and every switch failed "kiyo-hdr off failed" (2026-11-17 13:14, 13:15).
+HERE="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
 KIYO_HDR="${KIYO_HDR:-$HERE/kiyo-hdr}"
 KIYO_RESET="${KIYO_RESET:-$HERE/../reset-camera.sh}"
 OUT_DEV="${OUT_DEV:-/dev/video11}"
@@ -55,7 +57,10 @@ wait_frames() {    # wait_frames <epoch>: 0 once frames flow, 1 after WAIT_S sec
 
 apply() {          # apply on|off: stop the stream, set HDR, start the stream
     systemctl --user stop nvpoca.service
-    "$KIYO_HDR" "$1" --yes >/dev/null 2>&1 || { echo "camera-mode: kiyo-hdr $1 failed" >&2; systemctl --user start nvpoca.service; exit 3; }
+    local err
+    if ! err=$("$KIYO_HDR" "$1" --yes 2>&1 >/dev/null); then   # keep its error: a bare "failed" hid a missing file
+        echo "camera-mode: kiyo-hdr $1 failed: ${err##*$'\n'}" >&2; systemctl --user start nvpoca.service; exit 3
+    fi
     t0=$(date +%s)
     systemctl --user start nvpoca.service
 }

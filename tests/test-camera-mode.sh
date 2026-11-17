@@ -80,5 +80,27 @@ echo "M10 bad usage -> exit 2"
 run "$T/m10" turbo
 [ "$RC" = 2 ] && ok "exit 2" || bad "exit $RC"
 
+echo "M11 run through the ~/.local/bin SYMLINK with no KIYO_HDR/KIYO_RESET: finds kiyo-hdr and ../reset-camera.sh next to"
+echo "    the REAL file (2026-11-17: unresolved, it looked in ~/.local/bin and failed 'kiyo-hdr off failed')"
+R="$T/repo"; mkdir -p "$R/katana-av" "$T/bin" "$T/m11"; : > "$T/m11/log"
+cp "$ROOT/katana-av/camera-mode" "$R/katana-av/camera-mode"
+cp "$T/kiyo-hdr" "$R/katana-av/kiyo-hdr"; cp "$T/reset" "$R/reset-camera.sh"
+ln -sfn "$R/katana-av/camera-mode" "$T/bin/camera-mode"
+OUT=$(PATH="$SHIM:$PATH" FX="$T/m11" FX_FRAMES_AT=2 WAIT_S=3 "$T/bin/camera-mode" fast 2>&1); RC=$?
+LOG="$(cat "$T/m11/log")"
+[ "$RC" = 0 ] && ok "exit 0 via the symlink" || bad "exit $RC: $OUT"
+[ "$(echo "$LOG" | grep -c 'kiyo-hdr off --yes')" = 2 ] && echo "$LOG" | grep -q '^reset$' \
+    && ok "the real kiyo-hdr and reset-camera.sh ran" || bad "$LOG"
+
+echo "M12 kiyo-hdr fails -> exit 3, the message carries ITS error, nvpoca started again"
+printf '#!/bin/bash\necho "Traceback (most recent call last):" >&2\necho "OSError: [Errno 32] Broken pipe" >&2\nexit 1\n' > "$T/kiyo-hdr-bad"
+chmod +x "$T/kiyo-hdr-bad"; mkdir -p "$T/m12"; : > "$T/m12/log"
+OUT=$(PATH="$SHIM:$PATH" FX="$T/m12" KIYO_HDR="$T/kiyo-hdr-bad" KIYO_RESET="$T/reset" WAIT_S=3 \
+      "$ROOT/katana-av/camera-mode" fast 2>&1); RC=$?
+LOG="$(cat "$T/m12/log")"
+[ "$RC" = 3 ] && ok "exit 3" || bad "exit $RC: $OUT"
+[ "$OUT" = "camera-mode: kiyo-hdr off failed: OSError: [Errno 32] Broken pipe" ] && ok "names the cause" || bad "$OUT"
+[ "$(echo "$LOG" | tail -1)" = "systemctl --user start nvpoca.service" ] && ok "nvpoca restarted" || bad "$LOG"
+
 [ "$fail" = 0 ] && echo "ok: camera-mode tests pass" || echo "FAILED: $fail"
 exit "$fail"
