@@ -12,6 +12,8 @@ is held; the program scene is never set here, only through `camera-scene brand|p
   do    <verb> [arg] [--dry-run]                     one verb now (Companion, HA and tests call this)
   status                                             one line: scene, mic, camera, record, mode (reads only)
   map                                                the effective key map
+  serve [--bind 127.0.0.1:8765] [--dry-run]          loopback HTTP: GET /status (JSON) · POST /do/<verb>[/<arg>] — the one
+                                                     OBS writer for Companion, HA and the CYD deck (same verbs, same lock)
 
 Verbs: scene plain|brand · mic toggle|mute|unmute · camera toggle|hide|show · record toggle · stream toggle ·
 camera-mode toggle|hdr|fast · safe · status · none.
@@ -20,6 +22,7 @@ Exit (do): 0 done · 1 not as asked · 2 usage / unknown verb · 3 OBS not answe
 """
 import argparse
 import fcntl
+import re
 import glob
 import json
 import os
@@ -200,21 +203,30 @@ class Actions:
             outs.append(out)
         return worst, " · ".join(outs)
 
-    def status(self, _):
+    def status_dict(self):
+        """Reads only. Raises on an OBS failure."""
         if self.dry_run:
-            return 0, "would read status"
+            return {"dry_run": True, "scene": "?", "mic": "?", "camera": "?", "record": "?", "vcam": "?",
+                    "camera_mode": self.state().get("camera_mode", "?")}
+        cl = self.obs()
+        scene = cl.get_current_program_scene().current_program_scene_name
+        items = [i for i in cl.get_scene_item_list(scene).scene_items if i["sourceName"] in CAMERA_SOURCES]
+        return {"scene": scene,
+                "camera": "shown" if any(i["sceneItemEnabled"] for i in items) else ("hidden" if items else "none"),
+                "record": "on" if cl.get_record_status().output_active else "off",
+                "vcam": "on" if cl.get_virtual_cam_status().output_active else "off",
+                "mic": "muted" if self.mic_muted() else "live",
+                "camera_mode": self.state().get("camera_mode", "?")}
+
+    def status(self, _):
         try:
-            cl = self.obs()
-            scene = cl.get_current_program_scene().current_program_scene_name
-            items = [i for i in cl.get_scene_item_list(scene).scene_items if i["sourceName"] in CAMERA_SOURCES]
-            cam = "shown" if any(i["sceneItemEnabled"] for i in items) else ("hidden" if items else "none")
-            rec = "on" if cl.get_record_status().output_active else "off"
-            vcam = "on" if cl.get_virtual_cam_status().output_active else "OFF"
+            d = self.status_dict()
         except Exception as e:   # noqa: BLE001 — the status line names the failure instead of a traceback
             return 3, f"OBS not answering ({type(e).__name__})"
-        mic = "muted" if self.mic_muted() else "live"
-        mode = self.state().get("camera_mode", "?")
-        return 0, f"scene '{scene}' · mic {mic} · camera {cam} · record {rec} · vcam {vcam} · camera-mode {mode}"
+        if d.get("dry_run"):
+            return 0, "would read status"
+        return 0, (f"scene '{d['scene']}' · mic {d['mic']} · camera {d['camera']} · record {d['record']} · "
+                   f"vcam {d['vcam']} · camera-mode {d['camera_mode']}")
 
     def none(self, _):
         return 0, "unmapped"
@@ -333,16 +345,71 @@ def run(args, keymap, actions):
         time.sleep(2)
 
 
+# -- the HTTP side --------------------------------------------------------------------------------------------------
+RC_HTTP = {0: 200, 1: 500, 2: 400, 3: 502, 4: 423}   # 423 Locked = backed off (ha holds the camera-stack lock)
+
+
+def serve(bind, actions):
+    """Loopback only. One action at a time (a second POST while one runs gets 409), the same verbs and the same lock
+    as the pad, so Companion, HA and the CYD deck never write OBS behind camera-scene's or ha's back."""
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    busy = threading.Lock()
+
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *_):
+            pass
+
+        def _json(self, code, obj):
+            body = json.dumps(obj).encode()
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def do_GET(self):
+            if self.path.split("?")[0] in ("/status", "/status/"):
+                try:
+                    return self._json(200, actions.status_dict())
+                except Exception as e:   # noqa: BLE001
+                    return self._json(502, {"error": f"OBS not answering ({type(e).__name__})"})
+            self._json(404, {"error": "GET /status or POST /do/<verb>[/<arg>]"})
+
+        def do_POST(self):
+            m = re.fullmatch(r"/do/([a-z-]+)(?:/([a-z]+))?/?", self.path.split("?")[0])
+            if not m:
+                return self._json(404, {"error": "POST /do/<verb>[/<arg>]"})
+            verb = m.group(1) + (f" {m.group(2)}" if m.group(2) else "")
+            try:
+                parse_verb(verb)
+            except ValueError as e:
+                return self._json(400, {"error": str(e)})
+            if not busy.acquire(blocking=False):
+                return self._json(409, {"error": "busy", "verb": verb})
+            try:
+                rc, out, ms = actions.do(verb)
+            finally:
+                busy.release()
+            log(f"http verb={verb!r} rc={rc} {ms}ms {out}")
+            self._json(RC_HTTP.get(rc, 500), {"verb": verb, "rc": rc, "out": out, "ms": ms})
+
+    host, _, port = bind.rpartition(":")
+    srv = ThreadingHTTPServer((host or "127.0.0.1", int(port)), H)
+    log(f"serving on http://{host or '127.0.0.1'}:{port} (loopback)")
+    srv.serve_forever()
+
+
 def main(argv):
     ap = argparse.ArgumentParser(prog="obs-macro-pad", add_help=False)
     ap.add_argument("cmd", nargs="?", default="")
     ap.add_argument("rest", nargs="*")
     ap.add_argument("--device", action="append", default=[])
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--bind", default=os.environ.get("OBS_MACRO_PAD_BIND", "127.0.0.1:8765"))
     a = ap.parse_args(argv[1:])
-    if a.cmd not in ("run", "do", "status", "map"):
+    if a.cmd not in ("run", "do", "status", "map", "serve"):
         print(__doc__.split("\n\n")[0], file=sys.stderr)
-        print("usage: obs-macro-pad run|do <verb> [arg]|status|map", file=sys.stderr)
+        print("usage: obs-macro-pad run|do <verb> [arg]|status|map|serve", file=sys.stderr)
         return 2
     try:
         keymap = load_map()
@@ -371,6 +438,9 @@ def main(argv):
         rc, out, ms = actions.do(" ".join(a.rest))
         print(f"obs-macro-pad: {out} ({ms}ms)")
         return rc
+    if a.cmd == "serve":
+        serve(a.bind, actions)
+        return 0
     run(a, keymap, actions)
     return 0
 

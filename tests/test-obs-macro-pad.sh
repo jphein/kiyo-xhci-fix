@@ -118,6 +118,37 @@ echo "$OUT" | grep -q "dropped (busy)" && ok "a press during camera-mode dropped
 echo "$LOG" | grep -q "camera-mode fast" && ok "camera-mode shim ran once" || bad "$LOG"
 echo "$OUT" | grep -q "pad gone; waiting" && ok "unplug -> 'pad gone; waiting', daemon alive" || bad "$OUT"
 
+echo "M5 serve: loopback HTTP = the same verbs and the same lock; busy -> 409; lock held -> 423; bad verb -> 400"
+FX="$T/m5"; mkdir -p "$FX"; : > "$FX/log"
+PORT=$(( 20000 + RANDOM % 20000 ))
+PATH="$SHIM:$PATH" FX="$FX" FX_MODE_SLEEP=2 "$PAD" serve --bind "127.0.0.1:$PORT" --dry-run > "$FX/daemon" 2>&1 &
+SRV=$!
+for i in $(seq 1 30); do curl -s -o /dev/null "http://127.0.0.1:$PORT/status" && break; sleep 0.1; done
+OUT=$(curl -s -w ' %{http_code}' "http://127.0.0.1:$PORT/status")
+echo "$OUT" | grep -q '"dry_run": true.* 200$' && ok "GET /status -> 200 JSON" || bad "$OUT"
+kill $SRV; wait $SRV 2>/dev/null
+PATH="$SHIM:$PATH" FX="$FX" FX_MODE_SLEEP=2 "$PAD" serve --bind "127.0.0.1:$PORT" > "$FX/daemon" 2>&1 &
+SRV=$!
+for i in $(seq 1 30); do curl -s -o /dev/null -X POST "http://127.0.0.1:$PORT/do/none" && break; sleep 0.1; done
+OUT=$(curl -s -w ' %{http_code}' -X POST "http://127.0.0.1:$PORT/do/scene/brand")
+echo "$OUT" | grep -q '"rc": 0.* 200$' && grep -q "camera-scene brand" "$FX/log" && ok "POST /do/scene/brand -> camera-scene brand, 200" || bad "$OUT $(cat $FX/log)"
+OUT=$(curl -s -w ' %{http_code}' -X POST "http://127.0.0.1:$PORT/do/scene/sideways")
+echo "$OUT" | grep -q ' 400$' && ok "bad arg -> 400" || bad "$OUT"
+OUT=$(curl -s -w ' %{http_code}' "http://127.0.0.1:$PORT/do/scene/plain")
+echo "$OUT" | grep -q ' 404$' && ok "GET /do -> 404 (writes are POST only)" || bad "$OUT"
+curl -s -o /dev/null -X POST "http://127.0.0.1:$PORT/do/camera-mode/fast" &
+sleep 0.4
+OUT=$(curl -s -w ' %{http_code}' -X POST "http://127.0.0.1:$PORT/do/mic/toggle")
+echo "$OUT" | grep -q '"busy".* 409$' && ok "a second POST while camera-mode runs -> 409 busy" || bad "$OUT"
+wait %% 2>/dev/null; sleep 2.2
+"$PY" -c 'import fcntl,sys,time; f=open(sys.argv[1],"w"); fcntl.flock(f,fcntl.LOCK_EX); time.sleep(20)' "$T/camera-stack.lock" &
+HOLDER=$!; sleep 0.5
+OUT=$(curl -s -w ' %{http_code}' -X POST "http://127.0.0.1:$PORT/do/scene/plain")
+echo "$OUT" | grep -q '"rc": 4.* 423$' && ok "lock held -> 423 Locked, nothing run" || bad "$OUT"
+kill $HOLDER 2>/dev/null; wait $HOLDER 2>/dev/null
+kill $SRV; wait $SRV 2>/dev/null
+grep -q "http verb='scene brand' rc=0" "$FX/daemon" && ok "one journal line per HTTP verb" || bad "$(cat $FX/daemon)"
+
 echo
 [ "$fail" = 0 ] && echo "ALL OK" || echo "$fail FAILED"
 exit $(( fail > 0 ))

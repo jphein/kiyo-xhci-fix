@@ -23,7 +23,7 @@ ln -sfn "$HERE/camera-up" "$HOME/.local/bin/camera-up"
 # then `systemctl --user enable --now obs-macro-pad.service`). Needs evdev in the obsws venv:
 #   uv pip install --python ~/.venvs/obsws/bin/python evdev   (done 2026-11-17; the venv has no pip)
 ln -sfn "$HERE/obs-macro-pad" "$HOME/.local/bin/obs-macro-pad"
-cp "$HERE/obs-macro-pad.service" "$UNITDIR/"
+cp "$HERE/obs-macro-pad.service" "$HERE/obs-macro-pad-serve.service" "$UNITDIR/"
 mkdir -p "$HOME/.config/obs-macro-pad"
 [ -e "$HOME/.config/obs-macro-pad/map.json" ] || cp "$HERE/obs-macro-pad.json" "$HOME/.config/obs-macro-pad/map.json"
 # nvpoca.service: copied, never restarted here (a restart reopens the Kiyo = the wedge trigger, and drops a call).
@@ -34,6 +34,9 @@ systemctl --user daemon-reload
 systemctl --user enable audio-watchdog.service
 systemctl --user restart audio-watchdog.service
 systemctl --user enable --now audio-selfcheck.timer
+# the HTTP side grabs nothing: enabled now, restarted so a new version serves (Companion/HA call it on 127.0.0.1:8765)
+systemctl --user enable obs-macro-pad-serve.service
+systemctl --user restart obs-macro-pad-serve.service
 systemctl --user --no-pager --lines=0 status audio-watchdog.service | head -3
 systemctl --user list-timers audio-selfcheck.timer --no-pager
-echo "installed: audio-watchdog.service -> $HERE/audio-watchdog.sh; ~/.local/bin/{audio,av}-selfcheck, camera-mode, obs-macro-pad (unit installed, not enabled); audio-selfcheck.timer; obs-vcam.service (not restarted)"
+echo "installed: audio-watchdog.service -> $HERE/audio-watchdog.sh; ~/.local/bin/{audio,av}-selfcheck, camera-mode, obs-macro-pad (unit installed, not enabled), obs-macro-pad-serve (enabled, :8765); audio-selfcheck.timer; obs-vcam.service (not restarted)"

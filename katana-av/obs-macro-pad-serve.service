@@ -1,0 +1,15 @@
+[Unit]
+Description=OBS macro pad HTTP side: loopback /status and /do/<verb> for Companion, HA and the CYD deck (katana-av/obs-macro-pad serve)
+Documentation=file:///home/jp/Projects/kiyo-xhci-fix/docs/superpowers/specs/2026-11-17-obs-macro-pad.md
+PartOf=graphical-session.target
+After=graphical-session.target
+
+[Service]
+Type=simple
+# Loopback only (127.0.0.1:8765). Grabs nothing, so it is enabled independently of the pad unit.
+ExecStart=%h/Projects/kiyo-xhci-fix/katana-av/obs-macro-pad serve
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=graphical-session.target
