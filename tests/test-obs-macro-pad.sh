@@ -149,6 +149,35 @@ kill $HOLDER 2>/dev/null; wait $HOLDER 2>/dev/null
 kill $SRV; wait $SRV 2>/dev/null
 grep -q "http verb='scene brand' rc=0" "$FX/daemon" && ok "one journal line per HTTP verb" || bad "$(cat $FX/daemon)"
 
+echo "M6 push: after a verb the mic/mode/camera state lands in Companion custom variables; only changes; a down Companion is logged once"
+FX="$T/m6"; mkdir -p "$FX"; : > "$FX/log"
+CPORT=$(( 20000 + RANDOM % 20000 )); PORT=$(( 20000 + RANDOM % 20000 ))
+"$PY" - "$CPORT" "$FX/companion" > /dev/null 2>&1 <<'PYEOF' &
+import sys, http.server
+port, out = int(sys.argv[1]), sys.argv[2]
+class H(http.server.BaseHTTPRequestHandler):
+    def log_message(self, *a): pass
+    def do_POST(self):
+        open(out, "a").write(self.path + "\n"); self.send_response(200); self.end_headers()
+http.server.HTTPServer(("127.0.0.1", port), H).serve_forever()
+PYEOF
+CSRV=$!
+: > "$FX/companion"
+PATH="$SHIM:$PATH" FX="$FX" COMPANION_URL="http://127.0.0.1:$CPORT" OBS_MACRO_PAD_PUSH_S=60 "$PAD" serve --bind "127.0.0.1:$PORT" --dry-run > "$FX/daemon" 2>&1 &
+SRV=$!
+for i in $(seq 1 30); do curl -s -o /dev/null "http://127.0.0.1:$PORT/status" && break; sleep 0.1; done
+sleep 0.5
+grep -q "pad_mic/value?value=%3F" "$FX/companion" && ok "first push sends every variable (dry-run state '?')" || bad "$(cat $FX/companion)"
+n0=$(wc -l < "$FX/companion")
+curl -s -o /dev/null -X POST "http://127.0.0.1:$PORT/do/none"; sleep 0.3
+[ "$(wc -l < "$FX/companion")" = "$n0" ] && ok "no change -> nothing re-sent" || bad "re-sent: $(cat $FX/companion)"
+kill $CSRV; wait $CSRV 2>/dev/null
+kill $SRV; wait $SRV 2>/dev/null
+PATH="$SHIM:$PATH" FX="$FX" COMPANION_URL="http://127.0.0.1:$CPORT" OBS_MACRO_PAD_PUSH_S=0.2 "$PAD" serve --bind "127.0.0.1:$PORT" --dry-run > "$FX/daemon" 2>&1 &
+SRV=$!; sleep 1.5
+[ "$(grep -c 'companion push failed' "$FX/daemon")" = 1 ] && ok "Companion down -> logged once" || bad "$(cat $FX/daemon)"
+kill $SRV; wait $SRV 2>/dev/null
+
 echo
 [ "$fail" = 0 ] && echo "ALL OK" || echo "$fail FAILED"
 exit $(( fail > 0 ))
