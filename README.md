@@ -250,6 +250,14 @@ markers, and whether the camera still has a node afterwards. One mode per run on
 firmware wedge is triggered by stop + reconfigure, so a ladder of modes tests the trigger, not the
 mode. It never opens a camera another app holds. Tests: `tests/test-cam-measure.sh`.
 
+`katana-av/camera-mode hdr|fast|status` switches the Kiyo between HDR (30 fps) and 60 fps (HDR off) and proves
+the mode: stop nvpoca → `kiyo-hdr` → start nvpoca (HDR sent while the camera streams does nothing), then distinct
+frames/s over 6 s on nvpoca's output, printed as one line. The firmware has no read-back of the HDR control, so the
+rate is the proof. A camera with no frames after the reopen gets `reset-camera.sh`'s soft reset and the mode re-sent
+(the reset restores the stored mode, HDR on). Refuses while a call reads the camera (`--force` overrides). Measured
+2026-11-17: fast 59 fps (358 distinct / 6 s), hdr 30 (170-179). `katana-av/kando-camera-menu` adds a Camera submenu
+(60 fps / HDR / Which mode?) to Kando, each button a notification with that line. Tests: `tests/test-camera-mode.sh`.
+
 `katana-av/call-probe <jitsi-room-url>` (runs on familiar) joins a Jitsi room as a second participant
 (fake camera, muted mic) through realmwatch's SocksGate and logs the inbound WebRTC stats of the
 other side every 10 s: resolution, fps, freezes, packet loss, audio concealment. Use a no-login

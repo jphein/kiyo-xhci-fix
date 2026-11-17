@@ -1,0 +1,105 @@
+#!/bin/bash
+# camera-mode — switch the Razer Kiyo Pro between 30 fps HDR and 60 fps non-HDR, and PROVE the mode.
+#
+#   camera-mode hdr      HDR on  (the camera's stored default; ~30 distinct fps at 1080p)
+#   camera-mode fast     HDR off (60 distinct fps at 1080p)
+#   camera-mode status   measure only, change nothing
+#   [--force]            switch even while something other than nvpoca reads the camera (a call)
+#
+# Measured 2026-11-17 11:18 on katana (JP 11:2x: "an easy way to go between 30fps HDR and 60fps non-HDR"):
+#   HDR off sent while the camera STREAMS changes nothing (30 fps, 08:27 and 11:1x); HDR off with the stream STOPPED,
+#   then nvpoca restarted = 59 fps (358 distinct frames / 6 s); raw MJPG 358, YUYV 360. HDR on = 30 (170-179 / 6 s).
+#   So the order is: stop nvpoca -> kiyo-hdr -> start nvpoca. One switch back to HDR left the camera with no frames
+#   after the reopen (the known stop+reconfigure wedge); reset-camera.sh's soft reset recovered it without a replug,
+#   so that is built in here. A soft reset returns the camera to its STORED mode (HDR on), so `fast` re-sends HDR off.
+#
+# Proof: this firmware has no read-back of the HDR control (EU1 GET_CUR doesn't answer; soyersoyer/cameractrls), so
+# the mode is proven by what it does: distinct frames per second over 6 s on nvpoca's output (/dev/video11).
+# One line out. Exit 0 the mode is proven · 1 the measured rate doesn't match the mode · 2 refused (a call, usage)
+# · 3 no frames even after a soft reset: replug the camera.
+set -uo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+KIYO_HDR="${KIYO_HDR:-$HERE/kiyo-hdr}"
+KIYO_RESET="${KIYO_RESET:-$HERE/../reset-camera.sh}"
+OUT_DEV="${OUT_DEV:-/dev/video11}"
+CALL_DEVS="${CALL_DEVS:-/dev/video9 /dev/video11}"
+WAIT_S="${WAIT_S:-20}"
+SECS=6
+
+usage() { echo "usage: camera-mode hdr|fast|status [--force]" >&2; exit 2; }
+mode="${1:-}"; force=0
+[ "${2:-}" = "--force" ] && force=1
+case "$mode" in hdr|fast|status) ;; *) usage ;; esac
+
+# A call = any reader of the camera nodes that isn't nvpoca itself (nvpoca owns the Kiyo and feeds /dev/video11).
+callers() {
+    local p
+    for p in $(fuser $CALL_DEVS 2>/dev/null); do
+        p="${p//[^0-9]/}"; [ -n "$p" ] || continue
+        ps -o args= -p "$p" 2>/dev/null | grep -q nvpoca || echo "$p"
+    done
+}
+
+frames_since() {   # nvpoca logs "fps=N" each second once frames flow
+    journalctl --user -u nvpoca --since "@$1" --no-pager -o cat 2>/dev/null | grep -c "fps=[1-9]"
+}
+
+wait_frames() {    # wait_frames <epoch>: 0 once frames flow, 1 after WAIT_S seconds without
+    local i
+    for ((i = 0; i < WAIT_S; i++)); do
+        [ "$(frames_since "$1")" -gt 0 ] && return 0
+        sleep 1
+    done
+    return 1
+}
+
+apply() {          # apply on|off: stop the stream, set HDR, start the stream
+    systemctl --user stop nvpoca.service
+    "$KIYO_HDR" "$1" --yes >/dev/null 2>&1 || { echo "camera-mode: kiyo-hdr $1 failed" >&2; systemctl --user start nvpoca.service; exit 3; }
+    t0=$(date +%s)
+    systemctl --user start nvpoca.service
+}
+
+distinct() {       # distinct frames in SECS seconds on the output node
+    timeout -s KILL $((SECS + 14)) ffmpeg -loglevel error -f v4l2 -i "$OUT_DEV" -t "$SECS" -f framemd5 - 2>/dev/null \
+        | grep -v '^#' | awk -F, '{print $NF}' | sort -u | wc -l
+}
+
+note=""
+if [ "$mode" != status ]; then
+    c="$(callers | tr '\n' ' ')"
+    if [ -n "$c" ] && [ "$force" = 0 ]; then
+        echo "camera-mode: refused, the camera is in use (pids ${c% }): a call? Re-run with --force to switch anyway." >&2
+        exit 2
+    fi
+    want=$([ "$mode" = fast ] && echo off || echo on)
+    apply "$want"
+    if ! wait_frames "$t0"; then
+        # the stop+reconfigure wedge: soft reset (back to the STORED mode, HDR on), then re-apply
+        systemctl --user stop nvpoca.service
+        "$KIYO_RESET" >/dev/null 2>&1
+        sleep 4
+        apply "$want"
+        if ! wait_frames "$t0"; then
+            echo "camera-mode $mode: NO FRAMES after a soft reset: unplug and re-plug the camera" >&2
+            exit 3
+        fi
+        note=" · recovered from a wedge with a soft reset"
+    fi
+    sleep 3        # let the rate settle past the first second
+fi
+
+n=$(distinct); fps=$((n / SECS))
+case "$mode" in
+    fast) [ "$fps" -ge 50 ] && rc=0 || rc=1; hdr="HDR off" ;;
+    hdr)  [ "$fps" -ge 20 ] && [ "$fps" -le 35 ] && rc=0 || rc=1; hdr="HDR on" ;;
+    status) rc=0
+        if [ "$fps" -ge 50 ]; then hdr="fast (HDR off)"; elif [ "$fps" -ge 20 ]; then hdr="hdr (HDR on)"; else hdr="no steady frames"; rc=1; fi ;;
+esac
+verdict=$([ "$rc" = 0 ] && echo proven || echo "NOT what the mode should give")
+if [ "$mode" = status ]; then
+    echo "camera-mode status: ${fps} fps ($n distinct frames / ${SECS} s on $OUT_DEV) = $hdr"
+else
+    echo "camera-mode $mode: ${fps} fps ($n distinct frames / ${SECS} s on $OUT_DEV) · $hdr · $verdict (no read-back on this firmware: the rate is the proof)$note"
+fi
+exit "$rc"
