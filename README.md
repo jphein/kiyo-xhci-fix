@@ -251,8 +251,10 @@ firmware wedge is triggered by stop + reconfigure, so a ladder of modes tests th
 mode. It never opens a camera another app holds. Tests: `tests/test-cam-measure.sh`.
 
 `katana-av/camera-mode hdr|fast|status` switches the Kiyo between HDR (30 fps) and 60 fps (HDR off) and proves
-the mode: stop nvpoca → `kiyo-hdr` → start nvpoca (HDR sent while the camera streams does nothing), then distinct
-frames/s over 6 s on nvpoca's output, printed as one line. The firmware has no read-back of the HDR control, so the
+the mode: stop nvpoca → `kiyo-hdr` → start nvpoca (HDR sent while the camera streams does nothing), then the
+median of nvpoca's own per-second capture rate over 6 s (30 HDR, 59-60 fast), printed as one line. It no longer
+reads /dev/video11: while OBS streams it a second reader gets EBUSY (2026-11-17 14:56). OBS is not a call (it is
+the stack); nvpoca's background-removal setting is kept across the restart (a restart turns it ON). The firmware has no read-back of the HDR control, so the
 rate is the proof. A camera with no frames after the reopen gets `reset-camera.sh`'s soft reset and the mode re-sent
 (the reset restores the stored mode, HDR on). Refuses while a call reads the camera (`--force` overrides). Measured
 2026-11-17: fast 59 fps (358 distinct / 6 s), hdr 30 (170-179). `katana-av/kando-camera-menu` adds a Camera submenu

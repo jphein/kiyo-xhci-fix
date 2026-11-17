@@ -33,13 +33,32 @@ mode="${1:-}"; force=0
 [ "${2:-}" = "--force" ] && force=1
 case "$mode" in hdr|fast|status) ;; *) usage ;; esac
 
-# A call = any reader of the camera nodes that isn't nvpoca itself (nvpoca owns the Kiyo and feeds /dev/video11).
+# A call = any reader of the camera nodes that isn't the stack itself: nvpoca owns the Kiyo and feeds /dev/video11,
+# OBS reads video11 and writes the OBS Virtual Camera (video9). 2026-11-17 14:55: OBS on video11 counted as a call
+# and refused every switch while OBS ran (CodeRabbit had flagged it on #22).
 callers() {
-    local p
+    local p a
     for p in $(fuser $CALL_DEVS 2>/dev/null); do
         p="${p//[^0-9]/}"; [ -n "$p" ] || continue
-        ps -o args= -p "$p" 2>/dev/null | grep -q nvpoca || echo "$p"
+        a="$(ps -o args= -p "$p" 2>/dev/null)"
+        case "$a" in *nvpoca*|obs|obs\ *|/usr/bin/obs|/usr/bin/obs\ *) ;; *) echo "$p" ;; esac
     done
+}
+
+NV=(org.nvpoca.Daemon /org/nvpoca/Daemon org.nvpoca.Daemon)
+removal() {       # nvpoca's Enabled (background removal): true / false / "" (daemon not answering)
+    busctl --user get-property "${NV[@]}" Enabled 2>/dev/null | awk '{print $2}'
+}
+
+was=""; restored=0
+restore_removal() {   # put nvpoca's Enabled back to what it was before the restart; idempotent, never fails the run
+    [ -n "$was" ] && [ "$restored" = 0 ] || return 0
+    local now i
+    for ((i = 0; i < 10; i++)); do now=$(removal); [ -n "$now" ] && break; sleep 1; done   # D-Bus comes up after a start
+    if [ -n "$now" ] && [ "$now" != "$was" ]; then
+        busctl --user set-property "${NV[@]}" Enabled b "$was" && restored=1
+    fi
+    return 0
 }
 
 frames_since() {   # nvpoca logs "fps=N" each second once frames flow
@@ -65,9 +84,14 @@ apply() {          # apply on|off: stop the stream, set HDR, start the stream
     systemctl --user start nvpoca.service
 }
 
-distinct() {       # distinct frames in SECS seconds on the output node
-    timeout -s KILL $((SECS + 14)) ffmpeg -loglevel error -f v4l2 -i "$OUT_DEV" -t "$SECS" -f framemd5 - 2>/dev/null \
-        | grep -v '^#' | awk -F, '{print $NF}' | sort -u | wc -l
+rate() {           # median of nvpoca's per-second "fps=N" lines over the last SECS seconds = the camera's delivered rate
+    # (HDR on 30, off 59-60). Not a read of /dev/video11: while OBS streams it a second reader gets EBUSY (14:56).
+    sleep "$SECS"
+    journalctl --user -u nvpoca --since "-${SECS}s" --no-pager -o cat 2>/dev/null \
+        | sed -n 's/^fps= *\([0-9][0-9]*\) .*/\1/p' | sort -n \
+        | awk '{a[NR]=$1} END {if (!NR) {print "0 0"; exit}
+               m2 = (NR % 2) ? 2 * a[(NR + 1) / 2] : a[NR / 2] + a[NR / 2 + 1]; print m2, NR}'
+    # prints TWICE the median (exact, an integer) and the sample count: no rounding before the thresholds
 }
 
 note=""
@@ -78,6 +102,8 @@ if [ "$mode" != status ]; then
         exit 2
     fi
     want=$([ "$mode" = fast ] && echo off || echo on)
+    was=$(removal)   # a restart brings nvpoca up with removal ON; JP may have it off (14:56: ~20 s on green)
+    trap restore_removal EXIT   # every exit after the restart, failures included (M8, M12)
     apply "$want"
     if ! wait_frames "$t0"; then
         # the stop+reconfigure wedge: soft reset (back to the STORED mode, HDR on), then re-apply
@@ -91,20 +117,24 @@ if [ "$mode" != status ]; then
         fi
         note=" · recovered from a wedge with a soft reset"
     fi
+    restore_removal && [ "$restored" = 1 ] && note="$note · background removal kept $([ "$was" = true ] && echo on || echo off)"
     sleep 3        # let the rate settle past the first second
 fi
 
-n=$(distinct); fps=$((n / SECS))
+read -r m2 n <<< "$(rate)"     # m2 = 2 x median fps, so a median of 49.5 is 99 and never passes ">= 50"
+fps=$((m2 / 2))$([ $((m2 % 2)) = 1 ] && echo .5)
+MIN_SAMPLES=4     # of the SECS per-second lines: one stale line must never prove a mode (a camera that stopped)
 case "$mode" in
-    fast) [ "$fps" -ge 50 ] && rc=0 || rc=1; hdr="HDR off" ;;
-    hdr)  [ "$fps" -ge 20 ] && [ "$fps" -le 35 ] && rc=0 || rc=1; hdr="HDR on" ;;
+    fast) [ "$n" -ge "$MIN_SAMPLES" ] && [ "$m2" -ge 100 ] && rc=0 || rc=1; hdr="HDR off" ;;
+    hdr)  [ "$n" -ge "$MIN_SAMPLES" ] && [ "$m2" -ge 40 ] && [ "$m2" -le 70 ] && rc=0 || rc=1; hdr="HDR on" ;;
     status) rc=0
-        if [ "$fps" -ge 50 ]; then hdr="fast (HDR off)"; elif [ "$fps" -ge 20 ]; then hdr="hdr (HDR on)"; else hdr="no steady frames"; rc=1; fi ;;
+        if [ "$n" -lt "$MIN_SAMPLES" ]; then hdr="no steady frames (only $n of ${SECS} samples)"; rc=1
+        elif [ "$m2" -ge 100 ]; then hdr="fast (HDR off)"; elif [ "$m2" -ge 40 ]; then hdr="hdr (HDR on)"; else hdr="no steady frames"; rc=1; fi ;;
 esac
 verdict=$([ "$rc" = 0 ] && echo proven || echo "NOT what the mode should give")
 if [ "$mode" = status ]; then
-    echo "camera-mode status: ${fps} fps ($n distinct frames / ${SECS} s on $OUT_DEV) = $hdr"
+    echo "camera-mode status: ${fps} fps (nvpoca capture rate, median of $n s) = $hdr"
 else
-    echo "camera-mode $mode: ${fps} fps ($n distinct frames / ${SECS} s on $OUT_DEV) · $hdr · $verdict (no read-back on this firmware: the rate is the proof)$note"
+    echo "camera-mode $mode: ${fps} fps (nvpoca capture rate, median of $n s) · $hdr · $verdict (no read-back on this firmware: the rate is the proof)$note"
 fi
 exit "$rc"
