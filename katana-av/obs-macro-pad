@@ -58,6 +58,7 @@ COMPANION_URL = os.environ.get("COMPANION_URL", "http://127.0.0.1:8000")   # '' 
 TOKEN_FILE = pathlib.Path(os.environ.get("OBS_MACRO_PAD_TOKEN_FILE", HOME / ".config/obs-macro-pad/token"))
 HTTP_WORKERS = int(os.environ.get("OBS_MACRO_PAD_WORKERS", "8"))      # concurrent connections; more get 503 at once
 HTTP_TIMEOUT = float(os.environ.get("OBS_MACRO_PAD_HTTP_TIMEOUT", "10"))   # seconds a client may stall a worker
+BODY_MAX = int(os.environ.get("OBS_MACRO_PAD_BODY_MAX", "256"))   # a body is read and dropped, never used; larger = 413
 ESCAPE = os.environ.get("OBS_MACRO_PAD_ESCAPE", "")   # "systemd-run": camera-mode runs outside the unit's sandbox
 PUSH_EVERY = float(os.environ.get("OBS_MACRO_PAD_PUSH_S", "5"))
 RESYNC_EVERY = int(os.environ.get("OBS_MACRO_PAD_RESYNC_N", "6"))   # re-read Companion every 6th cycle (30 s)
@@ -606,17 +607,17 @@ def serve(bind, actions):
             except OSError:
                 pass
 
-        def parse_request(self):
-            # The header parser takes EOF as the end of the headers, so the watchdog's shutdown could complete an
-            # unterminated head: an expired request is never admitted, whatever the parser made of it.
-            ok = super().parse_request()
+        def _admit(self):
+            """Called once the head AND the body are in. The header parser takes EOF as the end of the headers, so
+            the watchdog's shutdown could complete an unterminated head (or a short body): an expired request is
+            never admitted, whatever the parser made of it; an admitted one is never shut down mid-verb."""
             with self.gate:
                 if self.expired:
                     self.close_connection = True
                     return False
                 self.admitted = True
             self.watchdog.cancel()
-            return ok
+            return True
 
         def finish(self):
             self.watchdog.cancel()
@@ -632,11 +633,14 @@ def serve(bind, actions):
 
         def _json(self, code, obj):
             body = json.dumps(obj).encode()
-            self.send_response(code)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
+            try:
+                self.send_response(code)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+            except OSError:   # the client (or the watchdog) closed the socket under us: nothing to answer
+                pass
 
         def _admitted(self):
             """Origin → 403 (a page in a browser, cross-site or not, never drives the stack); Host not loopback →
@@ -661,18 +665,31 @@ def serve(bind, actions):
                 return False
             return True
 
-        def _no_body(self):
-            """Arguments live in the path: the request has no body framing at all, or exactly one Content-Length that
-            is a plain '0'. Any Transfer-Encoding (even empty), a duplicate, non-decimal, negative or positive
-            Content-Length is refused before anything runs."""
+        def _body_read(self):
+            """Arguments live in the path; a body is never used. Companion's generic-http always sends one ('{}'),
+            so a body is tolerated: exactly one decimal Content-Length of at most BODY_MAX bytes (else 400/413),
+            never a Transfer-Encoding, and the bytes are read and dropped before admission, so a body that stalls
+            or trickles still meets the deadline."""
             cl = self.headers.get_all("Content-Length") or []
-            if self.headers.get_all("Transfer-Encoding") or len(cl) > 1 or (cl and cl[0].strip() != "0"):
-                self._json(400, {"error": "no body: POST /do/<verb>[/<arg>] takes its arguments in the path"})
+            if self.headers.get_all("Transfer-Encoding") or len(cl) > 1 or (cl and not cl[0].strip().isdigit()):
+                self._json(400, {"error": "bad body framing: one decimal Content-Length or none, no Transfer-Encoding"})
                 return False
+            n = int(cl[0]) if cl else 0
+            if n > BODY_MAX:
+                self._json(413, {"error": f"body too large (ignored anyway): {BODY_MAX} bytes at most"})
+                return False
+            if n:
+                try:
+                    data = self.rfile.read(n)
+                except (OSError, ValueError):
+                    data = b""
+                if len(data) != n:   # the client went away, or the deadline shut the socket
+                    self.close_connection = True
+                    return False
             return True
 
         def do_GET(self):
-            if not self._admitted():
+            if not self._admit() or not self._admitted():
                 return
             if self.path.split("?")[0] in ("/status", "/status/"):
                 try:
@@ -682,7 +699,7 @@ def serve(bind, actions):
             self._json(404, {"error": "GET /status or POST /do/<verb>[/<arg>]"})
 
         def do_POST(self):
-            if not self._admitted() or not self._no_body():
+            if not self._body_read() or not self._admit() or not self._admitted():
                 return
             m = re.fullmatch(r"/do/([a-z-]+)(?:/([a-z]+))?/?", self.path.split("?")[0])
             if not m:

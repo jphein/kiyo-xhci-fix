@@ -249,8 +249,12 @@ OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -H "Host: katana.lan:$PORT" -X POS
 echo "$OUT" | grep -q '"host must be loopback".* 403$' && ok "Host: katana.lan (DNS rebinding) -> 403" || bad "$OUT"
 OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -H "Host: localhost:$PORT" -X POST "http://127.0.0.1:$PORT/do/none")
 echo "$OUT" | grep -q ' 200$' && ok "Host: localhost -> ok" || bad "$OUT"
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST -H "Content-Type: application/json" -d '{}' "http://127.0.0.1:$PORT/do/none")
+echo "$OUT" | grep -q '"verb": "none".* 200$' && ok "Companion's POST body '{}' is read and dropped -> 200" || bad "$OUT"
 OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST -d '{"verb":"safe"}' "http://127.0.0.1:$PORT/do/none")
-echo "$OUT" | grep -q '"no body.* 400$' && ok "a POST body -> 400, nothing run" || bad "$OUT"
+echo "$OUT" | grep -q '"verb": "none".* 200$' && ok "a body naming another verb changes nothing (the path is the verb)" || bad "$OUT"
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST -d "$(head -c 257 /dev/zero | tr '\0' x)" "http://127.0.0.1:$PORT/do/none")
+echo "$OUT" | grep -q '"body too large.* 413$' && ok "a 257-byte body -> 413" || bad "$OUT"
 OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST -H "Transfer-Encoding: chunked" -d 'x' "http://127.0.0.1:$PORT/do/none")
 echo "$OUT" | grep -q ' 400$' && ok "a chunked POST -> 400" || bad "$OUT"
 OUT=$(curl -s -w ' %{http_code}' -H "authorization: bearer $TOK" -X POST "http://127.0.0.1:$PORT/do/none")
@@ -305,6 +309,7 @@ raw "Content-Length: -1"         400 "POST /do/scene/plain HTTP/1.0" "Host: 127.
 raw "Content-Length twice"       400 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Content-Length: 0" "Content-Length: 0"
 raw "Transfer-Encoding: (empty)" 400 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Transfer-Encoding:"
 raw "Content-Length: 0 (plain)"  200 "POST /do/none HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Content-Length: 0"
+raw "Content-Length: 300"        413 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Content-Length: 300"
 raw "Host twice"                 403 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Host: 127.0.0.1" "Authorization: Bearer $TOK"
 raw "Host: [::1]evil.example"    403 "POST /do/scene/plain HTTP/1.0" "Host: [::1]evil.example" "Authorization: Bearer $TOK"
 raw "Host: 127.0.0.1:x"          403 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1:x" "Authorization: Bearer $TOK"
@@ -396,6 +401,24 @@ PYEOF
 echo "$OUT" | grep -qE "^unterminated head: after (9|1[0-3])s got b''" && ok "an authenticated head with no final blank line is dropped at the deadline with no answer" || bad "$OUT"
 sleep 0.5
 grep -q "camera-scene plain" "$FX/log" && bad "the deadline's EOF completed the head into a verb: $(cat $FX/log)" || ok "and it never ran (no camera-scene plain in the shim log)"
+# a complete, authenticated head whose declared body never arrives: dropped at the deadline, the verb never runs
+: > "$FX/log"
+OUT=$("$PY" - "$PORT" "$TOK" <<'PYEOF'
+import socket, sys, time
+port, tok = int(sys.argv[1]), sys.argv[2]
+s = socket.create_connection(("127.0.0.1", port)); s.settimeout(14)
+s.sendall(f"POST /do/scene/plain HTTP/1.0\r\nHost: 127.0.0.1\r\nAuthorization: Bearer {tok}\r\nContent-Length: 10\r\n\r\n{{\"a\"".encode())   # 4 of 10 bytes, then stalls
+t0 = time.time()
+try:
+    data = s.recv(200)
+except (TimeoutError, ConnectionResetError):
+    data = b"(reset)"
+print(f"short body: after {time.time() - t0:.0f}s got {data[:40]!r}")
+PYEOF
+)
+echo "$OUT" | grep -qE "^short body: after (9|1[0-3])s got b''" && ok "a body that stalls short of its Content-Length is dropped at the deadline with no answer" || bad "$OUT"
+sleep 0.5
+grep -q "camera-scene plain" "$FX/log" && bad "a short body ran the verb: $(cat $FX/log)" || ok "and its verb never ran"
 kill $SRV; wait $SRV 2>/dev/null
 grep -q "http verb='scene brand' rc=0" "$FX/daemon" && ok "one journal line per HTTP verb" || bad "$(cat $FX/daemon)"
 
