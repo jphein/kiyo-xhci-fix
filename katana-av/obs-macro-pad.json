@@ -1,6 +1,8 @@
 {
-  "_comment": "obs-macro-pad key map (spec docs/superpowers/specs/2026-11-17-obs-macro-pad.md §4). device = the by-id prefix of the one pad; keys = evdev key name -> verb. install.sh copies this to ~/.config/obs-macro-pad/map.json once; edit that copy.",
+  "_comment": "obs-macro-pad key map (spec docs/superpowers/specs/2026-11-17-obs-macro-pad.md §4). device = the pad's full by-id name up to its -event-* suffix (ls -l /dev/input/by-id); vendor/product = its usb id (lsusb), checked on every grab; keys = evdev key name -> verb. install.sh copies this to ~/.config/obs-macro-pad/map.json once; edit that copy.",
   "device": "usb-Hailuck_Co._Ltd_USB_KEYBOARD_SN:0009",
+  "vendor": "258e",
+  "product": "000f",
   "keys": {
     "KEY_KP1": "scene plain",
     "KEY_KP2": "scene brand",

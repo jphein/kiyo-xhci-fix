@@ -6,12 +6,19 @@ After=graphical-session.target
 
 [Service]
 Type=simple
-# Installed DISABLED by install.sh: the pad keeps typing into windows until JP approves the key map on his card.
+# Enabled on JP's GO (card 85e5688df08d, 2026-11-17 17:45); install.sh copies the unit but never restarts it (a grab).
 ExecStart=%h/Projects/kiyo-xhci-fix/katana-av/obs-macro-pad run
 Restart=on-failure
+# exit 2 = a device under the pad's by-id name is not the pad (config error): stay stopped instead of looping
+RestartPreventExitStatus=2
 RestartSec=3
-# The grab dies with the process: a stopped or crashed daemon never leaves the pad stuck.
-KillMode=process
+# Stop: SIGTERM to the daemon only (not to a camera-mode/camera-scene child); the daemon finishes the verb in flight
+# (camera-mode ~20 s, the camera-stack lock held until it ends, the pad still grabbed), releases the pad and exits 0.
+# Whatever is left in the cgroup when the daemon exits or the timeout runs out is SIGKILLed with it: no child
+# outlives the unit (xreview on PR 26). Not covered: a daemon crash or an over-budget verb ends the flock before
+# the child is killed (seconds, within the same stop); an absolute lock lifetime would need the child to hold it.
+KillMode=mixed
+TimeoutStopSec=45
 
 [Install]
 WantedBy=graphical-session.target
