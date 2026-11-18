@@ -257,7 +257,26 @@ OUT=$(curl -s -w ' %{http_code}' -H "authorization: bearer $TOK" -X POST "http:/
 echo "$OUT" | grep -q ' 200$' && ok "scheme is case-insensitive: 'bearer' -> 200" || bad "$OUT"
 OUT=$(curl -s -w ' %{http_code}' -H "Authorization: BASIC $(printf 'pad:%s' "$TOK" | base64 -w0)" -X POST "http://127.0.0.1:$PORT/do/none")
 echo "$OUT" | grep -q ' 200$' && ok "'BASIC' -> 200" || bad "$OUT"
-# raw requests: malformed framing and duplicate security headers are refused (400/401/403), nothing runs
+kill $SRV; wait $SRV 2>/dev/null
+PATH="$SHIM:$PATH" FX="$FX" FX_MODE_SLEEP=2 "$PAD" serve --bind "127.0.0.1:$PORT" > "$FX/daemon" 2>&1 &
+SRV=$!
+for i in $(seq 1 30); do curl -s -o /dev/null "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/none" && break; sleep 0.1; done
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/scene/brand")
+echo "$OUT" | grep -q '"rc": 0.* 200$' && grep -q "camera-scene brand" "$FX/log" && ok "POST /do/scene/brand -> camera-scene brand, 200" || bad "$OUT $(cat $FX/log)"
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/scene/sideways")
+echo "$OUT" | grep -q ' 400$' && ok "bad arg -> 400" || bad "$OUT"
+: > "$FX/log"
+for p in '/do/scene/plain;id' '/do/scene/plain/extra' '/do/scene%20plain' '/do/scene/..%2Fplain' '/do/mic/toggle?x=$(id)' '/do/safe/' '/do/SCENE/plain' '/do/scene/plain%00'; do
+    OUT=$(curl -s -g -w ' %{http_code}' "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT$p")
+    case "$p" in /do/safe/) echo "$OUT" | grep -q ' 200$' && ok "trailing slash: $p -> 200" || bad "$p: $OUT";;
+                 '/do/mic/toggle?x=$(id)') echo "$OUT" | grep -q ' 200$' && ok "query string ignored: $p -> 200" || bad "$p: $OUT";;
+                 *) echo "$OUT" | grep -q ' 404$' && ok "metacharacters / extra arg / case: $p -> 404" || bad "$p: $OUT";; esac
+done
+grep -q "id\|extra\|%" "$FX/log" && bad "a metacharacter path reached a tool: $(cat $FX/log)" || ok "nothing but the allow-listed verbs reached a tool"
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" "http://127.0.0.1:$PORT/do/scene/plain")
+echo "$OUT" | grep -q ' 404$' && ok "GET /do -> 404 (writes are POST only)" || bad "$OUT"
+# raw requests against the shim-backed server: malformed framing and duplicate security headers are refused
+# (400/401/403) and NOTHING runs; the positive control just above (scene brand logged) shows the log would see it
 : > "$FX/log"
 raw() {   # raw <description> <expected code> <request lines…>
     local desc="$1" want="$2"; shift 2
@@ -292,25 +311,7 @@ raw "Host: 127.0.0.1:x"          403 "POST /do/scene/plain HTTP/1.0" "Host: 127.
 raw "Host: [::1]:$PORT"          200 "POST /do/none HTTP/1.0" "Host: [::1]:$PORT" "Authorization: Bearer $TOK"
 raw "Authorization twice"        401 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Authorization: Bearer $TOK"
 raw "no Host at all"             403 "POST /do/scene/plain HTTP/1.0" "Authorization: Bearer $TOK"
-[ -s "$FX/log" ] && bad "a refused request ran a tool: $(cat $FX/log)" || ok "none of the refused requests ran a tool"
-kill $SRV; wait $SRV 2>/dev/null
-PATH="$SHIM:$PATH" FX="$FX" FX_MODE_SLEEP=2 "$PAD" serve --bind "127.0.0.1:$PORT" > "$FX/daemon" 2>&1 &
-SRV=$!
-for i in $(seq 1 30); do curl -s -o /dev/null "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/none" && break; sleep 0.1; done
-OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/scene/brand")
-echo "$OUT" | grep -q '"rc": 0.* 200$' && grep -q "camera-scene brand" "$FX/log" && ok "POST /do/scene/brand -> camera-scene brand, 200" || bad "$OUT $(cat $FX/log)"
-OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/scene/sideways")
-echo "$OUT" | grep -q ' 400$' && ok "bad arg -> 400" || bad "$OUT"
-: > "$FX/log"
-for p in '/do/scene/plain;id' '/do/scene/plain/extra' '/do/scene%20plain' '/do/scene/..%2Fplain' '/do/mic/toggle?x=$(id)' '/do/safe/' '/do/SCENE/plain' '/do/scene/plain%00'; do
-    OUT=$(curl -s -g -w ' %{http_code}' "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT$p")
-    case "$p" in /do/safe/) echo "$OUT" | grep -q ' 200$' && ok "trailing slash: $p -> 200" || bad "$p: $OUT";;
-                 '/do/mic/toggle?x=$(id)') echo "$OUT" | grep -q ' 200$' && ok "query string ignored: $p -> 200" || bad "$p: $OUT";;
-                 *) echo "$OUT" | grep -q ' 404$' && ok "metacharacters / extra arg / case: $p -> 404" || bad "$p: $OUT";; esac
-done
-grep -q "id\|extra\|%" "$FX/log" && bad "a metacharacter path reached a tool: $(cat $FX/log)" || ok "nothing but the allow-listed verbs reached a tool"
-OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" "http://127.0.0.1:$PORT/do/scene/plain")
-echo "$OUT" | grep -q ' 404$' && ok "GET /do -> 404 (writes are POST only)" || bad "$OUT"
+grep -qE "camera-scene|camera-mode|set-mute" "$FX/log" && bad "a refused request ran a tool: $(cat $FX/log)" || ok "none of the refused requests ran a tool (the log holds only the status reads behind the two admitted /do/none)"
 curl -s -o /dev/null "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/camera-mode/fast" &
 sleep 0.4
 OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/mic/toggle")
@@ -357,20 +358,26 @@ print(f"stalled client dropped after {time.time() - t0:.0f}s, got {data[:20]!r}"
 PYEOF
 )
 echo "$OUT" | grep -qE "dropped after (1[0-3]|9)s" && ok "a client stalling mid-headers is dropped at the socket timeout ($(echo "$OUT" | grep -o 'after [0-9]*s'))" || bad "$OUT"
-OUT=$("$PY" - "$PORT" <<'PYEOF'
-import socket, sys, time
-port = int(sys.argv[1])
-s = socket.create_connection(("127.0.0.1", port)); s.settimeout(3)
+OUT=$("$PY" - "$PORT" "$TOK" <<'PYEOF'
+import socket, sys, time, urllib.request
+port, tok = int(sys.argv[1]), sys.argv[2]
+import select
+s = socket.create_connection(("127.0.0.1", port)); s.setblocking(False)
 t0 = time.time(); sent = 0
 try:
-    for ch in b"POST /do/none HTTP/1.0\r\nHost: 127.0.0.1\r\nX-Trickle: " + b"x" * 60:
-        s.sendall(bytes([ch])); sent += 1; time.sleep(0.5)     # a byte every 0.5 s: never idle, never done
+    while time.time() - t0 < 30:                         # bytes, never a newline, for far longer than the deadline
+        s.sendall(b"x"); sent += 1
+        if select.select([s], [], [], 0.5)[0] and s.recv(1) == b"":   # FIN from the server = dropped
+            break
 except (BrokenPipeError, ConnectionResetError):
     pass
 print(f"trickling client dropped after {time.time() - t0:.0f}s, {sent} bytes")
+req = urllib.request.Request(f"http://127.0.0.1:{port}/do/none", method="POST", headers={"Authorization": f"Bearer {tok}"})
+print("after trickle:", urllib.request.urlopen(req, timeout=5).status)
 PYEOF
 )
-echo "$OUT" | grep -qE "dropped after (9|1[0-3])s" && ok "a trickling client (a byte every 0.5 s) is dropped at the absolute 10 s deadline ($(echo "$OUT" | grep -o 'after [0-9]*s, [0-9]* bytes'))" || bad "$OUT"
+echo "$OUT" | grep -qE "dropped after (9|1[0-3])s, (1[5-9]|2[0-9]) bytes" && ok "a client trickling bytes with no newline is dropped at the absolute 10 s deadline ($(echo "$OUT" | grep -o 'after [0-9]*s, [0-9]* bytes'))" || bad "$OUT"
+echo "$OUT" | grep -q "^after trickle: 200" && ok "its worker is back" || bad "$OUT"
 kill $SRV; wait $SRV 2>/dev/null
 grep -q "http verb='scene brand' rc=0" "$FX/daemon" && ok "one journal line per HTTP verb" || bad "$(cat $FX/daemon)"
 

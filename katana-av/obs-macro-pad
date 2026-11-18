@@ -517,30 +517,6 @@ def host_header_ok(value):
     return bool(m) and (m.group(1) == "localhost" or is_loopback(m.group(1)))
 
 
-class DeadlineFile:
-    """rfile with an absolute deadline for the whole request head: each read gets what is left of HTTP_TIMEOUT, so a
-    client trickling a byte per second cannot hold a worker past it (the socket timeout alone is per read)."""
-    def __init__(self, f, sock, deadline):
-        self.f, self.sock, self.deadline = f, sock, deadline
-
-    def _arm(self):
-        left = self.deadline - time.monotonic()
-        if left <= 0:
-            raise TimeoutError("request head deadline")
-        self.sock.settimeout(left)
-
-    def readline(self, *a):
-        self._arm()
-        return self.f.readline(*a)
-
-    def read(self, *a):
-        self._arm()
-        return self.f.read(*a)
-
-    def __getattr__(self, name):
-        return getattr(self.f, name)
-
-
 class CompanionPush:
     """Companion's own OBS module shows scene, record, vcam and source state; what it cannot see (the PipeWire mic,
     camera-mode) goes into its custom variables pad_mic, pad_mode, pad_camera over its HTTP API
@@ -607,11 +583,31 @@ def serve(bind, actions):
     threading.Thread(target=pusher.run_forever, daemon=True).start()
 
     class H(BaseHTTPRequestHandler):
-        timeout = HTTP_TIMEOUT   # per-read socket timeout; DeadlineFile makes it an absolute deadline for the head
+        timeout = HTTP_TIMEOUT   # per-receive socket timeout (an idle client)…
 
         def setup(self):
             super().setup()
-            self.rfile = DeadlineFile(self.rfile, self.connection, time.monotonic() + HTTP_TIMEOUT)
+            # …and an absolute deadline for the request head: the buffered reader loops over receives inside one
+            # readline, so only something outside the read path can end a client that trickles bytes without ever
+            # finishing a line. The watchdog shuts the socket at HTTP_TIMEOUT; parse_request cancels it.
+            self.watchdog = threading.Timer(HTTP_TIMEOUT, self._deadline)
+            self.watchdog.daemon = True
+            self.watchdog.start()
+
+        def _deadline(self):
+            try:
+                self.connection.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
+
+        def parse_request(self):
+            ok = super().parse_request()
+            self.watchdog.cancel()
+            return ok
+
+        def finish(self):
+            self.watchdog.cancel()
+            super().finish()
 
         def log_message(self, *_):
             pass

@@ -24,7 +24,8 @@ RestartSec=3
 #   ProtectClock / ProtectKernelLogs / ProtectKernelModules (fail with exit 218 in a user unit).
 #   Accepted limit: the camera-mode escape is delegation through the user manager, not a boundary; a compromised
 #   daemon could start any unsandboxed transient unit. The sandbox contains the HTTP path, not a process takeover.
-#   The 10 s HTTP timeout is an absolute deadline for the request head; a verb (camera-mode ~20 s) is not limited by it.
+#   The 10 s HTTP timeout is an absolute deadline for the request head (a watchdog shuts the socket); a verb
+#   (camera-mode ~20 s) is not limited by it.
 ProtectSystem=strict
 PrivateTmp=yes
 NoNewPrivileges=yes
