@@ -19,13 +19,21 @@ ln -sfn "$HERE/av-selfcheck" "$HOME/.local/bin/av-selfcheck"
 ln -sfn "$HERE/camera-mode" "$HOME/.local/bin/camera-mode"
 ln -sfn "$HERE/camera-scene" "$HOME/.local/bin/camera-scene"
 ln -sfn "$HERE/camera-up" "$HOME/.local/bin/camera-up"
-# obs-macro-pad: unit + default map installed, NOT enabled (the pad keeps typing until JP approves the map on his card;
-# then `systemctl --user enable --now obs-macro-pad.service`). Needs evdev in the obsws venv:
+# obs-macro-pad: unit + default map installed; the unit is enabled (JP's GO 2026-11-17) but NEVER restarted here: it
+# holds the pad grab, and a new version takes effect at the next login or `systemctl --user restart obs-macro-pad`
+# in a window JP gives. Needs evdev in the obsws venv:
 #   uv pip install --python ~/.venvs/obsws/bin/python evdev   (done 2026-11-17; the venv has no pip)
 ln -sfn "$HERE/obs-macro-pad" "$HOME/.local/bin/obs-macro-pad"
 cp "$HERE/obs-macro-pad.service" "$HERE/obs-macro-pad-serve.service" "$UNITDIR/"
 mkdir -p "$HOME/.config/obs-macro-pad"
-[ -e "$HOME/.config/obs-macro-pad/map.json" ] || cp "$HERE/obs-macro-pad.json" "$HOME/.config/obs-macro-pad/map.json"
+MAP="$HOME/.config/obs-macro-pad/map.json"
+[ -e "$MAP" ] || cp "$HERE/obs-macro-pad.json" "$MAP"
+# the map must carry the pad's usb vendor/product (checked on every grab, PR after xreview on #26): an older copy
+# gets them from the vendored map, JP's keys untouched
+if ! grep -q '"vendor"' "$MAP"; then
+    jq -s '.[1] + {vendor: .[0].vendor, product: .[0].product}' "$HERE/obs-macro-pad.json" "$MAP" > "$MAP.tmp" && mv "$MAP.tmp" "$MAP"
+fi
+"$HERE/obs-macro-pad" map > /dev/null || { echo "install.sh: $MAP is not a valid map (obs-macro-pad map)"; exit 1; }
 # nvpoca.service: copied, never restarted here (a restart reopens the Kiyo = the wedge trigger, and drops a call).
 # It runs ~/.local/opt/nvpoca with nvpoca-patches/0001+0002 applied (README). /dev/video12 needs v4l2loopback.conf in
 # /etc/modprobe.d (sudo, by hand) or `sudo v4l2loopback-ctl add -n "nvpoca Room" -x 1 -b 2 /dev/video12` live.
@@ -39,4 +47,4 @@ systemctl --user enable obs-macro-pad-serve.service
 systemctl --user restart obs-macro-pad-serve.service
 systemctl --user --no-pager --lines=0 status audio-watchdog.service | head -3
 systemctl --user list-timers audio-selfcheck.timer --no-pager
-echo "installed: audio-watchdog.service -> $HERE/audio-watchdog.sh; ~/.local/bin/{audio,av}-selfcheck, camera-mode, obs-macro-pad (unit installed, not enabled), obs-macro-pad-serve (enabled, :8765); audio-selfcheck.timer; obs-vcam.service (not restarted)"
+echo "installed: audio-watchdog.service -> $HERE/audio-watchdog.sh; ~/.local/bin/{audio,av}-selfcheck, camera-mode, obs-macro-pad (unit copied, not restarted), obs-macro-pad-serve (enabled, :8765); audio-selfcheck.timer; obs-vcam.service (not restarted)"

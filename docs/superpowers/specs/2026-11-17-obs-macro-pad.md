@@ -104,16 +104,26 @@ key down). A second press while an action is still running is dropped, not queue
 - **`katana-av/obs-macro-pad`** (Python, `#!/home/jp/.venvs/obsws/bin/python`; `evdev` added to that venv, recorded
   in `install.sh`). Subcommands: `run` (the daemon), `do <verb>` (one action, for Companion/HA/tests), `status`,
   `map` (print the effective map).
-- **Device match:** `ID_VENDOR_ID:ID_MODEL_ID` = `258e:000f` **and** the by-id serial `SN:0009`, all three
-  interfaces (`event11/12/13` today; resolved by `/dev/input/by-id/usb-Hailuck_Co._Ltd_USB_KEYBOARD_SN:0009-*`),
-  each grabbed. The consumer-control interface is grabbed too so the pad's volume keys never reach GNOME.
-  Override: `OBS_MACRO_PAD_DEVICE=<by-id prefix>` for a different pad.
-- **Hotplug:** the daemon waits for the device (2 s poll), grabs, reads; on `OSError` (unplug) it logs and waits
-  again. `Restart=on-failure`.
+- **Device match (fail closed, after the xreview on PR 26):** the map names the pad's full by-id name up to its
+  interface suffix (`usb-Hailuck_Co._Ltd_USB_KEYBOARD_SN:0009`) and its usb id (`258e:000f`); only
+  `/dev/input/by-id/<name>[-ifNN]-event-*` is grabbed (whole-name match: an empty or short prefix can never widen to
+  the keyboard and mouse; the map check refuses it before any grab), and every interface's `vendor:product` is
+  checked at grab, a stranger under that name = refused, exit 2, unit stays stopped (`RestartPreventExitStatus=2`).
+  `obs-macro-pad find` prints what `run` would grab. All three interfaces (`event11/12/13` today) are grabbed, the
+  consumer-control one too so the pad's volume keys never reach GNOME.
+- **Hotplug:** the daemon waits for the device (2 s poll), grabs, reads; on `OSError` (unplug) it releases the pad,
+  stops and joins its worker (an in-flight verb finishes first; no thread leaks per unplug) and waits again.
+  `Restart=on-failure`.
+- **One action at a time, nothing queued:** a press while a verb runs is dropped (`dropped (busy)` in the journal),
+  never run later; the busy flag is taken by the accepted press and released when its action has finished.
+- **Stop:** `KillMode=mixed` + `TimeoutStopSec=45`: SIGTERM reaches the daemon only; it finishes the verb in flight
+  (the camera-stack lock stays held until then), releases the pad, exits 0; the whole cgroup is killed at the
+  timeout, so no `camera-mode`/`camera-scene` child outlives the unit with the lock dropped under it.
 - **Map:** `katana-av/obs-macro-pad.json` vendored (the table above), copied to `~/.config/obs-macro-pad/map.json`
   by `install.sh` only when none exists (JP's edits stay).
-- **Unit:** `obs-macro-pad.service` (user, `graphical-session.target`), **installed, not enabled**. `install.sh`
-  copies the unit and prints the enable command; the lane runs it only on JP's word from the card.
+- **Unit:** `obs-macro-pad.service` (user, `graphical-session.target`), installed by `install.sh` and **enabled on
+  JP's GO** (card 85e5688df08d, 2026-11-17 17:45). `install.sh` never restarts it (it holds the grab): a new
+  version takes effect at the next login or on a restart in a window JP gives.
 - **Logs:** one journal line per press: `key=KP5 verb=mic toggle result=muted 41ms` or `backed off (lock held)`.
 
 ## 6. Tests (pytest, `tests/test_obs_macro_pad.py`, run on katana)
