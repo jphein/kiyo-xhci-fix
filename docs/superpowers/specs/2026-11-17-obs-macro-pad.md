@@ -116,9 +116,13 @@ key down). A second press while an action is still running is dropped, not queue
   `Restart=on-failure`.
 - **One action at a time, nothing queued:** a press while a verb runs is dropped (`dropped (busy)` in the journal),
   never run later; the busy flag is taken by the accepted press and released when its action has finished.
-- **Stop:** `KillMode=mixed` + `TimeoutStopSec=45`: SIGTERM reaches the daemon only; it finishes the verb in flight
-  (the camera-stack lock stays held until then), releases the pad, exits 0; the whole cgroup is killed at the
-  timeout, so no `camera-mode`/`camera-scene` child outlives the unit with the lock dropped under it.
+- **Stop:** `KillMode=mixed` + `TimeoutStopSec=45`: SIGTERM reaches the daemon only (a self-pipe wakes its read
+  loop; no `threading.Event` in a signal handler); it finishes the verb in flight with the pad still grabbed and
+  the camera-stack lock held, then releases the pad and exits 0; whatever is left in the cgroup when it exits or at
+  the timeout is SIGKILLed, so no `camera-mode`/`camera-scene` child outlives the unit. Not an absolute lock
+  lifetime: a crash or an over-budget verb ends the flock seconds before the child is killed in the same stop.
+- **Worker death:** a press with no live worker ends the daemon with exit 1 (`Restart=on-failure` brings it back)
+  instead of latching the busy flag forever.
 - **Map:** `katana-av/obs-macro-pad.json` vendored (the table above), copied to `~/.config/obs-macro-pad/map.json`
   by `install.sh` only when none exists (JP's edits stay).
 - **Unit:** `obs-macro-pad.service` (user, `graphical-session.target`), installed by `install.sh` and **enabled on

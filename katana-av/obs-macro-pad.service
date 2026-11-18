@@ -12,9 +12,11 @@ Restart=on-failure
 # exit 2 = a device under the pad's by-id name is not the pad (config error): stay stopped instead of looping
 RestartPreventExitStatus=2
 RestartSec=3
-# Stop: SIGTERM to the daemon only; it finishes the verb in flight (camera-mode ~20 s, the camera-stack lock held
-# until it ends), releases the pad and exits 0. Anything still in the cgroup at the timeout is SIGKILLed with it, so
-# no camera-mode/camera-scene child ever outlives the unit or runs with the lock dropped under it (xreview on PR 26).
+# Stop: SIGTERM to the daemon only (not to a camera-mode/camera-scene child); the daemon finishes the verb in flight
+# (camera-mode ~20 s, the camera-stack lock held until it ends, the pad still grabbed), releases the pad and exits 0.
+# Whatever is left in the cgroup when the daemon exits or the timeout runs out is SIGKILLed with it: no child
+# outlives the unit (xreview on PR 26). Not covered: a daemon crash or an over-budget verb ends the flock before
+# the child is killed (seconds, within the same stop); an absolute lock lifetime would need the child to hold it.
 KillMode=mixed
 TimeoutStopSec=45
 

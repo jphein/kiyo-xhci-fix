@@ -157,8 +157,15 @@ tap(E.KEY_KP9)                                     # camera-mode again (2 s)…
 time.sleep(0.3)
 t0 = time.monotonic()
 d.terminate()                                      # …SIGTERM while it runs: the verb finishes, then the pad is released
+time.sleep(0.6)
+def grabbed():                                     # a second grab fails with EBUSY while the daemon holds it
+    try:
+        x = evdev.InputDevice(ui.device.path); x.grab(); x.ungrab(); x.close(); return False
+    except OSError:
+        return True
+print(f"grabbed during stop={grabbed()}")
 rc = d.wait(15)
-print(f"stop rc={rc} after {time.monotonic() - t0:.1f}s")
+print(f"stop rc={rc} after {time.monotonic() - t0:.1f}s grabbed after exit={grabbed()}")
 unplug(ui)
 ui = plug(vendor=0x1234)                           # a stranger under the pad's by-id name
 d2 = start("daemon2")
@@ -182,8 +189,9 @@ echo "$OUT" | grep -q "key=KEY_NUMLOCK unmapped" && ok "NumLock swallowed as unm
 [ "$(echo "$LOG" | grep -c "^camera-mode \(fast\|hdr\)$")" = 2 ] && ok "camera-mode shim ran once per accepted KP9 (fast, then hdr), never for a dropped press" || bad "$LOG"
 echo "$OUT" | grep -q "pad gone; waiting" && ok "unplug -> 'pad gone; waiting', daemon alive" || bad "$OUT"
 echo "$OUT" | grep -qE "^threads first=([0-9]+) replug=\1$" && ok "re-plug leaks no worker thread ($(echo "$OUT" | grep '^threads'))" || bad "$(echo "$OUT" | grep '^threads')"
-echo "$OUT" | grep -q "finishing the running verb before release" && echo "$OUT" | grep -q "key=KEY_KP9 verb='camera-mode toggle' rc=0 .*camera-mode hdr" && ok "SIGTERM mid-verb: the verb finished (camera-mode hdr rc=0) before the pad was released" || bad "$OUT"
-echo "$OUT" | grep -qE "^stop rc=0 after (1\.[4-9]|[2-9]\.[0-9]|1[0-4]\.[0-9])s" && echo "$OUT" | grep -q "^stopped (pad released)" && ok "then exit 0 ($(echo "$OUT" | grep '^stop rc'))" || bad "$(echo "$OUT" | grep '^stop rc')"
+echo "$OUT" | grep -q "finishing the running verb before release" && echo "$OUT" | grep -q "key=KEY_KP9 verb='camera-mode toggle' rc=0 .*camera-mode hdr" && ok "SIGTERM mid-verb: the verb finished (camera-mode hdr rc=0) with the pad still grabbed, then released" || bad "$OUT"
+echo "$OUT" | grep -qE "^stop rc=0 after (1\.[4-9]|[2-9]\.[0-9]|1[0-4]\.[0-9])s" && echo "$OUT" | grep -q "^stopped (pad released)" && ok "then exit 0 ($(echo "$OUT" | grep -o '^stop rc=0 after [0-9.]*s'))" || bad "$(echo "$OUT" | grep '^stop rc')"
+echo "$OUT" | grep -q "^grabbed during stop=True" && echo "$OUT" | grep -q "grabbed after exit=False" && ok "the pad stays grabbed while the verb finishes (EBUSY for a second grab), free after exit" || bad "$(echo "$OUT" | grep 'grabbed ')"
 echo "$OUT" | grep -q "^stranger rc=2" && echo "$OUT" | grep -q "^refusing .*usb id 1234:000f is not the pad's 258e:000f" && ok "a stranger under the pad's by-id name: refused, exit 2" || bad "$OUT"
 [ "$(sed -n '/^--- daemon2/,$p' "$FX/out" | grep -c '^grabbed')" = 0 ] && ok "the stranger was never grabbed" || bad "$OUT"
 

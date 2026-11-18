@@ -32,6 +32,7 @@ import os
 import pathlib
 import queue
 import re
+import select
 import selectors
 import signal
 import subprocess
@@ -98,6 +99,33 @@ class BackedOff(Exception):
 
 class WrongDevice(Exception):
     """A device under the pad's by-id name is not the pad (vendor:product differ): never grabbed, exit 2."""
+
+
+class PadDead(Exception):
+    """The worker thread died: nothing would run the next press, so the daemon exits 1 (systemd restarts it)."""
+
+
+class Stop:
+    """Set from a signal handler. A plain flag plus a self-pipe, never a threading.Event: its set() takes a
+    non-reentrant lock that the interrupted main thread may hold (deadlock, xreview on PR 32). The pipe's read end
+    sits in the pad's selector, so SIGTERM wakes the read loop at once instead of at its next timeout."""
+    def __init__(self):
+        self.flag = False
+        self.r, self.w = os.pipe()
+        os.set_blocking(self.w, False)
+
+    def set(self, *_):
+        self.flag = True
+        try:
+            os.write(self.w, b"s")
+        except OSError:
+            pass
+
+    def is_set(self):
+        return self.flag
+
+    def wait(self, timeout):
+        select.select([self.r], [], [], timeout)
 
 
 class Lock:
@@ -306,6 +334,14 @@ class Pad:
         self._led()
 
     def release(self):
+        # Stop and join the worker FIRST: an in-flight verb finishes (camera-mode: ~20 s) while the pad is still ours,
+        # so its keys never reach a window during a stop; nothing queued can run after this returns, and a re-plugged
+        # pad gets a fresh worker (the old one is gone: no thread per unplug).
+        if self.worker.is_alive():
+            if self.busy.locked():
+                log("finishing the running verb before release")
+            self.q.put(None)
+            self.worker.join()
         for d in self.devs:
             try:
                 self.sel.unregister(d.fd)
@@ -314,13 +350,6 @@ class Pad:
             except OSError:
                 pass
         self.devs = []
-        # Stop and join the worker: an in-flight verb finishes first (camera-mode: ~20 s) and nothing it queued can
-        # run after this returns; a re-plugged pad gets a fresh worker, the old one is gone (no thread per unplug).
-        if self.worker.is_alive():
-            if self.busy.locked():
-                log("finishing the running verb before release")
-            self.q.put(None)
-            self.worker.join()
 
     def _led(self):
         muted = self.actions.mic_muted()
@@ -337,10 +366,12 @@ class Pad:
                 return
             key, verb = item
             try:
-                rc, out, ms = self.actions.do(verb)
+                rc, out, ms = self.actions.do(verb)   # never raises on a verb failure (rc 3 + one line)
                 log(f"key={key} verb={verb!r} rc={rc} {ms}ms {out}")
                 if verb.split()[0] in ("mic", "safe"):
                     self._led()
+            except Exception as e:   # noqa: BLE001 — the worker survives anything a press can throw at it
+                log(f"key={key} verb={verb!r} worker error {type(e).__name__}: {e}")
             finally:
                 self.busy.release()
 
@@ -351,6 +382,8 @@ class Pad:
         if not verb or verb == "none":
             log(f"key={key} unmapped")
             return
+        if not self.worker.is_alive():   # nobody would run it: a latched busy flag forever is worse than a restart
+            raise PadDead("worker thread died")
         if not self.busy.acquire(blocking=False):
             log(f"key={key} verb={verb!r} dropped (busy)")
             return
@@ -358,9 +391,18 @@ class Pad:
 
     def loop(self, stop):
         """Read until a device goes away (unplug) or stop is set (SIGTERM); the caller re-waits or exits."""
+        self.sel.register(stop.r, selectors.EVENT_READ, None)
+        try:
+            self._loop(stop)
+        finally:
+            self.sel.unregister(stop.r)
+
+    def _loop(self, stop):
         while not stop.is_set():
             for sk, _ in self.sel.select(timeout=1.0):
                 d = sk.data
+                if d is None:   # the stop pipe
+                    return
                 try:
                     events = list(d.read())
                 except OSError:
@@ -375,11 +417,12 @@ class Pad:
 
 def run(args, keymap, actions):
     """Exit 0 on SIGTERM/SIGINT after the running verb (if any) has finished and the pad is released; exit 2 when a
-    device under the pad's name is not the pad (the unit does not restart on 2: it is a config error)."""
+    device under the pad's name is not the pad (the unit does not restart on 2: it is a config error); exit 1 when
+    the worker thread died (the unit restarts)."""
     prefix = keymap["device"]
-    stop = threading.Event()
+    stop = Stop()
     for sig in (signal.SIGTERM, signal.SIGINT):
-        signal.signal(sig, lambda *_: stop.set())
+        signal.signal(sig, stop.set)
     waited = False
     while not stop.is_set():
         paths = list(args.device) if args.device else find_devices(prefix)
@@ -397,6 +440,9 @@ def run(args, keymap, actions):
         except WrongDevice as e:
             log(str(e))
             return 2
+        except PadDead as e:
+            log(f"{e}; exiting for a restart")
+            return 1
         except OSError as e:
             log(f"pad error ({type(e).__name__}: {e}); waiting for it")
         finally:
