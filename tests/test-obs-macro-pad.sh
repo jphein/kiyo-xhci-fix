@@ -378,6 +378,24 @@ PYEOF
 )
 echo "$OUT" | grep -qE "dropped after (9|1[0-3])s, (1[5-9]|2[0-9]) bytes" && ok "a client trickling bytes with no newline is dropped at the absolute 10 s deadline ($(echo "$OUT" | grep -o 'after [0-9]*s, [0-9]* bytes'))" || bad "$OUT"
 echo "$OUT" | grep -q "^after trickle: 200" && ok "its worker is back" || bad "$OUT"
+# an authenticated head that never ends (no blank line): the deadline's EOF must not complete it into a verb
+: > "$FX/log"
+OUT=$("$PY" - "$PORT" "$TOK" <<'PYEOF'
+import socket, sys, time
+port, tok = int(sys.argv[1]), sys.argv[2]
+s = socket.create_connection(("127.0.0.1", port)); s.settimeout(14)
+s.sendall(f"POST /do/scene/plain HTTP/1.0\r\nHost: 127.0.0.1\r\nAuthorization: Bearer {tok}\r\n".encode())   # …and stalls
+t0 = time.time()
+try:
+    data = s.recv(200)
+except (TimeoutError, ConnectionResetError):
+    data = b"(reset)"
+print(f"unterminated head: after {time.time() - t0:.0f}s got {data[:40]!r}")
+PYEOF
+)
+echo "$OUT" | grep -qE "^unterminated head: after (9|1[0-3])s got b''" && ok "an authenticated head with no final blank line is dropped at the deadline with no answer" || bad "$OUT"
+sleep 0.5
+grep -q "camera-scene plain" "$FX/log" && bad "the deadline's EOF completed the head into a verb: $(cat $FX/log)" || ok "and it never ran (no camera-scene plain in the shim log)"
 kill $SRV; wait $SRV 2>/dev/null
 grep -q "http verb='scene brand' rc=0" "$FX/daemon" && ok "one journal line per HTTP verb" || bad "$(cat $FX/daemon)"
 

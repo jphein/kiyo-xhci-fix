@@ -590,18 +590,31 @@ def serve(bind, actions):
             # …and an absolute deadline for the request head: the buffered reader loops over receives inside one
             # readline, so only something outside the read path can end a client that trickles bytes without ever
             # finishing a line. The watchdog shuts the socket at HTTP_TIMEOUT; parse_request cancels it.
+            self.gate = threading.Lock()   # admitted xor expired: the parser and the watchdog race for it
+            self.admitted = self.expired = False
             self.watchdog = threading.Timer(HTTP_TIMEOUT, self._deadline)
             self.watchdog.daemon = True
             self.watchdog.start()
 
         def _deadline(self):
+            with self.gate:
+                if self.admitted:
+                    return
+                self.expired = True
             try:
                 self.connection.shutdown(socket.SHUT_RDWR)
             except OSError:
                 pass
 
         def parse_request(self):
+            # The header parser takes EOF as the end of the headers, so the watchdog's shutdown could complete an
+            # unterminated head: an expired request is never admitted, whatever the parser made of it.
             ok = super().parse_request()
+            with self.gate:
+                if self.expired:
+                    self.close_connection = True
+                    return False
+                self.admitted = True
             self.watchdog.cancel()
             return ok
 
