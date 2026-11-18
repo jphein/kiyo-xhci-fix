@@ -22,9 +22,15 @@ printf '#!/bin/bash\necho "camera-scene $*" >> "$FX/log"\necho "camera-scene: pr
 printf '#!/bin/bash\necho "camera-mode $*" >> "$FX/log"\nsleep "${FX_MODE_SLEEP:-0}"\necho "camera-mode $1: 59 fps"\n' > "$SHIM/camera-mode"
 # wpctl: set-mute flips a flag file; get-volume reports it
 printf '#!/bin/bash\necho "wpctl $*" >> "$FX/log"\nif [ "$1" = set-mute ]; then case "$3" in 1) touch "$FX/muted";; 0) rm -f "$FX/muted";; toggle) [ -f "$FX/muted" ] && rm -f "$FX/muted" || touch "$FX/muted";; esac; fi\n[ "$1" = get-volume ] && { [ -f "$FX/muted" ] && echo "Volume: 1.00 [MUTED]" || echo "Volume: 1.00"; }\nexit 0\n' > "$SHIM/wpctl"
+# systemd-run: the serve unit's escape for camera-mode; the shim logs the wrapper and execs what follows "--"
+printf '#!/bin/bash\nargs=("$@"); while [ "$1" != "--" ]; do shift; done; shift; echo "systemd-run ${args[*]%% -- *}" >> "$FX/log"; exec "$@"\n' > "$SHIM/systemd-run"
 chmod +x "$SHIM"/*
 # the vendored map, never JP's ~/.config copy (the test must not depend on his edits)
 export CAMERA_STACK_LOCK="$T/camera-stack.lock" OBS_MACRO_PAD_STATE="$T/state.json" OBS_MACRO_PAD_MAP="$ROOT/katana-av/obs-macro-pad.json"
+# the HTTP token: a 0600 file, as install.sh makes it
+( umask 077; head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' > "$T/token" ); TOK="$(cat "$T/token")"
+export OBS_MACRO_PAD_TOKEN_FILE="$T/token"
+AUTH=(-H "Authorization: Bearer $TOK")
 
 run() {   # run <fixture> <args...> -> OUT RC LOG
     local fx="$1"; shift; mkdir -p "$fx"; : > "$fx/log"
@@ -80,6 +86,13 @@ run "$T/m2" do scene sideways
 [ "$RC" = 2 ] && ok "scene sideways -> exit 2" || bad "exit $RC: $OUT"
 run "$T/m2" --dry-run do record toggle
 [ "$RC" = 0 ] && echo "$OUT" | grep -q "would ToggleRecord" && [ -z "$LOG" ] && ok "--dry-run writes nothing" || bad "rc=$RC out=$OUT"
+
+run "$T/m2" do camera-mode fast
+echo "$LOG" | grep -q "^camera-mode fast" && ! echo "$LOG" | grep -q "systemd-run" && ok "camera-mode runs directly without OBS_MACRO_PAD_ESCAPE" || bad "$LOG"
+OBS_MACRO_PAD_ESCAPE=systemd-run run "$T/m2" do camera-mode hdr
+echo "$LOG" | grep -q "^systemd-run --user --quiet --wait --pipe --collect --property=RuntimeMaxSec=170" && echo "$LOG" | grep -q "^camera-mode hdr" && [ "$RC" = 0 ] && ok "OBS_MACRO_PAD_ESCAPE=systemd-run: camera-mode runs as a transient user unit (RuntimeMaxSec=170), exit code kept" || bad "rc=$RC $LOG"
+OBS_MACRO_PAD_ESCAPE=systemd-run run "$T/m2" do scene plain
+echo "$LOG" | grep -q "systemd-run" && bad "scene escaped the sandbox: $LOG" || ok "only camera-mode escapes; camera-scene stays in the sandbox"
 
 echo "M3 lock: held by someone else (ha's restart window) -> backed off, nothing run, exit 4"
 # the holder is one process with no child (flock(1) forks: killing it leaves its child holding the fd)
@@ -201,34 +214,109 @@ echo "$OUT" | grep -q "^grabbed during stop=True" && echo "$OUT" | grep -q "grab
 echo "$OUT" | grep -q "^stranger rc=2" && echo "$OUT" | grep -q "^refusing .*usb id 1234:000f is not the pad's 258e:000f" && ok "a stranger under the pad's by-id name: refused, exit 2" || bad "$OUT"
 [ "$(sed -n '/^--- daemon2/,$p' "$FX/out" | grep -c '^grabbed')" = 0 ] && ok "the stranger was never grabbed" || bad "$OUT"
 
-echo "M5 serve: loopback HTTP = the same verbs and the same lock; busy -> 409; lock held -> 423; bad verb -> 400"
+echo "M5 serve: loopback only, token required, no browser Origin, loopback Host, no body; the same verbs and the same lock; busy -> 409; lock held -> 423; bad verb -> 400; 8 workers"
 FX="$T/m5"; mkdir -p "$FX"; : > "$FX/log"
 PORT=$(( 20000 + RANDOM % 20000 ))
+for b in "0.0.0.0:$PORT" "10.0.8.5:$PORT" "[::]:$PORT" "katana:$PORT"; do
+    OUT=$(PATH="$SHIM:$PATH" FX="$FX" timeout 5 "$PAD" serve --bind "$b" --dry-run 2>&1); RC=$?
+    [ "$RC" = 2 ] && echo "$OUT" | grep -qF "refusing to bind $b: loopback only" && ok "bind $b -> refused, exit 2, nothing listens" || bad "bind $b: rc=$RC $OUT"
+done
+chmod 0644 "$T/token"
+OUT=$(PATH="$SHIM:$PATH" FX="$FX" timeout 5 "$PAD" serve --bind "127.0.0.1:$PORT" --dry-run 2>&1); RC=$?
+[ "$RC" = 2 ] && echo "$OUT" | grep -q "refusing to serve: .*must be 0600, is 0644" && ok "token file 0644 -> refused, exit 2" || bad "rc=$RC $OUT"
+chmod 0600 "$T/token"
+OUT=$(PATH="$SHIM:$PATH" FX="$FX" OBS_MACRO_PAD_TOKEN_FILE="$T/no-such-token" timeout 5 "$PAD" serve --bind "127.0.0.1:$PORT" --dry-run 2>&1); RC=$?
+[ "$RC" = 2 ] && echo "$OUT" | grep -q "refusing to serve: no token file" && ok "no token file -> refused, exit 2" || bad "rc=$RC $OUT"
 PATH="$SHIM:$PATH" FX="$FX" FX_MODE_SLEEP=2 "$PAD" serve --bind "127.0.0.1:$PORT" --dry-run > "$FX/daemon" 2>&1 &
 SRV=$!
 for i in $(seq 1 30); do curl -s -o /dev/null "http://127.0.0.1:$PORT/status" && break; sleep 0.1; done
+grep -q "^serving on http://127.0.0.1:$PORT (loopback, token from" "$FX/daemon" && ok "serves on 127.0.0.1 and says where the token came from" || bad "$(cat $FX/daemon)"
 OUT=$(curl -s -w ' %{http_code}' "http://127.0.0.1:$PORT/status")
-echo "$OUT" | grep -q '"dry_run": true.* 200$' && ok "GET /status -> 200 JSON" || bad "$OUT"
+echo "$OUT" | grep -q '"token required.* 401$' && ok "GET /status without a token -> 401" || bad "$OUT"
+OUT=$(curl -s -w ' %{http_code}' -H "Authorization: Bearer not-the-token-not-the-token-xx" "http://127.0.0.1:$PORT/status")
+echo "$OUT" | grep -q ' 401$' && ok "wrong token -> 401" || bad "$OUT"
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" "http://127.0.0.1:$PORT/status")
+echo "$OUT" | grep -q '"dry_run": true.* 200$' && ok "GET /status with the token -> 200 JSON" || bad "$OUT"
+OUT=$(curl -s -w ' %{http_code}' -u "pad:$TOK" "http://127.0.0.1:$PORT/status")
+echo "$OUT" | grep -q '"dry_run": true.* 200$' && ok "Basic auth with the token as password (Companion's connection auth) -> 200" || bad "$OUT"
+OUT=$(curl -s -w ' %{http_code}' -u "pad:nope" "http://127.0.0.1:$PORT/status")
+echo "$OUT" | grep -q ' 401$' && ok "Basic auth with a wrong password -> 401" || bad "$OUT"
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -H "Origin: http://evil.example" -X POST "http://127.0.0.1:$PORT/do/none")
+echo "$OUT" | grep -q '"browser origin refused".* 403$' && ok "a browser Origin (even with the token) -> 403" || bad "$OUT"
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -H "Origin: http://127.0.0.1:$PORT" -X POST "http://127.0.0.1:$PORT/do/none")
+echo "$OUT" | grep -q ' 403$' && ok "a same-origin Origin too: no page drives the stack" || bad "$OUT"
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -H "Host: katana.lan:$PORT" -X POST "http://127.0.0.1:$PORT/do/none")
+echo "$OUT" | grep -q '"host must be loopback".* 403$' && ok "Host: katana.lan (DNS rebinding) -> 403" || bad "$OUT"
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -H "Host: localhost:$PORT" -X POST "http://127.0.0.1:$PORT/do/none")
+echo "$OUT" | grep -q ' 200$' && ok "Host: localhost -> ok" || bad "$OUT"
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST -d '{"verb":"safe"}' "http://127.0.0.1:$PORT/do/none")
+echo "$OUT" | grep -q '"no body.* 400$' && ok "a POST body -> 400, nothing run" || bad "$OUT"
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST -H "Transfer-Encoding: chunked" -d 'x' "http://127.0.0.1:$PORT/do/none")
+echo "$OUT" | grep -q ' 400$' && ok "a chunked POST -> 400" || bad "$OUT"
 kill $SRV; wait $SRV 2>/dev/null
 PATH="$SHIM:$PATH" FX="$FX" FX_MODE_SLEEP=2 "$PAD" serve --bind "127.0.0.1:$PORT" > "$FX/daemon" 2>&1 &
 SRV=$!
-for i in $(seq 1 30); do curl -s -o /dev/null -X POST "http://127.0.0.1:$PORT/do/none" && break; sleep 0.1; done
-OUT=$(curl -s -w ' %{http_code}' -X POST "http://127.0.0.1:$PORT/do/scene/brand")
+for i in $(seq 1 30); do curl -s -o /dev/null "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/none" && break; sleep 0.1; done
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/scene/brand")
 echo "$OUT" | grep -q '"rc": 0.* 200$' && grep -q "camera-scene brand" "$FX/log" && ok "POST /do/scene/brand -> camera-scene brand, 200" || bad "$OUT $(cat $FX/log)"
-OUT=$(curl -s -w ' %{http_code}' -X POST "http://127.0.0.1:$PORT/do/scene/sideways")
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/scene/sideways")
 echo "$OUT" | grep -q ' 400$' && ok "bad arg -> 400" || bad "$OUT"
-OUT=$(curl -s -w ' %{http_code}' "http://127.0.0.1:$PORT/do/scene/plain")
+: > "$FX/log"
+for p in '/do/scene/plain;id' '/do/scene/plain/extra' '/do/scene%20plain' '/do/scene/..%2Fplain' '/do/mic/toggle?x=$(id)' '/do/safe/' '/do/SCENE/plain' '/do/scene/plain%00'; do
+    OUT=$(curl -s -g -w ' %{http_code}' "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT$p")
+    case "$p" in /do/safe/) echo "$OUT" | grep -q ' 200$' && ok "trailing slash: $p -> 200" || bad "$p: $OUT";;
+                 '/do/mic/toggle?x=$(id)') echo "$OUT" | grep -q ' 200$' && ok "query string ignored: $p -> 200" || bad "$p: $OUT";;
+                 *) echo "$OUT" | grep -q ' 404$' && ok "metacharacters / extra arg / case: $p -> 404" || bad "$p: $OUT";; esac
+done
+grep -q "id\|extra\|%" "$FX/log" && bad "a metacharacter path reached a tool: $(cat $FX/log)" || ok "nothing but the allow-listed verbs reached a tool"
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" "http://127.0.0.1:$PORT/do/scene/plain")
 echo "$OUT" | grep -q ' 404$' && ok "GET /do -> 404 (writes are POST only)" || bad "$OUT"
-curl -s -o /dev/null -X POST "http://127.0.0.1:$PORT/do/camera-mode/fast" &
+curl -s -o /dev/null "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/camera-mode/fast" &
 sleep 0.4
-OUT=$(curl -s -w ' %{http_code}' -X POST "http://127.0.0.1:$PORT/do/mic/toggle")
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/mic/toggle")
 echo "$OUT" | grep -q '"busy".* 409$' && ok "a second POST while camera-mode runs -> 409 busy" || bad "$OUT"
 wait %% 2>/dev/null; sleep 2.2
 "$PY" -c 'import fcntl,sys,time; f=open(sys.argv[1],"w"); fcntl.flock(f,fcntl.LOCK_EX); time.sleep(20)' "$T/camera-stack.lock" &
 HOLDER=$!; sleep 0.5
-OUT=$(curl -s -w ' %{http_code}' -X POST "http://127.0.0.1:$PORT/do/scene/plain")
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/scene/plain")
 echo "$OUT" | grep -q '"rc": 4.* 423$' && ok "lock held -> 423 Locked, nothing run" || bad "$OUT"
 kill $HOLDER 2>/dev/null; wait $HOLDER 2>/dev/null
+# bounded workers + stalled clients: 8 connections that never send a request hold the 8 workers; the 9th is
+# answered 503 at once; after the 10 s socket timeout the stalled ones are dropped and a real request works again
+OUT=$("$PY" - "$PORT" "$TOK" <<'PYEOF'
+import socket, sys, time, urllib.request, urllib.error
+port, tok = int(sys.argv[1]), sys.argv[2]
+idle = [socket.create_connection(("127.0.0.1", port)) for _ in range(8)]
+time.sleep(0.3)
+s = socket.create_connection(("127.0.0.1", port))
+s.settimeout(3)
+try:
+    print("ninth:", s.recv(64).split(b"\r\n")[0].decode())
+except TimeoutError:
+    print("ninth: no answer")
+s.close()
+for i in idle:
+    i.close()
+time.sleep(0.5)
+req = urllib.request.Request(f"http://127.0.0.1:{port}/do/none", method="POST", headers={"Authorization": f"Bearer {tok}"})
+print("after:", urllib.request.urlopen(req, timeout=5).status)
+PYEOF
+)
+echo "$OUT" | grep -q "^ninth: HTTP/1.0 503" && ok "8 stalled connections hold the workers, the 9th gets 503 at once" || bad "$OUT"
+echo "$OUT" | grep -q "^after: 200" && ok "workers freed when the stalled clients go" || bad "$OUT"
+OUT=$("$PY" - "$PORT" <<'PYEOF'
+import socket, sys, time
+port = int(sys.argv[1])
+s = socket.create_connection(("127.0.0.1", port)); s.sendall(b"POST /do/none HTTP/1.0\r\nAuthorization: Bearer ")   # …and stalls
+t0 = time.time()
+try:
+    data = s.recv(64)
+except (ConnectionResetError, TimeoutError):
+    data = b""
+print(f"stalled client dropped after {time.time() - t0:.0f}s, got {data[:20]!r}")
+PYEOF
+)
+echo "$OUT" | grep -qE "dropped after (1[0-3]|9)s" && ok "a client stalling mid-headers is dropped at the socket timeout ($(echo "$OUT" | grep -o 'after [0-9]*s'))" || bad "$OUT"
 kill $SRV; wait $SRV 2>/dev/null
 grep -q "http verb='scene brand' rc=0" "$FX/daemon" && ok "one journal line per HTTP verb" || bad "$(cat $FX/daemon)"
 
@@ -250,12 +338,12 @@ CSRV=$!
 : > "$FX/companion"
 PATH="$SHIM:$PATH" FX="$FX" COMPANION_URL="http://127.0.0.1:$CPORT" OBS_MACRO_PAD_PUSH_S=60 "$PAD" serve --bind "127.0.0.1:$PORT" --dry-run > "$FX/daemon" 2>&1 &
 SRV=$!
-for i in $(seq 1 30); do curl -s -o /dev/null "http://127.0.0.1:$PORT/status" && break; sleep 0.1; done
+for i in $(seq 1 30); do curl -s -o /dev/null "${AUTH[@]}" "http://127.0.0.1:$PORT/status" && break; sleep 0.1; done
 sleep 0.5
 grep -q "pad_mic/value?value=%3F" "$FX/companion" && ok "first push sends every variable (dry-run state '?')" || bad "$(cat $FX/companion)"
 n0=$(wc -l < "$FX/companion")
-curl -s -o /dev/null -X POST "http://127.0.0.1:$PORT/do/none"; sleep 0.3
-[ "$(wc -l < "$FX/companion")" = "$n0" ] && ok "no change -> nothing re-sent" || bad "re-sent: $(cat $FX/companion)"
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/none"); sleep 0.3
+echo "$OUT" | grep -q ' 200$' && [ "$(wc -l < "$FX/companion")" = "$n0" ] && ok "no change -> nothing re-sent" || bad "re-sent: $(cat $FX/companion)"
 kill $SRV; wait $SRV 2>/dev/null
 : > "$FX/companion"
 PATH="$SHIM:$PATH" FX="$FX" COMPANION_URL="http://127.0.0.1:$CPORT" OBS_MACRO_PAD_PUSH_S=0.2 OBS_MACRO_PAD_RESYNC_N=2 "$PAD" serve --bind "127.0.0.1:$PORT" --dry-run > "$FX/daemon" 2>&1 &

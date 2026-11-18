@@ -6,10 +6,32 @@ After=graphical-session.target
 
 [Service]
 Type=simple
-# Loopback only (127.0.0.1:8765). Grabs nothing, so it is enabled independently of the pad unit.
-ExecStart=%h/Projects/kiyo-xhci-fix/katana-av/obs-macro-pad serve
+# Loopback only, token required (~/.config/obs-macro-pad/token, 0600, made by install.sh). Grabs nothing, so it is
+# enabled independently of the pad unit. Rollback: `systemctl --user disable --now obs-macro-pad-serve.service`
+# (the listener disappears; the pad unit is untouched) and drop the enable+restart lines from install.sh.
+ExecStart=%h/Projects/kiyo-xhci-fix/katana-av/obs-macro-pad serve --bind 127.0.0.1:8765
 Restart=on-failure
+# exit 2 = refused to serve (non-loopback bind, token file missing or not 0600): a config error stays stopped
+RestartPreventExitStatus=2
 RestartSec=3
+# Sandbox (xreview on PR 29), each setting measured in a transient user unit on katana 2026-11-18:
+#   ProtectSystem=strict  /usr and /etc read-only (touch fails); /dev /proc /sys untouched (the Kiyo, nvpoca).
+#   NoNewPrivileges       nothing in here gains privileges; camera-mode's wedge recovery (reset-camera.sh =
+#                         `sudo tee` into sysfs) cannot run in here, so camera-mode runs as its own transient user
+#                         unit (OBS_MACRO_PAD_ESCAPE=systemd-run below); wpctl, busctl --user, journalctl --user,
+#                         the OBS websocket and ~/.local/state writes all work in here.
+#   Not set: ProtectHome / ReadOnlyPaths=%h (measured ineffective in a user unit here: home stayed writable);
+#   ProtectClock / ProtectKernelLogs / ProtectKernelModules (fail with exit 218 in a user unit).
+ProtectSystem=strict
+PrivateTmp=yes
+NoNewPrivileges=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+LockPersonality=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+Environment=OBS_MACRO_PAD_ESCAPE=systemd-run
 
 [Install]
 WantedBy=graphical-session.target

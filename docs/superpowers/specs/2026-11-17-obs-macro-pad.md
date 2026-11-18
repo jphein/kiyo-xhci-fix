@@ -129,6 +129,18 @@ key down). A second press while an action is still running is dropped, not queue
   JP's GO** (card 85e5688df08d, 2026-11-17 17:45). `install.sh` never restarts it (it holds the grab): a new
   version takes effect at the next login or on a restart in a window JP gives.
 - **Logs:** one journal line per press: `key=KP5 verb=mic toggle result=muted 41ms` or `backed off (lock held)`.
+- **The HTTP side** (`obs-macro-pad serve`, `obs-macro-pad-serve.service`, after the xreview on PR 29): binds a
+  loopback IP literal only (anything else = refuse, exit 2, unit stays stopped); every request needs the token
+  from `~/.config/obs-macro-pad/token` (0600, 64 hex, made by `install.sh`) as `Authorization: Bearer <t>` or
+  Basic with `<t>` as the password (Companion's `pad` connection uses Basic, user `pad`); a request with an
+  `Origin` header is refused (403: no page in a browser drives the stack, CSRF or not), `Host` must be loopback
+  (403), POST takes no body (400), 8 connections at once (more get 503 at once), a stalled client is dropped
+  after 10 s. Unit sandbox: `ProtectSystem=strict`, `PrivateTmp`, `NoNewPrivileges`, `RestrictSUIDSGID`,
+  `RestrictRealtime`, `LockPersonality`, `ProtectControlGroups`, `RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6`,
+  `SystemCallArchitectures=native`; `camera-mode` runs as a transient user unit outside it
+  (`OBS_MACRO_PAD_ESCAPE=systemd-run`) because its wedge recovery is `sudo tee` into sysfs. Measured and NOT
+  used: `ProtectHome`/`ReadOnlyPaths=%h` leave home writable in a user unit here. Rollback:
+  `systemctl --user disable --now obs-macro-pad-serve.service` + drop the enable/restart lines from `install.sh`.
 
 ## 6. Tests (pytest, `tests/test_obs_macro_pad.py`, run on katana)
 
