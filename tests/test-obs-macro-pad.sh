@@ -253,6 +253,46 @@ OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST -d '{"verb":"safe"}' "http
 echo "$OUT" | grep -q '"no body.* 400$' && ok "a POST body -> 400, nothing run" || bad "$OUT"
 OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST -H "Transfer-Encoding: chunked" -d 'x' "http://127.0.0.1:$PORT/do/none")
 echo "$OUT" | grep -q ' 400$' && ok "a chunked POST -> 400" || bad "$OUT"
+OUT=$(curl -s -w ' %{http_code}' -H "authorization: bearer $TOK" -X POST "http://127.0.0.1:$PORT/do/none")
+echo "$OUT" | grep -q ' 200$' && ok "scheme is case-insensitive: 'bearer' -> 200" || bad "$OUT"
+OUT=$(curl -s -w ' %{http_code}' -H "Authorization: BASIC $(printf 'pad:%s' "$TOK" | base64 -w0)" -X POST "http://127.0.0.1:$PORT/do/none")
+echo "$OUT" | grep -q ' 200$' && ok "'BASIC' -> 200" || bad "$OUT"
+# raw requests: malformed framing and duplicate security headers are refused (400/401/403), nothing runs
+: > "$FX/log"
+raw() {   # raw <description> <expected code> <request lines…>
+    local desc="$1" want="$2"; shift 2
+    local got
+    got=$("$PY" - "$PORT" "$@" <<'PYEOF'
+import socket, sys
+port, lines = int(sys.argv[1]), sys.argv[2:]
+s = socket.create_connection(("127.0.0.1", port)); s.settimeout(5)
+s.sendall(("\r\n".join(lines) + "\r\n\r\n").encode())
+data = b""
+try:
+    while True:
+        chunk = s.recv(4096)
+        if not chunk:
+            break
+        data += chunk
+except (TimeoutError, ConnectionResetError):
+    pass
+print(data.split(b"\r\n")[0].decode(errors="replace"))
+PYEOF
+)
+    echo "$got" | grep -q "^HTTP/1.0 $want " && ok "$desc -> $want" || bad "$desc: got '$got'"
+}
+raw "Content-Length: abc"        400 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Content-Length: abc"
+raw "Content-Length: -1"         400 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Content-Length: -1"
+raw "Content-Length twice"       400 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Content-Length: 0" "Content-Length: 0"
+raw "Transfer-Encoding: (empty)" 400 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Transfer-Encoding:"
+raw "Content-Length: 0 (plain)"  200 "POST /do/none HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Content-Length: 0"
+raw "Host twice"                 403 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Host: 127.0.0.1" "Authorization: Bearer $TOK"
+raw "Host: [::1]evil.example"    403 "POST /do/scene/plain HTTP/1.0" "Host: [::1]evil.example" "Authorization: Bearer $TOK"
+raw "Host: 127.0.0.1:x"          403 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1:x" "Authorization: Bearer $TOK"
+raw "Host: [::1]:$PORT"          200 "POST /do/none HTTP/1.0" "Host: [::1]:$PORT" "Authorization: Bearer $TOK"
+raw "Authorization twice"        401 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Authorization: Bearer $TOK"
+raw "no Host at all"             403 "POST /do/scene/plain HTTP/1.0" "Authorization: Bearer $TOK"
+[ -s "$FX/log" ] && bad "a refused request ran a tool: $(cat $FX/log)" || ok "none of the refused requests ran a tool"
 kill $SRV; wait $SRV 2>/dev/null
 PATH="$SHIM:$PATH" FX="$FX" FX_MODE_SLEEP=2 "$PAD" serve --bind "127.0.0.1:$PORT" > "$FX/daemon" 2>&1 &
 SRV=$!
@@ -317,6 +357,20 @@ print(f"stalled client dropped after {time.time() - t0:.0f}s, got {data[:20]!r}"
 PYEOF
 )
 echo "$OUT" | grep -qE "dropped after (1[0-3]|9)s" && ok "a client stalling mid-headers is dropped at the socket timeout ($(echo "$OUT" | grep -o 'after [0-9]*s'))" || bad "$OUT"
+OUT=$("$PY" - "$PORT" <<'PYEOF'
+import socket, sys, time
+port = int(sys.argv[1])
+s = socket.create_connection(("127.0.0.1", port)); s.settimeout(3)
+t0 = time.time(); sent = 0
+try:
+    for ch in b"POST /do/none HTTP/1.0\r\nHost: 127.0.0.1\r\nX-Trickle: " + b"x" * 60:
+        s.sendall(bytes([ch])); sent += 1; time.sleep(0.5)     # a byte every 0.5 s: never idle, never done
+except (BrokenPipeError, ConnectionResetError):
+    pass
+print(f"trickling client dropped after {time.time() - t0:.0f}s, {sent} bytes")
+PYEOF
+)
+echo "$OUT" | grep -qE "dropped after (9|1[0-3])s" && ok "a trickling client (a byte every 0.5 s) is dropped at the absolute 10 s deadline ($(echo "$OUT" | grep -o 'after [0-9]*s, [0-9]* bytes'))" || bad "$OUT"
 kill $SRV; wait $SRV 2>/dev/null
 grep -q "http verb='scene brand' rc=0" "$FX/daemon" && ok "one journal line per HTTP verb" || bad "$(cat $FX/daemon)"
 

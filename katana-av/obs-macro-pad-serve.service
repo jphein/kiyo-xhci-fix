@@ -22,6 +22,9 @@ RestartSec=3
 #                         the OBS websocket and ~/.local/state writes all work in here.
 #   Not set: ProtectHome / ReadOnlyPaths=%h (measured ineffective in a user unit here: home stayed writable);
 #   ProtectClock / ProtectKernelLogs / ProtectKernelModules (fail with exit 218 in a user unit).
+#   Accepted limit: the camera-mode escape is delegation through the user manager, not a boundary; a compromised
+#   daemon could start any unsandboxed transient unit. The sandbox contains the HTTP path, not a process takeover.
+#   The 10 s HTTP timeout is an absolute deadline for the request head; a verb (camera-mode ~20 s) is not limited by it.
 ProtectSystem=strict
 PrivateTmp=yes
 NoNewPrivileges=yes

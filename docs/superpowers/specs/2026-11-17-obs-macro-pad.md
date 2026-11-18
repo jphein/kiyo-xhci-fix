@@ -134,11 +134,15 @@ key down). A second press while an action is still running is dropped, not queue
   from `~/.config/obs-macro-pad/token` (0600, 64 hex, made by `install.sh`) as `Authorization: Bearer <t>` or
   Basic with `<t>` as the password (Companion's `pad` connection uses Basic, user `pad`); a request with an
   `Origin` header is refused (403: no page in a browser drives the stack, CSRF or not), `Host` must be loopback
-  (403), POST takes no body (400), 8 connections at once (more get 503 at once), a stalled client is dropped
-  after 10 s. Unit sandbox: `ProtectSystem=strict`, `PrivateTmp`, `NoNewPrivileges`, `RestrictSUIDSGID`,
+  (403; exactly one well-formed Host, exactly one Authorization), POST takes no body (any Transfer-Encoding or a
+  Content-Length other than one plain `0` → 400), 8 connections at once (more get 503 at once), a client that has
+  not finished its request head 10 s after connecting is dropped (an absolute deadline, trickling does not help;
+  a running verb is not limited by it). Unit sandbox: `ProtectSystem=strict`, `PrivateTmp`, `NoNewPrivileges`, `RestrictSUIDSGID`,
   `RestrictRealtime`, `LockPersonality`, `ProtectControlGroups`, `RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6`,
   `SystemCallArchitectures=native`; `camera-mode` runs as a transient user unit outside it
-  (`OBS_MACRO_PAD_ESCAPE=systemd-run`) because its wedge recovery is `sudo tee` into sysfs. Measured and NOT
+  (`OBS_MACRO_PAD_ESCAPE=systemd-run`) because its wedge recovery is `sudo tee` into sysfs; accepted limit: that
+  escape is delegation through the user manager, not a boundary against a compromised daemon (the sandbox
+  contains the HTTP path, which exposes only the verb allow-list, not a process takeover). Measured and NOT
   used: `ProtectHome`/`ReadOnlyPaths=%h` leave home writable in a user unit here. Rollback:
   `systemctl --user disable --now obs-macro-pad-serve.service` + drop the enable/restart lines from `install.sh`.
 

@@ -177,7 +177,10 @@ class Actions:
             # The serve unit is sandboxed (ProtectSystem=strict, NoNewPrivileges …); camera-mode's wedge recovery
             # is reset-camera.sh = `sudo tee` into sysfs, impossible in there. It runs as its own transient user
             # unit instead (the user bus is reachable from the sandbox), output piped back, exit code propagated,
-            # and it dies on its own a little before our timeout would abandon it.
+            # and it dies on its own a little before our timeout would abandon it. Accepted limit (xreview on
+            # PR 33): this is delegation, not a boundary. A compromised daemon can ask the user manager for any
+            # unsandboxed unit; the sandbox contains the HTTP path and the OBS/PipeWire work, not a takeover of
+            # the process itself. The HTTP path exposes only parse_verb's allow-list, never a command.
             argv = ("systemd-run", "--user", "--quiet", "--wait", "--pipe", "--collect",
                     f"--property=RuntimeMaxSec={max(int(timeout) - 10, 10)}", "--") + argv
         p = subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
@@ -504,11 +507,38 @@ def is_loopback(host):
         return False
 
 
+HOST_RE = re.compile(r"(\[[0-9A-Fa-f:.]+\]|[0-9.]+|localhost)(?::[0-9]{1,5})?")
+
+
 def host_header_ok(value):
-    """Host: must be loopback too (DNS rebinding / a LAN name pointing here)."""
-    v = (value or "").strip()
-    host = v[1:v.index("]")] if v.startswith("[") and "]" in v else v.rsplit(":", 1)[0] if ":" in v else v
-    return host == "localhost" or is_loopback(host)
+    """Host: must be a well-formed loopback authority (DNS rebinding / a LAN name pointing here): '[::1]:8765',
+    '127.0.0.1:8765', 'localhost'. Anything malformed ('[::1]evil', '127.0.0.1:x') is refused, not parsed around."""
+    m = HOST_RE.fullmatch((value or "").strip())
+    return bool(m) and (m.group(1) == "localhost" or is_loopback(m.group(1)))
+
+
+class DeadlineFile:
+    """rfile with an absolute deadline for the whole request head: each read gets what is left of HTTP_TIMEOUT, so a
+    client trickling a byte per second cannot hold a worker past it (the socket timeout alone is per read)."""
+    def __init__(self, f, sock, deadline):
+        self.f, self.sock, self.deadline = f, sock, deadline
+
+    def _arm(self):
+        left = self.deadline - time.monotonic()
+        if left <= 0:
+            raise TimeoutError("request head deadline")
+        self.sock.settimeout(left)
+
+    def readline(self, *a):
+        self._arm()
+        return self.f.readline(*a)
+
+    def read(self, *a):
+        self._arm()
+        return self.f.read(*a)
+
+    def __getattr__(self, name):
+        return getattr(self.f, name)
 
 
 class CompanionPush:
@@ -577,10 +607,19 @@ def serve(bind, actions):
     threading.Thread(target=pusher.run_forever, daemon=True).start()
 
     class H(BaseHTTPRequestHandler):
-        timeout = HTTP_TIMEOUT   # socket timeout: a client that stalls mid-request frees its worker
+        timeout = HTTP_TIMEOUT   # per-read socket timeout; DeadlineFile makes it an absolute deadline for the head
+
+        def setup(self):
+            super().setup()
+            self.rfile = DeadlineFile(self.rfile, self.connection, time.monotonic() + HTTP_TIMEOUT)
 
         def log_message(self, *_):
             pass
+
+        def _one(self, name):
+            """Exactly one header of that name, else None (a duplicate Host or Authorization is never guessed at)."""
+            vals = self.headers.get_all(name) or []
+            return vals[0] if len(vals) == 1 else None
 
         def _json(self, code, obj):
             body = json.dumps(obj).encode()
@@ -596,16 +635,16 @@ def serve(bind, actions):
             if "Origin" in self.headers:
                 self._json(403, {"error": "browser origin refused"})
                 return False
-            if not host_header_ok(self.headers.get("Host")):
+            if not host_header_ok(self._one("Host")):
                 self._json(403, {"error": "host must be loopback"})
                 return False
-            auth = self.headers.get("Authorization", "")
-            given = ""
-            if auth.startswith("Bearer "):
-                given = auth[7:].strip()
-            elif auth.startswith("Basic "):
+            scheme, _, cred = (self._one("Authorization") or "").strip().partition(" ")
+            scheme, cred, given = scheme.lower(), cred.strip(), ""
+            if scheme == "bearer":
+                given = cred
+            elif scheme == "basic":
                 try:
-                    given = base64.b64decode(auth[6:].strip(), validate=True).decode().split(":", 1)[1]
+                    given = base64.b64decode(cred, validate=True).decode().split(":", 1)[1]
                 except (ValueError, IndexError, UnicodeDecodeError):
                     given = ""
             if not hmac.compare_digest(given.encode(), token.encode()):
@@ -614,8 +653,11 @@ def serve(bind, actions):
             return True
 
         def _no_body(self):
-            """Arguments live in the path: a body or a transfer encoding is refused before anything runs."""
-            if self.headers.get("Transfer-Encoding") or int(self.headers.get("Content-Length") or 0) > 0:
+            """Arguments live in the path: the request has no body framing at all, or exactly one Content-Length that
+            is a plain '0'. Any Transfer-Encoding (even empty), a duplicate, non-decimal, negative or positive
+            Content-Length is refused before anything runs."""
+            cl = self.headers.get_all("Content-Length") or []
+            if self.headers.get_all("Transfer-Encoding") or len(cl) > 1 or (cl and cl[0].strip() != "0"):
                 self._json(400, {"error": "no body: POST /do/<verb>[/<arg>] takes its arguments in the path"})
                 return False
             return True
@@ -668,7 +710,11 @@ def serve(bind, actions):
                     pass
                 self.shutdown_request(request)
                 return
-            super().process_request(request, client_address)
+            try:
+                super().process_request(request, client_address)
+            except BaseException:   # the thread never started: give the permit back, then the usual error path
+                self.slots.release()
+                raise
 
         def process_request_thread(self, request, client_address):
             try:
