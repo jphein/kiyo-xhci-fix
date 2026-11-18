@@ -289,7 +289,7 @@ raw() {   # raw <description> <expected code> <request lines…>
 import socket, sys
 port, lines = int(sys.argv[1]), sys.argv[2:]
 s = socket.create_connection(("127.0.0.1", port)); s.settimeout(5)
-s.sendall(("\r\n".join(lines) + "\r\n\r\n").encode())
+s.sendall(("\r\n".join(lines) + "\r\n\r\n").encode("latin-1", "surrogateescape"))   # latin-1: a raw 0xb2 byte (argv surrogate) reaches the parser as-is
 data = b""
 try:
     while True:
@@ -310,6 +310,9 @@ raw "Content-Length twice"       400 "POST /do/scene/plain HTTP/1.0" "Host: 127.
 raw "Transfer-Encoding: (empty)" 400 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Transfer-Encoding:"
 raw "Content-Length: 0 (plain)"  200 "POST /do/none HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Content-Length: 0"
 raw "Content-Length: 300"        413 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Content-Length: 300"
+raw "Content-Length: ² (0xb2)"    400 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Content-Length: $(printf '\xb2')"
+raw "Content-Length: 5000 digits" 413 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Content-Length: $(head -c 5000 /dev/zero | tr '\0' 9)"
+raw "Content-Length: 0000000002 (leading zeros)" 200 "POST /do/none HTTP/1.0" "Host: 127.0.0.1" "Authorization: Bearer $TOK" "Content-Length: 0000000002" "" "{}"
 raw "Host twice"                 403 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1" "Host: 127.0.0.1" "Authorization: Bearer $TOK"
 raw "Host: [::1]evil.example"    403 "POST /do/scene/plain HTTP/1.0" "Host: [::1]evil.example" "Authorization: Bearer $TOK"
 raw "Host: 127.0.0.1:x"          403 "POST /do/scene/plain HTTP/1.0" "Host: 127.0.0.1:x" "Authorization: Bearer $TOK"
@@ -419,6 +422,13 @@ PYEOF
 echo "$OUT" | grep -qE "^short body: after (9|1[0-3])s got b''" && ok "a body that stalls short of its Content-Length is dropped at the deadline with no answer" || bad "$OUT"
 sleep 0.5
 grep -q "camera-scene plain" "$FX/log" && bad "a short body ran the verb: $(cat $FX/log)" || ok "and its verb never ran"
+kill $SRV; wait $SRV 2>/dev/null
+# admission is after the body: a complete body + a verb that outlives a (here 1 s) deadline is never shut down
+PATH="$SHIM:$PATH" FX="$FX" FX_MODE_SLEEP=2 OBS_MACRO_PAD_HTTP_TIMEOUT=1 "$PAD" serve --bind "127.0.0.1:$PORT" > "$FX/daemon-1s" 2>&1 &
+SRV=$!
+for i in $(seq 1 30); do curl -s -o /dev/null "${AUTH[@]}" -X POST "http://127.0.0.1:$PORT/do/none" && break; sleep 0.1; done
+OUT=$(curl -s -w ' %{http_code}' "${AUTH[@]}" -X POST -d '{}' "http://127.0.0.1:$PORT/do/camera-mode/fast")
+echo "$OUT" | grep -q '"rc": 0.* 200$' && echo "$OUT" | grep -qE '"ms": (19|2[0-9])[0-9][0-9]' && ok "body '{}' + a 2 s verb under a 1 s deadline: admitted, ran to the end, 200" || bad "$OUT"
 kill $SRV; wait $SRV 2>/dev/null
 grep -q "http verb='scene brand' rc=0" "$FX/daemon" && ok "one journal line per HTTP verb" || bad "$(cat $FX/daemon)"
 

@@ -670,11 +670,12 @@ def serve(bind, actions):
             so a body is tolerated: exactly one decimal Content-Length of at most BODY_MAX bytes (else 400/413),
             never a Transfer-Encoding, and the bytes are read and dropped before admission, so a body that stalls
             or trickles still meets the deadline."""
-            cl = self.headers.get_all("Content-Length") or []
-            if self.headers.get_all("Transfer-Encoding") or len(cl) > 1 or (cl and not cl[0].strip().isdigit()):
+            cl = [v.strip() for v in self.headers.get_all("Content-Length") or []]
+            if self.headers.get_all("Transfer-Encoding") or len(cl) > 1 or (cl and not re.fullmatch(r"[0-9]+", cl[0])):
                 self._json(400, {"error": "bad body framing: one decimal Content-Length or none, no Transfer-Encoding"})
                 return False
-            n = int(cl[0]) if cl else 0
+            digits = cl[0].lstrip("0") if cl else ""   # ASCII digits only (isdigit() takes '²'); compared as a
+            n = 0 if not digits else int(digits) if len(digits) <= 9 else BODY_MAX + 1   # string first: int() has a digit limit
             if n > BODY_MAX:
                 self._json(413, {"error": f"body too large (ignored anyway): {BODY_MAX} bytes at most"})
                 return False
