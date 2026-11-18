@@ -42,7 +42,12 @@ systemctl --user daemon-reload
 systemctl --user enable audio-watchdog.service
 systemctl --user restart audio-watchdog.service
 systemctl --user enable --now audio-selfcheck.timer
-# the HTTP side grabs nothing: enabled now, restarted so a new version serves (Companion/HA call it on 127.0.0.1:8765)
+# the HTTP side grabs nothing: enabled now, restarted so a new version serves (Companion/HA call it on 127.0.0.1:8765).
+# Every caller presents the token below (Companion: the "pad" connection's Basic auth, password = token).
+# Rollback: `systemctl --user disable --now obs-macro-pad-serve.service` and remove these three lines.
+TOKEN="$HOME/.config/obs-macro-pad/token"
+[ -s "$TOKEN" ] || ( umask 077; head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' > "$TOKEN" )
+chmod 0600 "$TOKEN"
 systemctl --user enable obs-macro-pad-serve.service
 systemctl --user restart obs-macro-pad-serve.service
 systemctl --user --no-pager --lines=0 status audio-watchdog.service | head -3

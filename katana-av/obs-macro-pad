@@ -14,7 +14,10 @@ is held; the program scene is never set here, only through `camera-scene brand|p
   map                                                the effective key map (and the pad's by-id name + usb id)
   find                                               the by-id event interfaces `run` would grab (nothing touched)
   serve [--bind 127.0.0.1:8765] [--dry-run]          loopback HTTP: GET /status (JSON) · POST /do/<verb>[/<arg>] — the one
-                                                     OBS writer for Companion, HA and the CYD deck (same verbs, same lock)
+                                                     OBS writer for Companion, HA and the CYD deck (same verbs, same lock).
+                                                     Binds a loopback IP only; every request needs the token from
+                                                     ~/.config/obs-macro-pad/token (0600) as `Authorization: Bearer <t>`
+                                                     or Basic with <t> as the password; a browser Origin is refused.
 
 Verbs: scene plain|brand · mic toggle|mute|unmute · camera toggle|hide|show · record toggle · stream toggle ·
 camera-mode toggle|hdr|fast · safe · status · none.
@@ -24,7 +27,10 @@ name the pad's full by-id name (up to the -event-* suffix) and its usb vendor/pr
 Exit (do): 0 done · 1 not as asked · 2 usage / unknown verb · 3 OBS not answering · 4 backed off (lock held).
 """
 import argparse
+import base64
 import fcntl
+import hmac
+import ipaddress
 import re
 import glob
 import json
@@ -35,6 +41,7 @@ import re
 import select
 import selectors
 import signal
+import socket
 import subprocess
 import sys
 import threading
@@ -48,6 +55,10 @@ LOCK = pathlib.Path(os.environ.get("CAMERA_STACK_LOCK", HOME / ".local/state/cam
 STATE = pathlib.Path(os.environ.get("OBS_MACRO_PAD_STATE", HOME / ".local/state/obs-macro-pad.json"))
 MAP_FILE = pathlib.Path(os.environ.get("OBS_MACRO_PAD_MAP", HOME / ".config/obs-macro-pad/map.json"))
 COMPANION_URL = os.environ.get("COMPANION_URL", "http://127.0.0.1:8000")   # '' = no push
+TOKEN_FILE = pathlib.Path(os.environ.get("OBS_MACRO_PAD_TOKEN_FILE", HOME / ".config/obs-macro-pad/token"))
+HTTP_WORKERS = int(os.environ.get("OBS_MACRO_PAD_WORKERS", "8"))      # concurrent connections; more get 503 at once
+HTTP_TIMEOUT = float(os.environ.get("OBS_MACRO_PAD_HTTP_TIMEOUT", "10"))   # seconds a client may stall a worker
+ESCAPE = os.environ.get("OBS_MACRO_PAD_ESCAPE", "")   # "systemd-run": camera-mode runs outside the unit's sandbox
 PUSH_EVERY = float(os.environ.get("OBS_MACRO_PAD_PUSH_S", "5"))
 RESYNC_EVERY = int(os.environ.get("OBS_MACRO_PAD_RESYNC_N", "6"))   # re-read Companion every 6th cycle (30 s)
 DEFAULT_MAP = HERE / "obs-macro-pad.json"
@@ -162,6 +173,16 @@ class Actions:
     def sh(self, *argv, timeout=120):
         if self.dry_run:
             return 0, f"would run: {' '.join(argv)}"
+        if argv[0] == "camera-mode" and ESCAPE == "systemd-run":
+            # The serve unit is sandboxed (ProtectSystem=strict, NoNewPrivileges …); camera-mode's wedge recovery
+            # is reset-camera.sh = `sudo tee` into sysfs, impossible in there. It runs as its own transient user
+            # unit instead (the user bus is reachable from the sandbox), output piped back, exit code propagated,
+            # and it dies on its own a little before our timeout would abandon it. Accepted limit (xreview on
+            # PR 33): this is delegation, not a boundary. A compromised daemon can ask the user manager for any
+            # unsandboxed unit; the sandbox contains the HTTP path and the OBS/PipeWire work, not a takeover of
+            # the process itself. The HTTP path exposes only parse_verb's allow-list, never a command.
+            argv = ("systemd-run", "--user", "--quiet", "--wait", "--pipe", "--collect",
+                    f"--property=RuntimeMaxSec={max(int(timeout) - 10, 10)}", "--") + argv
         p = subprocess.run(argv, capture_output=True, text=True, timeout=timeout)
         return p.returncode, (p.stdout + p.stderr).strip()
 
@@ -461,6 +482,41 @@ def run(args, keymap, actions):
 RC_HTTP = {0: 200, 1: 500, 2: 400, 3: 502, 4: 423}   # 423 Locked = backed off (ha holds the camera-stack lock)
 
 
+def load_token():
+    """The shared secret every HTTP caller presents (Companion's connection auth, HA's rest_command, curl): a 0600
+    file owned by us, 32+ characters; install.sh makes one. Anything else = refuse to serve (exit 2)."""
+    try:
+        st = TOKEN_FILE.stat()
+    except OSError as e:
+        raise ValueError(f"no token file {TOKEN_FILE} ({e.strerror}): install.sh makes one") from None
+    if st.st_mode & 0o077:
+        raise ValueError(f"{TOKEN_FILE} must be 0600, is {st.st_mode & 0o777:04o}")
+    if st.st_uid != os.getuid():
+        raise ValueError(f"{TOKEN_FILE} is not ours (uid {st.st_uid})")
+    tok = TOKEN_FILE.read_text().strip()
+    if len(tok) < 32 or not tok.isprintable() or any(c.isspace() for c in tok):
+        raise ValueError(f"{TOKEN_FILE}: token must be 32+ printable characters, no spaces")
+    return tok
+
+
+def is_loopback(host):
+    """A loopback IP literal: 127.0.0.0/8 or ::1 (also '[::1]'). Never a name, never 0.0.0.0, never a LAN address."""
+    try:
+        return ipaddress.ip_address(host.strip("[]")).is_loopback
+    except ValueError:
+        return False
+
+
+HOST_RE = re.compile(r"(\[[0-9A-Fa-f:.]+\]|[0-9.]+|localhost)(?::[0-9]{1,5})?")
+
+
+def host_header_ok(value):
+    """Host: must be a well-formed loopback authority (DNS rebinding / a LAN name pointing here): '[::1]:8765',
+    '127.0.0.1:8765', 'localhost'. Anything malformed ('[::1]evil', '127.0.0.1:x') is refused, not parsed around."""
+    m = HOST_RE.fullmatch((value or "").strip())
+    return bool(m) and (m.group(1) == "localhost" or is_loopback(m.group(1)))
+
+
 class CompanionPush:
     """Companion's own OBS module shows scene, record, vcam and source state; what it cannot see (the PipeWire mic,
     camera-mode) goes into its custom variables pad_mic, pad_mode, pad_camera over its HTTP API
@@ -506,16 +562,73 @@ class CompanionPush:
 
 
 def serve(bind, actions):
-    """Loopback only. One action at a time (a second POST while one runs gets 409), the same verbs and the same lock
-    as the pad, so Companion, HA and the CYD deck never write OBS behind camera-scene's or ha's back."""
+    """Loopback only (refuses any other bind address). Every request: no browser Origin, a loopback Host, and the
+    token (Bearer, or Basic with the token as password: Companion's connection auth). POST carries no body. One
+    action at a time (a second POST while one runs gets 409), the same verbs and the same lock as the pad, so
+    Companion, HA and the CYD deck never write OBS behind camera-scene's or ha's back. HTTP_WORKERS connections at
+    once (more get 503 at once), HTTP_TIMEOUT seconds for a stalled client."""
     from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    host, _, port = bind.rpartition(":")
+    host = host or "127.0.0.1"
+    if not is_loopback(host):
+        log(f"refusing to bind {bind}: loopback only (127.0.0.1 or [::1])")
+        return 2
+    try:
+        token = load_token()
+    except ValueError as e:
+        log(f"refusing to serve: {e}")
+        return 2
     busy = threading.Lock()
     pusher = CompanionPush(actions)
     threading.Thread(target=pusher.run_forever, daemon=True).start()
 
     class H(BaseHTTPRequestHandler):
+        timeout = HTTP_TIMEOUT   # per-receive socket timeout (an idle client)…
+
+        def setup(self):
+            super().setup()
+            # …and an absolute deadline for the request head: the buffered reader loops over receives inside one
+            # readline, so only something outside the read path can end a client that trickles bytes without ever
+            # finishing a line. The watchdog shuts the socket at HTTP_TIMEOUT; parse_request cancels it.
+            self.gate = threading.Lock()   # admitted xor expired: the parser and the watchdog race for it
+            self.admitted = self.expired = False
+            self.watchdog = threading.Timer(HTTP_TIMEOUT, self._deadline)
+            self.watchdog.daemon = True
+            self.watchdog.start()
+
+        def _deadline(self):
+            with self.gate:
+                if self.admitted:
+                    return
+                self.expired = True
+            try:
+                self.connection.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
+
+        def parse_request(self):
+            # The header parser takes EOF as the end of the headers, so the watchdog's shutdown could complete an
+            # unterminated head: an expired request is never admitted, whatever the parser made of it.
+            ok = super().parse_request()
+            with self.gate:
+                if self.expired:
+                    self.close_connection = True
+                    return False
+                self.admitted = True
+            self.watchdog.cancel()
+            return ok
+
+        def finish(self):
+            self.watchdog.cancel()
+            super().finish()
+
         def log_message(self, *_):
             pass
+
+        def _one(self, name):
+            """Exactly one header of that name, else None (a duplicate Host or Authorization is never guessed at)."""
+            vals = self.headers.get_all(name) or []
+            return vals[0] if len(vals) == 1 else None
 
         def _json(self, code, obj):
             body = json.dumps(obj).encode()
@@ -525,7 +638,42 @@ def serve(bind, actions):
             self.end_headers()
             self.wfile.write(body)
 
+        def _admitted(self):
+            """Origin → 403 (a page in a browser, cross-site or not, never drives the stack); Host not loopback →
+            403; token missing or wrong → 401 (no WWW-Authenticate: a browser must not pop a login box)."""
+            if "Origin" in self.headers:
+                self._json(403, {"error": "browser origin refused"})
+                return False
+            if not host_header_ok(self._one("Host")):
+                self._json(403, {"error": "host must be loopback"})
+                return False
+            scheme, _, cred = (self._one("Authorization") or "").strip().partition(" ")
+            scheme, cred, given = scheme.lower(), cred.strip(), ""
+            if scheme == "bearer":
+                given = cred
+            elif scheme == "basic":
+                try:
+                    given = base64.b64decode(cred, validate=True).decode().split(":", 1)[1]
+                except (ValueError, IndexError, UnicodeDecodeError):
+                    given = ""
+            if not hmac.compare_digest(given.encode(), token.encode()):
+                self._json(401, {"error": "token required (Authorization: Bearer <token>)"})
+                return False
+            return True
+
+        def _no_body(self):
+            """Arguments live in the path: the request has no body framing at all, or exactly one Content-Length that
+            is a plain '0'. Any Transfer-Encoding (even empty), a duplicate, non-decimal, negative or positive
+            Content-Length is refused before anything runs."""
+            cl = self.headers.get_all("Content-Length") or []
+            if self.headers.get_all("Transfer-Encoding") or len(cl) > 1 or (cl and cl[0].strip() != "0"):
+                self._json(400, {"error": "no body: POST /do/<verb>[/<arg>] takes its arguments in the path"})
+                return False
+            return True
+
         def do_GET(self):
+            if not self._admitted():
+                return
             if self.path.split("?")[0] in ("/status", "/status/"):
                 try:
                     return self._json(200, actions.status_dict())
@@ -534,6 +682,8 @@ def serve(bind, actions):
             self._json(404, {"error": "GET /status or POST /do/<verb>[/<arg>]"})
 
         def do_POST(self):
+            if not self._admitted() or not self._no_body():
+                return
             m = re.fullmatch(r"/do/([a-z-]+)(?:/([a-z]+))?/?", self.path.split("?")[0])
             if not m:
                 return self._json(404, {"error": "POST /do/<verb>[/<arg>]"})
@@ -552,10 +702,39 @@ def serve(bind, actions):
             self._json(RC_HTTP.get(rc, 500), {"verb": verb, "rc": rc, "out": out, "ms": ms})
             pusher.push()
 
-    host, _, port = bind.rpartition(":")
-    srv = ThreadingHTTPServer((host or "127.0.0.1", int(port)), H)
-    log(f"serving on http://{host or '127.0.0.1'}:{port} (loopback)")
+    class Srv(ThreadingHTTPServer):
+        daemon_threads = True
+        request_queue_size = 16
+        address_family = socket.AF_INET6 if ":" in host else socket.AF_INET
+
+        def __init__(self, *a):
+            super().__init__(*a)
+            self.slots = threading.BoundedSemaphore(HTTP_WORKERS)
+
+        def process_request(self, request, client_address):
+            if not self.slots.acquire(blocking=False):   # bounded workers: the extra connection is answered and closed
+                try:
+                    request.sendall(b"HTTP/1.0 503 Service Unavailable\r\nContent-Length: 0\r\nConnection: close\r\n\r\n")
+                except OSError:
+                    pass
+                self.shutdown_request(request)
+                return
+            try:
+                super().process_request(request, client_address)
+            except BaseException:   # the thread never started: give the permit back, then the usual error path
+                self.slots.release()
+                raise
+
+        def process_request_thread(self, request, client_address):
+            try:
+                super().process_request_thread(request, client_address)
+            finally:
+                self.slots.release()
+
+    srv = Srv((host.strip("[]"), int(port)), H)
+    log(f"serving on http://{host}:{port} (loopback, token from {TOKEN_FILE}, {HTTP_WORKERS} workers, {HTTP_TIMEOUT:g}s timeout)")
     srv.serve_forever()
+    return 0
 
 
 def main(argv):
@@ -603,8 +782,7 @@ def main(argv):
         print(f"obs-macro-pad: {out} ({ms}ms)")
         return rc
     if a.cmd == "serve":
-        serve(a.bind, actions)
-        return 0
+        return serve(a.bind, actions)
     return run(a, keymap, actions)
 
 
