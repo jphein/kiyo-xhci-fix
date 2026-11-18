@@ -159,10 +159,16 @@ t0 = time.monotonic()
 d.terminate()                                      # …SIGTERM while it runs: the verb finishes, then the pad is released
 time.sleep(0.6)
 def grabbed():                                     # a second grab fails with EBUSY while the daemon holds it
+    import errno
+    x = evdev.InputDevice(ui.device.path)
     try:
-        x = evdev.InputDevice(ui.device.path); x.grab(); x.ungrab(); x.close(); return False
-    except OSError:
+        x.grab(); x.ungrab(); return False
+    except OSError as e:
+        if e.errno != errno.EBUSY:
+            raise
         return True
+    finally:
+        x.close()
 print(f"grabbed during stop={grabbed()}")
 rc = d.wait(15)
 print(f"stop rc={rc} after {time.monotonic() - t0:.1f}s grabbed after exit={grabbed()}")
